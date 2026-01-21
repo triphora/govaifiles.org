@@ -1,0 +1,9 @@
+* {
+	text-align: center;
+	font-family: 'Liberation Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+	background-color: #FAFAFA;
+	padding: 1rem 30%;
+}
