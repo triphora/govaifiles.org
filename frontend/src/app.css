@@ -1,9 +1,11 @@
 * {
-	text-align: center;
 	font-family: 'Liberation Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 body {
 	background-color: #FAFAFA;
-	padding: 1rem 30%;
+	padding: 2rem 1.25rem;
+	max-width: 80ch;
+	margin: 0 auto;
+	text-rendering: optimizeLegibility;
 }
