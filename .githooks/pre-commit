@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Get git repo root
+GIT_ROOT=$(git rev-parse --show-toplevel)
+DB_PATH="backend/src/main/resources/db"
+
+# Check if any staged files are under the db path
+if git diff --cached --name-only | grep -q "^${DB_PATH}/"; then
+  echo "Detected changes in ${DB_PATH}, running jOOQ codegen..."
+
+  cd "$GIT_ROOT/backend" || exit 1
+
+  ./gradlew jooqCodegen
+  STATUS=$?
+
+  if [ $STATUS -ne 0 ]; then
+    echo "jOOQ code generation failed. Commit aborted."
+    exit $STATUS
+  fi
+
+  echo "jOOQ code generation completed successfully."
+  git add src/generated/java/
+fi
+
+exit 0

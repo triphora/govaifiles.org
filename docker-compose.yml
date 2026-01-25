@@ -1,0 +1,35 @@
+services:
+  postgres_db:
+    container_name: surveillance-transparency-postgres
+    image: postgres:18-alpine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: xyz
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGUSER: admin
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'admin']
+      interval: 3s
+      timeout: 5s
+      retries: 3
+  typesense:
+    container_name: surveillance-transparency-typesense
+    image: typesense/typesense:29.0
+    restart: on-failure
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense-data:/data
+    command: '--data-dir /data --api-key=$TYPESENSE_API_KEY --enable-cors'
+    healthcheck:
+      test: ['CMD', 'curl', '--fail', 'http://localhost:8108/health']
+      interval: 3s
+      timeout: 5s
+      retries: 3
+volumes:
+  typesense-data:
+  db-data:

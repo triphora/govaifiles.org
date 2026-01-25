@@ -1,0 +1,86 @@
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath libs.flyway.postgresql//("org.flywaydb:flyway-database-postgresql:11.17.2")
+	}
+}
+
+plugins {
+	id 'java'
+	id 'application'
+	alias libs.plugins.shadow
+	alias libs.plugins.dotenv
+	alias libs.plugins.flyway
+	alias libs.plugins.jooq.codegen.gradle
+}
+
+sourceSets {
+	generated
+}
+
+tasks.jooqCodegen.dependsOn tasks.flywayMigrate
+tasks.compileGeneratedJava.dependsOn tasks.jooqCodegen
+tasks.shadowJar.dependsOn tasks.compileGeneratedJava
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation libs.bundles.implementation
+	generatedImplementation libs.bundles.generatedImplementation
+	jooqCodegen libs.postgresql
+
+	implementation sourceSets.generated.output
+}
+
+def dbCredentials = [
+		url: 'jdbc:' + env.POSTGRES_URL.orNull(),
+		user: env.POSTGRES_USER.orNull(),
+		password: env.POSTGRES_PASSWORD.orNull(),
+]
+
+jooq {
+	configuration {
+		jdbc {
+			driver = 'org.postgresql.Driver'
+			url = dbCredentials['url']
+			user = dbCredentials['user']
+			password = dbCredentials['password']
+		}
+		generator {
+			database {
+				name = 'org.jooq.meta.postgres.PostgresDatabase'
+				includes = '.*'
+				inputSchema = 'public'
+			}
+			target {
+				packageName = 'dev.fauser.surveillance_transparency.generated.db'
+				directory = sourceSets.generated.java.getSrcDirs()[0]
+			}
+		}
+	}
+}
+
+flyway {
+	url = dbCredentials['url']
+	user = dbCredentials['user']
+	password = dbCredentials['password']
+	schemas = ['public']
+	baselineOnMigrate = true
+}
+
+application {
+	mainClass = 'dev.fauser.surveillance_transparency.Main'
+}
+
+jar {
+	manifest {
+		attributes(
+				'Main-Class': application.mainClass
+		)
+	}
+}
+
