@@ -4,10 +4,10 @@
 package dev.fauser.surveillance_transparency.generated.db;
 
 
+import dev.fauser.surveillance_transparency.generated.db.tables.Countries;
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
-import dev.fauser.surveillance_transparency.generated.db.tables.Test;
+import dev.fauser.surveillance_transparency.generated.db.tables.records.CountriesRecord;
 import dev.fauser.surveillance_transparency.generated.db.tables.records.FlywaySchemaHistoryRecord;
-import dev.fauser.surveillance_transparency.generated.db.tables.records.TestRecord;
 
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
@@ -26,6 +26,6 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<CountriesRecord> COUNTRIES_PKEY = Internal.createUniqueKey(Countries.COUNTRIES, DSL.name("countries_pkey"), new TableField[] { Countries.COUNTRIES.ID }, true);
     public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, DSL.name("flyway_schema_history_pk"), new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
-    public static final UniqueKey<TestRecord> TEST_PKEY = Internal.createUniqueKey(Test.TEST, DSL.name("test_pkey"), new TableField[] { Test.TEST.ID }, true);
 }

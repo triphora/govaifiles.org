@@ -1,7 +1,8 @@
 # surveillance-transparency-web
 
-useful documentation links
+use `.env` file for configuration (a `.env.template` file is provided)
 
+useful documentation links:
 * frontend
   * [SvelteKit](https://svelte.dev/docs/kit)
 * backend
@@ -11,5 +12,3 @@ useful documentation links
     * [TypeSense debug dashboard](https://bfritscher.github.io/typesense-dashboard/#/)
   * db
     * [jOOQ](https://www.jooq.org/doc/3.20/manual/)
-  * misc
-    * [Commons CLI](https://commons.apache.org/proper/commons-cli/apidocs/index.html)

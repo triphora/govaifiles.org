@@ -4,8 +4,8 @@
 package dev.fauser.surveillance_transparency.generated.db;
 
 
+import dev.fauser.surveillance_transparency.generated.db.tables.Countries;
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
-import dev.fauser.surveillance_transparency.generated.db.tables.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,14 +30,14 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.countries</code>.
+     */
+    public final Countries COUNTRIES = Countries.COUNTRIES;
+
+    /**
      * The table <code>public.flyway_schema_history</code>.
      */
     public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
-
-    /**
-     * The table <code>public.test</code>.
-     */
-    public final Test TEST = Test.TEST;
 
     /**
      * No further instances allowed
@@ -55,8 +55,8 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
-            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
-            Test.TEST
+            Countries.COUNTRIES,
+            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY
         );
     }
 }

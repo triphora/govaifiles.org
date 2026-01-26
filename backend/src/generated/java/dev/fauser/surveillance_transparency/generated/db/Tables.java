@@ -4,8 +4,8 @@
 package dev.fauser.surveillance_transparency.generated.db;
 
 
+import dev.fauser.surveillance_transparency.generated.db.tables.Countries;
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
-import dev.fauser.surveillance_transparency.generated.db.tables.Test;
 
 
 /**
@@ -15,12 +15,12 @@ import dev.fauser.surveillance_transparency.generated.db.tables.Test;
 public class Tables {
 
     /**
+     * The table <code>public.countries</code>.
+     */
+    public static final Countries COUNTRIES = Countries.COUNTRIES;
+
+    /**
      * The table <code>public.flyway_schema_history</code>.
      */
     public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
-
-    /**
-     * The table <code>public.test</code>.
-     */
-    public static final Test TEST = Test.TEST;
 }

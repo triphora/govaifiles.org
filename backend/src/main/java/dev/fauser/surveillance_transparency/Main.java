@@ -1,14 +1,20 @@
 package dev.fauser.surveillance_transparency;
 
-import dev.fauser.surveillance_transparency.generated.db.tables.records.TestRecord;
-import org.apache.commons.cli.*;
+import dev.fauser.surveillance_transparency.generated.db.tables.records.CountriesRecord;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.jooq.DSLContext;
 import org.jooq.Result;
-import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
-import org.typesense.api.*;
-import org.typesense.model.*;
-import org.typesense.resources.*;
+import org.typesense.api.Client;
+import org.typesense.api.Configuration;
+import org.typesense.api.FieldTypes;
+import org.typesense.model.CollectionSchema;
+import org.typesense.model.Field;
+import org.typesense.model.ImportDocumentsParameters;
+import org.typesense.model.IndexAction;
+import org.typesense.model.SearchParameters;
+import org.typesense.model.SearchResult;
+import org.typesense.resources.Node;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,32 +22,21 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static dev.fauser.surveillance_transparency.generated.db.tables.Test.TEST;
+import static dev.fauser.surveillance_transparency.generated.db.tables.Countries.COUNTRIES;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
 		System.setProperty("org.jooq.no-logo", "true");
 		System.setProperty("org.jooq.no-tips", "true");
+		System.setProperty("org.jooq.log.org.jooq.impl.DefaultExecuteContext.logVersionSupport", "ERROR");
 
+		Dotenv env = Dotenv.load();
 
-		Options options = new Options();
-
-		// TODO use .env
-		Option query = Option.builder("q").longOpt("query").required().hasArg().get();
-		Option apiKey = Option.builder("k").longOpt("key").required().hasArg().get();
-
-		options.addOption(query);
-		options.addOption(apiKey);
-
-		CommandLineParser parser = new DefaultParser();
-		CommandLine cmd = parser.parse(options, args);
-
-		initSearch(cmd.getOptionValue(query), cmd.getOptionValue(apiKey));
-
-		testDatabase();
+		testSearch(env.get("SEARCH_QUERY"), env.get("TYPESENSE_API_KEY"),
+			env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
 	}
 
-	private static void initSearch(String searchTerm, String apiKey) throws Exception {
+	private static void testSearch(String searchTerm, String apiKey, String url, String user, String password) throws Exception {
 		List<Node> nodes = new ArrayList<>();
 
 		nodes.add(new Node("http", "localhost", "8108"));
@@ -50,62 +45,46 @@ public class Main {
 
 		Client client = new Client(configuration);
 
+		List<Field> fields = new ArrayList<>();
+		fields.add(new Field().name("name").type(FieldTypes.STRING));
+		fields.add(new Field().name("capital").type(FieldTypes.STRING));
+		fields.add(new Field().name("gdp").type(FieldTypes.INT32).facet(true).sort(true));
 
-		boolean hasCountries = false;
+		CollectionSchema collectionSchema = new CollectionSchema();
+		collectionSchema.name("Countries").fields(fields).defaultSortingField("gdp");
 
-		for (var i : client.collections().retrieve()) {
-			if (i.getName().equals("Countries")) {
-				hasCountries = true;
-				break;
+		client.collections("Countries").delete();
+		client.collections().create(collectionSchema);
+
+		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
+			DSLContext ctx = DSL.using(conn);
+
+			Result<CountriesRecord> records = ctx.selectFrom(COUNTRIES).fetch();
+
+			StringBuilder countries = new StringBuilder();
+			for (CountriesRecord record : records) {
+				countries.append("""
+					{"id": "%d", "name": "%s", "capital": "%s", "gdp": %d}
+					""".formatted(
+					record.getId(),
+					record.getName(),
+					record.getCapital(),
+					record.getGdp()
+				)).append("\n");
 			}
-		}
-
-		if (!hasCountries) {
-			List<Field> fields = new ArrayList<>();
-			fields.add(new Field().name("countryName").type(FieldTypes.STRING));
-			fields.add(new Field().name("capital").type(FieldTypes.STRING));
-			fields.add(new Field().name("gdp").type(FieldTypes.INT32).facet(true).sort(true));
-
-			CollectionSchema collectionSchema = new CollectionSchema();
-			collectionSchema.name("Countries").fields(fields).defaultSortingField("gdp");
-
-			client.collections().create(collectionSchema);
-
-			String countries = """
-				{"countryName": "Japan", "capital": "Tokyo", "gdp": 100}
-				{"countryName": "Canada", "capital": "Ottawa", "gdp": 200}
-				{"countryName": "United States of America", "capital": "Washington, D.C.", "gdp": 300}
-				""";
 
 			ImportDocumentsParameters queryParameters = new ImportDocumentsParameters();
-			queryParameters.action(IndexAction.CREATE);
+			queryParameters.action(IndexAction.UPSERT);
 
-			client.collections("Countries").documents().import_(countries, queryParameters);
+			client.collections("Countries").documents().import_(countries.toString(), queryParameters);
 		}
 
 		SearchParameters searchParameters = new SearchParameters()
 			.q(searchTerm)
-			.queryBy("countryName,capital")
+			.queryBy("name,capital")
 			.prefix("true,false");
 		SearchResult searchResult = client.collections("Countries").documents().search(searchParameters);
 
-		searchResult.getHits().forEach((hit) -> {
-			Log.info(hit.getDocument().toString());
-		});
-	}
-
-	private static void testDatabase() throws Exception {
-		// TODO use .env
-		String url = "jdbc:postgresql://localhost:5432/postgres";
-		String user = "admin";
-		String password = "uhSIDUFSDUHFijjfksd";
-
-		try (Connection conn = DriverManager.getConnection(url, user, password)) {
-			DSLContext ctx = DSL.using(conn);
-
-			Result<TestRecord> result = ctx.selectFrom(TEST).fetch();
-
-			Log.info("\n" + result.format());
-		}
+		searchResult.getHits().forEach((hit) -> Log.info(hit.getDocument().toString()));
 	}
 }
