@@ -1,7 +1,10 @@
 package dev.fauser.surveillance_transparency;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import dev.fauser.surveillance_transparency.generated.db.tables.records.CountriesRecord;
 import io.github.cdimascio.dotenv.Dotenv;
+import io.javalin.Javalin;
 import org.jooq.DSLContext;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
@@ -23,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static dev.fauser.surveillance_transparency.generated.db.tables.Countries.COUNTRIES;
+import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
@@ -32,11 +36,24 @@ public class Main {
 
 		Dotenv env = Dotenv.load();
 
-		testSearch(env.get("SEARCH_QUERY"), env.get("TYPESENSE_API_KEY"),
+		CountryController crud = new CountryController();
+
+		testSearch(crud.countries, env.get("SEARCH_QUERY"), env.get("TYPESENSE_API_KEY"),
 			env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
+
+		var app = Javalin.create(config -> {
+			config.useVirtualThreads = true;
+			config.http.asyncTimeout = 10_000L;
+			config.router.apiBuilder(() -> {
+				crud("country/{country-id}", crud);
+			});
+		});
+		app.before(ctx -> {
+			ctx.header("Access-Control-Allow-Origin", "*");
+		}).start(7070);
 	}
 
-	private static void testSearch(String searchTerm, String apiKey, String url, String user, String password) throws Exception {
+	static void testSearch(ArrayList<JsonObject> results, String searchTerm, String apiKey, String url, String user, String password) throws Exception {
 		List<Node> nodes = new ArrayList<>();
 
 		nodes.add(new Node("http", "localhost", "8108"));
@@ -53,7 +70,19 @@ public class Main {
 		CollectionSchema collectionSchema = new CollectionSchema();
 		collectionSchema.name("Countries").fields(fields).defaultSortingField("gdp");
 
-		client.collections("Countries").delete();
+		boolean hasCountries = false;
+
+		for (var i : client.collections().retrieve()) {
+			if (i.getName().equals("Countries")) {
+				hasCountries = true;
+				break;
+			}
+		}
+
+		if (hasCountries) {
+			client.collections("Countries").delete();
+		}
+
 		client.collections().create(collectionSchema);
 
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
@@ -85,6 +114,7 @@ public class Main {
 			.prefix("true,false");
 		SearchResult searchResult = client.collections("Countries").documents().search(searchParameters);
 
-		searchResult.getHits().forEach((hit) -> Log.info(hit.getDocument().toString()));
+		searchResult.getHits().forEach((hit) ->
+			results.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));
 	}
 }

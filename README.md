@@ -12,3 +12,5 @@ useful documentation links:
     * [TypeSense debug dashboard](https://bfritscher.github.io/typesense-dashboard/#/)
   * db
     * [jOOQ](https://www.jooq.org/doc/3.20/manual/)
+  * api
+    * [Javalin](https://javalin.io/documentation)
