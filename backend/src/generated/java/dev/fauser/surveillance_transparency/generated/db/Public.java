@@ -4,6 +4,7 @@
 package dev.fauser.surveillance_transparency.generated.db;
 
 
+import dev.fauser.surveillance_transparency.generated.db.tables.AiUseCaseInventory_2026;
 import dev.fauser.surveillance_transparency.generated.db.tables.Countries;
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
 
@@ -28,6 +29,11 @@ public class Public extends SchemaImpl {
      * The reference instance of <code>public</code>
      */
     public static final Public PUBLIC = new Public();
+
+    /**
+     * The table <code>public.ai_use_case_inventory_2026</code>.
+     */
+    public final AiUseCaseInventory_2026 AI_USE_CASE_INVENTORY_2026 = AiUseCaseInventory_2026.AI_USE_CASE_INVENTORY_2026;
 
     /**
      * The table <code>public.countries</code>.
@@ -55,6 +61,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
+            AiUseCaseInventory_2026.AI_USE_CASE_INVENTORY_2026,
             Countries.COUNTRIES,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY
         );

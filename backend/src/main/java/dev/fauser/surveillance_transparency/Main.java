@@ -2,7 +2,7 @@ package dev.fauser.surveillance_transparency;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import dev.fauser.surveillance_transparency.generated.db.tables.records.CountriesRecord;
+import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCaseInventory_2026Record;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.Javalin;
 import org.jooq.DSLContext;
@@ -25,7 +25,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static dev.fauser.surveillance_transparency.generated.db.tables.Countries.COUNTRIES;
+import static dev.fauser.surveillance_transparency.generated.db.Tables.*;
 import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Main {
@@ -38,7 +38,7 @@ public class Main {
 
 		CountryController crud = new CountryController();
 
-		testSearch(crud.countries, env.get("SEARCH_QUERY"), env.get("TYPESENSE_API_KEY"),
+		searchSetup(crud.countries, env.get("SEARCH_QUERY"), env.get("TYPESENSE_API_KEY"),
 			env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
 
 		var app = Javalin.create(config -> {
@@ -53,7 +53,7 @@ public class Main {
 		}).start(7070);
 	}
 
-	static void testSearch(ArrayList<JsonObject> results, String searchTerm, String apiKey, String url, String user, String password) throws Exception {
+	static void searchSetup(ArrayList<JsonObject> results, String searchTerm, String apiKey, String url, String user, String password) throws Exception {
 		List<Node> nodes = new ArrayList<>();
 
 		nodes.add(new Node("http", "localhost", "8108"));
@@ -63,24 +63,28 @@ public class Main {
 		Client client = new Client(configuration);
 
 		List<Field> fields = new ArrayList<>();
+		fields.add(new Field().name("id").type(FieldTypes.STRING));
 		fields.add(new Field().name("name").type(FieldTypes.STRING));
-		fields.add(new Field().name("capital").type(FieldTypes.STRING));
-		fields.add(new Field().name("gdp").type(FieldTypes.INT32).facet(true).sort(true));
+		fields.add(new Field().name("bureau").type(FieldTypes.STRING));
+		fields.add(new Field().name("email").type(FieldTypes.STRING));
+		fields.add(new Field().name("stage_of_development").type(FieldTypes.STRING));
+		fields.add(new Field().name("high_impact").type(FieldTypes.STRING));
+		fields.add(new Field().name("justification").type(FieldTypes.STRING));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
-		collectionSchema.name("Countries").fields(fields).defaultSortingField("gdp");
+		collectionSchema.name("AIUseCase2025").fields(fields)/*.defaultSortingField("high_impact")*/;
 
-		boolean hasCountries = false;
+		boolean hasCollection = false;
 
 		for (var i : client.collections().retrieve()) {
-			if (i.getName().equals("Countries")) {
-				hasCountries = true;
+			if (i.getName().equals("AIUseCase2025")) {
+				hasCollection = true;
 				break;
 			}
 		}
 
-		if (hasCountries) {
-			client.collections("Countries").delete();
+		if (hasCollection) {
+			client.collections("AIUseCase2025").delete();
 		}
 
 		client.collections().create(collectionSchema);
@@ -88,31 +92,51 @@ public class Main {
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
-			Result<CountriesRecord> records = ctx.selectFrom(COUNTRIES).fetch();
+			Result<AiUseCaseInventory_2026Record> records = ctx.selectFrom(AI_USE_CASE_INVENTORY_2026).fetch();
 
-			StringBuilder countries = new StringBuilder();
-			for (CountriesRecord record : records) {
-				countries.append("""
-					{"id": "%d", "name": "%s", "capital": "%s", "gdp": %d}
+			StringBuilder entries = new StringBuilder();
+			for (AiUseCaseInventory_2026Record record : records) {
+				entries.append("""
+					{"id": "%s", "name": "%s", "bureau": "%s", "email": "%s", "stage_of_development": "%s", "high_impact": "%s", "justification": "%s"}
 					""".formatted(
 					record.getId(),
 					record.getName(),
-					record.getCapital(),
-					record.getGdp()
+					record.getBureau(),
+					record.getEmail(),
+					record.getStageOfDevelopment(),
+					record.getHighImpact(),
+					record.getJustification()
 				)).append("\n");
 			}
 
 			ImportDocumentsParameters queryParameters = new ImportDocumentsParameters();
 			queryParameters.action(IndexAction.UPSERT);
 
-			client.collections("Countries").documents().import_(countries.toString(), queryParameters);
+			client.collections("AIUseCase2025").documents().import_(entries.toString(), queryParameters);
 		}
 
 		SearchParameters searchParameters = new SearchParameters()
 			.q(searchTerm)
-			.queryBy("name,capital")
-			.prefix("true,false");
-		SearchResult searchResult = client.collections("Countries").documents().search(searchParameters);
+			.queryBy("name,bureau,justification");
+		SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
+
+		searchResult.getHits().forEach((hit) ->
+			results.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));
+	}
+
+	static void searchTest(String searchTerm, ArrayList<JsonObject> results, String apiKey) throws Exception {
+		List<Node> nodes = new ArrayList<>();
+
+		nodes.add(new Node("http", "localhost", "8108"));
+
+		Configuration configuration = new Configuration(nodes, Duration.ofSeconds(2), apiKey);
+
+		Client client = new Client(configuration);
+
+		SearchParameters searchParameters = new SearchParameters()
+			.q(searchTerm)
+			.queryBy("name,bureau,justification");
+		SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
 
 		searchResult.getHits().forEach((hit) ->
 			results.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));

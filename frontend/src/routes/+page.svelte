@@ -4,11 +4,9 @@
 	let query = "";
 	let result = null;
 	let error = null;
-	let timeout;
 
 	$: if (query) {
-		clearTimeout(timeout);
-		timeout = setTimeout(search, 300);
+		search();
 	} else {
 		result = null;
 		error = null;
@@ -38,7 +36,7 @@
 <input
 				type="text"
 				bind:value={query}
-				placeholder="Search country..."
+				placeholder="Search..."
 />
 
 <button on:click={search}>

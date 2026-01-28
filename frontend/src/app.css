@@ -4,8 +4,12 @@
 
 body {
 	background-color: #FAFAFA;
-	padding: 2rem 1.25rem;
+	margin: 2rem 1.25rem;
 	max-width: 80ch;
 	margin: 0 auto;
 	text-rendering: optimizeLegibility;
+}
+
+pre {
+	font-family: monospace;
 }

@@ -29,13 +29,12 @@ public class CountryController implements CrudHandler {
 		Dotenv env = Dotenv.load();
 		ArrayList<JsonObject> hits = new ArrayList<>();
 		try {
-			Main.testSearch(hits, s, env.get("TYPESENSE_API_KEY"),
-				env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
+			Main.searchTest(s, hits, env.get("TYPESENSE_API_KEY"));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
-		ctx.json(!hits.isEmpty() ? hits.getFirst().toString() : "[]");
+		ctx.json(!hits.isEmpty() ? hits.toString() : "[]");
 	}
 
 	@Override

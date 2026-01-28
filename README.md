@@ -2,6 +2,11 @@
 
 use `.env` file for configuration (a `.env.template` file is provided)
 
+notes:
+* [SORNs](https://github.com/emmalurie/surveillance-transparency#sorns-system-of-records-notices): XMLs processed to JSON
+* [PRA data](https://github.com/emmalurie/surveillance-transparency#pra-paperwork-reduction-act-data): PDFs processed to CSV metadata
+* [AI Use Case Inventory](https://github.com/emmalurie/surveillance-transparency#ai-use-case-inventory): published as CSV, processed to merge/standardize agency names
+
 useful documentation links:
 * frontend
   * [SvelteKit](https://svelte.dev/docs/kit)
