@@ -4,7 +4,7 @@
 package dev.fauser.surveillance_transparency.generated.db;
 
 
-import dev.fauser.surveillance_transparency.generated.db.tables.AiUseCaseInventory_2026;
+import dev.fauser.surveillance_transparency.generated.db.tables.AiUseCaseInventoryDhs_2025;
 import dev.fauser.surveillance_transparency.generated.db.tables.Countries;
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
 
@@ -16,9 +16,9 @@ import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHist
 public class Tables {
 
     /**
-     * The table <code>public.ai_use_case_inventory_2026</code>.
+     * The table <code>public.ai_use_case_inventory_dhs_2025</code>.
      */
-    public static final AiUseCaseInventory_2026 AI_USE_CASE_INVENTORY_2026 = AiUseCaseInventory_2026.AI_USE_CASE_INVENTORY_2026;
+    public static final AiUseCaseInventoryDhs_2025 AI_USE_CASE_INVENTORY_DHS_2025 = AiUseCaseInventoryDhs_2025.AI_USE_CASE_INVENTORY_DHS_2025;
 
     /**
      * The table <code>public.countries</code>.

@@ -4,10 +4,10 @@
 package dev.fauser.surveillance_transparency.generated.db;
 
 
-import dev.fauser.surveillance_transparency.generated.db.tables.AiUseCaseInventory_2026;
+import dev.fauser.surveillance_transparency.generated.db.tables.AiUseCaseInventoryDhs_2025;
 import dev.fauser.surveillance_transparency.generated.db.tables.Countries;
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
-import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCaseInventory_2026Record;
+import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCaseInventoryDhs_2025Record;
 import dev.fauser.surveillance_transparency.generated.db.tables.records.CountriesRecord;
 import dev.fauser.surveillance_transparency.generated.db.tables.records.FlywaySchemaHistoryRecord;
 
@@ -28,7 +28,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<AiUseCaseInventory_2026Record> AI_USE_CASE_INVENTORY_2026_PKEY = Internal.createUniqueKey(AiUseCaseInventory_2026.AI_USE_CASE_INVENTORY_2026, DSL.name("ai_use_case_inventory_2026_pkey"), new TableField[] { AiUseCaseInventory_2026.AI_USE_CASE_INVENTORY_2026.ID }, true);
+    public static final UniqueKey<AiUseCaseInventoryDhs_2025Record> AI_USE_CASE_INVENTORY_DHS_2025_PKEY = Internal.createUniqueKey(AiUseCaseInventoryDhs_2025.AI_USE_CASE_INVENTORY_DHS_2025, DSL.name("ai_use_case_inventory_dhs_2025_pkey"), new TableField[] { AiUseCaseInventoryDhs_2025.AI_USE_CASE_INVENTORY_DHS_2025.ID }, true);
     public static final UniqueKey<CountriesRecord> COUNTRIES_PKEY = Internal.createUniqueKey(Countries.COUNTRIES, DSL.name("countries_pkey"), new TableField[] { Countries.COUNTRIES.ID }, true);
     public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, DSL.name("flyway_schema_history_pk"), new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
 }

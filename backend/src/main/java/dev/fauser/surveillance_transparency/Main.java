@@ -2,7 +2,7 @@ package dev.fauser.surveillance_transparency;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCaseInventory_2026Record;
+import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCaseInventoryDhs_2025Record;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.Javalin;
 import org.jooq.DSLContext;
@@ -70,9 +70,14 @@ public class Main {
 		fields.add(new Field().name("stage_of_development").type(FieldTypes.STRING));
 		fields.add(new Field().name("high_impact").type(FieldTypes.STRING));
 		fields.add(new Field().name("justification").type(FieldTypes.STRING));
+		fields.add(new Field().name("use_case_topic_area").type(FieldTypes.STRING));
+		fields.add(new Field().name("classification").type(FieldTypes.STRING));
+		fields.add(new Field().name("intended_problem_solved").type(FieldTypes.STRING));
+		fields.add(new Field().name("expected_outcomes").type(FieldTypes.STRING));
+		fields.add(new Field().name("system_outputs").type(FieldTypes.STRING));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
-		collectionSchema.name("AIUseCase2025").fields(fields)/*.defaultSortingField("high_impact")*/;
+		collectionSchema.name("AIUseCase2025").fields(fields);
 
 		boolean hasCollection = false;
 
@@ -92,12 +97,29 @@ public class Main {
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
-			Result<AiUseCaseInventory_2026Record> records = ctx.selectFrom(AI_USE_CASE_INVENTORY_2026).fetch();
+			Result<AiUseCaseInventoryDhs_2025Record> records = ctx.selectFrom(AI_USE_CASE_INVENTORY_DHS_2025).fetch();
 
+			/*
+			CREATE TABLE ai_use_case_inventory_dhs_2025 (
+    id varchar(10) NOT NULL PRIMARY KEY,
+    name varchar(255) NOT NULL,
+    bureau varchar(10) NOT NULL,
+    email varchar(255) NOT NULL,
+    stage_of_development varchar(255) NOT NULL,
+    high_impact varchar(255) NOT NULL,
+    justification varchar(2048) NULL,
+    use_case_topic_area varchar(255) NULL,
+    classification varchar(255) NULL,
+    intended_problem_solved varchar(2048) NULL,
+    expected_outcomes varchar(2048) NULL,
+    system_outputs varchar(2048) NULL
+);
+
+			 */
 			StringBuilder entries = new StringBuilder();
-			for (AiUseCaseInventory_2026Record record : records) {
+			for (AiUseCaseInventoryDhs_2025Record record : records) {
 				entries.append("""
-					{"id": "%s", "name": "%s", "bureau": "%s", "email": "%s", "stage_of_development": "%s", "high_impact": "%s", "justification": "%s"}
+					{"id": "%s", "name": "%s", "bureau": "%s", "email": "%s", "stage_of_development": "%s", "high_impact": "%s", "justification": "%s", "use_case_topic_area": "%s", "classification": "%s", "intended_problem_solved": "%s", "expected_outcomes": "%s", "system_outputs": "%s"}
 					""".formatted(
 					record.getId(),
 					record.getName(),
@@ -105,7 +127,12 @@ public class Main {
 					record.getEmail(),
 					record.getStageOfDevelopment(),
 					record.getHighImpact(),
-					record.getJustification()
+					record.getJustification(),
+					record.getUseCaseTopicArea(),
+					record.getClassification(),
+					record.getIntendedProblemSolved(),
+					record.getExpectedOutcomes(),
+					record.getSystemOutputs()
 				)).append("\n");
 			}
 
@@ -135,7 +162,7 @@ public class Main {
 
 		SearchParameters searchParameters = new SearchParameters()
 			.q(searchTerm)
-			.queryBy("name,bureau,justification");
+			.queryBy("name,bureau,justification,use_case_topic_area,classification,intended_problem_solved,expected_outcomes,system_outputs");
 		SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
 
 		searchResult.getHits().forEach((hit) ->
