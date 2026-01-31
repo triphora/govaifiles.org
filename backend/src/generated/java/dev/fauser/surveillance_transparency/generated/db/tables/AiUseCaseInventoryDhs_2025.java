@@ -51,9 +51,9 @@ public class AiUseCaseInventoryDhs_2025 extends TableImpl<AiUseCaseInventoryDhs_
     }
 
     /**
-     * The column <code>public.ai_use_case_inventory_dhs_2025.id</code>.
+     * The column <code>public.ai_use_case_inventory_dhs_2025.dhs_id</code>.
      */
-    public final TableField<AiUseCaseInventoryDhs_2025Record, String> ID = createField(DSL.name("id"), SQLDataType.VARCHAR(10).nullable(false), this, "");
+    public final TableField<AiUseCaseInventoryDhs_2025Record, String> DHS_ID = createField(DSL.name("dhs_id"), SQLDataType.VARCHAR(10).nullable(false), this, "");
 
     /**
      * The column <code>public.ai_use_case_inventory_dhs_2025.name</code>.

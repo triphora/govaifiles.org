@@ -19,16 +19,16 @@ public class AiUseCaseInventoryDhs_2025Record extends UpdatableRecordImpl<AiUseC
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>public.ai_use_case_inventory_dhs_2025.id</code>.
+     * Setter for <code>public.ai_use_case_inventory_dhs_2025.dhs_id</code>.
      */
-    public void setId(String value) {
+    public void setDhsId(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>public.ai_use_case_inventory_dhs_2025.id</code>.
+     * Getter for <code>public.ai_use_case_inventory_dhs_2025.dhs_id</code>.
      */
-    public String getId() {
+    public String getDhsId() {
         return (String) get(0);
     }
 
@@ -225,10 +225,10 @@ public class AiUseCaseInventoryDhs_2025Record extends UpdatableRecordImpl<AiUseC
     /**
      * Create a detached, initialised AiUseCaseInventoryDhs_2025Record
      */
-    public AiUseCaseInventoryDhs_2025Record(String id, String name, String bureau, String email, String stageOfDevelopment, String highImpact, String justification, String useCaseTopicArea, String classification, String intendedProblemSolved, String expectedOutcomes, String systemOutputs) {
+    public AiUseCaseInventoryDhs_2025Record(String dhsId, String name, String bureau, String email, String stageOfDevelopment, String highImpact, String justification, String useCaseTopicArea, String classification, String intendedProblemSolved, String expectedOutcomes, String systemOutputs) {
         super(AiUseCaseInventoryDhs_2025.AI_USE_CASE_INVENTORY_DHS_2025);
 
-        setId(id);
+        setDhsId(dhsId);
         setName(name);
         setBureau(bureau);
         setEmail(email);

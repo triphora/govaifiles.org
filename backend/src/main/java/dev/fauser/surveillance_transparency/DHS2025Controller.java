@@ -4,19 +4,18 @@ import com.google.gson.JsonObject;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
+import io.javalin.http.NotImplementedResponse;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class CountryController implements CrudHandler {
+public class DHS2025Controller implements CrudHandler {
 	public final ArrayList<JsonObject> countries = new ArrayList<>();
 
 	@Override
 	public void create(@NotNull Context ctx) {
-		ctx.json("""
-			{"hello":"world"}
-			""");
+		throw new NotImplementedResponse("not implemented");
 	}
 
 	@Override
@@ -39,15 +38,11 @@ public class CountryController implements CrudHandler {
 
 	@Override
 	public void update(@NotNull Context ctx, @NotNull String s) {
-		ctx.json("""
-			{"hello":"world"}
-			""");
+		throw new NotImplementedResponse("not implemented");
 	}
 
 	@Override
 	public void delete(@NotNull Context ctx, @NotNull String s) {
-		ctx.json("""
-			{"hello":"world"}
-			""");
+		throw new NotImplementedResponse("not implemented");
 	}
 }

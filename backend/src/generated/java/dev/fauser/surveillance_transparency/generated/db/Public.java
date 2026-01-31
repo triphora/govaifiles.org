@@ -5,7 +5,6 @@ package dev.fauser.surveillance_transparency.generated.db;
 
 
 import dev.fauser.surveillance_transparency.generated.db.tables.AiUseCaseInventoryDhs_2025;
-import dev.fauser.surveillance_transparency.generated.db.tables.Countries;
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
 
 import java.util.Arrays;
@@ -36,11 +35,6 @@ public class Public extends SchemaImpl {
     public final AiUseCaseInventoryDhs_2025 AI_USE_CASE_INVENTORY_DHS_2025 = AiUseCaseInventoryDhs_2025.AI_USE_CASE_INVENTORY_DHS_2025;
 
     /**
-     * The table <code>public.countries</code>.
-     */
-    public final Countries COUNTRIES = Countries.COUNTRIES;
-
-    /**
      * The table <code>public.flyway_schema_history</code>.
      */
     public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
@@ -62,7 +56,6 @@ public class Public extends SchemaImpl {
     public final List<Table<?>> getTables() {
         return Arrays.asList(
             AiUseCaseInventoryDhs_2025.AI_USE_CASE_INVENTORY_DHS_2025,
-            Countries.COUNTRIES,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY
         );
     }

@@ -19,7 +19,7 @@
 		result = null;
 
 		try {
-			const res = await fetch(`${PUBLIC_BACKEND_URL}/country/${query}`);
+			const res = await fetch(`${PUBLIC_BACKEND_URL}/dhs_2025/${query}`);
 			if (!res.ok) {
 				throw new Error(`HTTP ${res.status}`);
 			}

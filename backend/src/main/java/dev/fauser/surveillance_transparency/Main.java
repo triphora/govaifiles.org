@@ -1,11 +1,11 @@
 package dev.fauser.surveillance_transparency;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCaseInventoryDhs_2025Record;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.Javalin;
 import org.jooq.DSLContext;
+import org.jooq.JSONFormat;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.typesense.api.Client;
@@ -36,16 +36,16 @@ public class Main {
 
 		Dotenv env = Dotenv.load();
 
-		CountryController crud = new CountryController();
+		DHS2025Controller crud = new DHS2025Controller();
 
-		searchSetup(crud.countries, env.get("SEARCH_QUERY"), env.get("TYPESENSE_API_KEY"),
+		searchSetup(crud.countries, env.get("TYPESENSE_API_KEY"),
 			env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
 
 		var app = Javalin.create(config -> {
 			config.useVirtualThreads = true;
 			config.http.asyncTimeout = 10_000L;
 			config.router.apiBuilder(() -> {
-				crud("country/{country-id}", crud);
+				crud("dhs_2025/{query}", crud);
 			});
 		});
 		app.before(ctx -> {
@@ -53,7 +53,7 @@ public class Main {
 		}).start(7070);
 	}
 
-	static void searchSetup(ArrayList<JsonObject> results, String searchTerm, String apiKey, String url, String user, String password) throws Exception {
+	static void searchSetup(ArrayList<JsonObject> results, String apiKey, String url, String user, String password) throws Exception {
 		List<Node> nodes = new ArrayList<>();
 
 		nodes.add(new Node("http", "localhost", "8108"));
@@ -63,18 +63,7 @@ public class Main {
 		Client client = new Client(configuration);
 
 		List<Field> fields = new ArrayList<>();
-		fields.add(new Field().name("id").type(FieldTypes.STRING));
-		fields.add(new Field().name("name").type(FieldTypes.STRING));
-		fields.add(new Field().name("bureau").type(FieldTypes.STRING));
-		fields.add(new Field().name("email").type(FieldTypes.STRING));
-		fields.add(new Field().name("stage_of_development").type(FieldTypes.STRING));
-		fields.add(new Field().name("high_impact").type(FieldTypes.STRING));
-		fields.add(new Field().name("justification").type(FieldTypes.STRING));
-		fields.add(new Field().name("use_case_topic_area").type(FieldTypes.STRING));
-		fields.add(new Field().name("classification").type(FieldTypes.STRING));
-		fields.add(new Field().name("intended_problem_solved").type(FieldTypes.STRING));
-		fields.add(new Field().name("expected_outcomes").type(FieldTypes.STRING));
-		fields.add(new Field().name("system_outputs").type(FieldTypes.STRING));
+		fields.add(new Field().name(".*").type(FieldTypes.AUTO));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
 		collectionSchema.name("AIUseCase2025").fields(fields);
@@ -99,52 +88,23 @@ public class Main {
 
 			Result<AiUseCaseInventoryDhs_2025Record> records = ctx.selectFrom(AI_USE_CASE_INVENTORY_DHS_2025).fetch();
 
-			/*
-			CREATE TABLE ai_use_case_inventory_dhs_2025 (
-    id varchar(10) NOT NULL PRIMARY KEY,
-    name varchar(255) NOT NULL,
-    bureau varchar(10) NOT NULL,
-    email varchar(255) NOT NULL,
-    stage_of_development varchar(255) NOT NULL,
-    high_impact varchar(255) NOT NULL,
-    justification varchar(2048) NULL,
-    use_case_topic_area varchar(255) NULL,
-    classification varchar(255) NULL,
-    intended_problem_solved varchar(2048) NULL,
-    expected_outcomes varchar(2048) NULL,
-    system_outputs varchar(2048) NULL
-);
+			JSONFormat jsonFormat = new JSONFormat().header(false).recordFormat(JSONFormat.RecordFormat.OBJECT);
 
-			 */
-			StringBuilder entries = new StringBuilder();
-			for (AiUseCaseInventoryDhs_2025Record record : records) {
-				entries.append("""
-					{"id": "%s", "name": "%s", "bureau": "%s", "email": "%s", "stage_of_development": "%s", "high_impact": "%s", "justification": "%s", "use_case_topic_area": "%s", "classification": "%s", "intended_problem_solved": "%s", "expected_outcomes": "%s", "system_outputs": "%s"}
-					""".formatted(
-					record.getId(),
-					record.getName(),
-					record.getBureau(),
-					record.getEmail(),
-					record.getStageOfDevelopment(),
-					record.getHighImpact(),
-					record.getJustification(),
-					record.getUseCaseTopicArea(),
-					record.getClassification(),
-					record.getIntendedProblemSolved(),
-					record.getExpectedOutcomes(),
-					record.getSystemOutputs()
-				)).append("\n");
+			JsonArray recordsArray = JsonParser.parseString(records.formatJSON(jsonFormat)).getAsJsonArray();
+
+			StringBuilder sb = new StringBuilder();
+
+			for (JsonElement element : recordsArray) {
+				sb.append(element.toString()).append("\n");
 			}
 
 			ImportDocumentsParameters queryParameters = new ImportDocumentsParameters();
 			queryParameters.action(IndexAction.UPSERT);
 
-			client.collections("AIUseCase2025").documents().import_(entries.toString(), queryParameters);
+			client.collections("AIUseCase2025").documents().import_(sb.toString(), queryParameters);
 		}
 
-		SearchParameters searchParameters = new SearchParameters()
-			.q(searchTerm)
-			.queryBy("name,bureau,justification");
+		SearchParameters searchParameters = new SearchParameters().q("*").limit(250);
 		SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
 
 		searchResult.getHits().forEach((hit) ->
@@ -162,7 +122,8 @@ public class Main {
 
 		SearchParameters searchParameters = new SearchParameters()
 			.q(searchTerm)
-			.queryBy("name,bureau,justification,use_case_topic_area,classification,intended_problem_solved,expected_outcomes,system_outputs");
+			.queryBy("name,bureau,high_impact,justification,use_case_topic_area,classification,intended_problem_solved,expected_outcomes,system_outputs")
+			.limit(250);
 		SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
 
 		searchResult.getHits().forEach((hit) ->
