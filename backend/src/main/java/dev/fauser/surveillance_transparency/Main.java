@@ -1,7 +1,7 @@
 package dev.fauser.surveillance_transparency;
 
 import com.google.gson.*;
-import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCaseInventoryDhs_2025Record;
+import dev.fauser.surveillance_transparency.generated.db.tables.records.FrtRecordsRecord;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.Javalin;
 import org.jooq.DSLContext;
@@ -36,7 +36,7 @@ public class Main {
 
 		Dotenv env = Dotenv.load();
 
-		DHS2025Controller crud = new DHS2025Controller();
+		APIHandler crud = new APIHandler();
 
 		searchSetup(crud.countries, env.get("TYPESENSE_API_KEY"),
 			env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
@@ -66,19 +66,19 @@ public class Main {
 		fields.add(new Field().name(".*").type(FieldTypes.AUTO));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
-		collectionSchema.name("AIUseCase2025").fields(fields);
+		collectionSchema.name("FRTRecords").fields(fields);
 
 		boolean hasCollection = false;
 
 		for (var i : client.collections().retrieve()) {
-			if (i.getName().equals("AIUseCase2025")) {
+			if (i.getName().equals("FRTRecords")) {
 				hasCollection = true;
 				break;
 			}
 		}
 
 		if (hasCollection) {
-			client.collections("AIUseCase2025").delete();
+			client.collections("FRTRecords").delete();
 		}
 
 		client.collections().create(collectionSchema);
@@ -86,7 +86,7 @@ public class Main {
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
-			Result<AiUseCaseInventoryDhs_2025Record> records = ctx.selectFrom(AI_USE_CASE_INVENTORY_DHS_2025).fetch();
+			Result<FrtRecordsRecord> records = ctx.selectFrom(FRT_RECORDS).fetch();
 
 			JSONFormat jsonFormat = new JSONFormat().header(false).recordFormat(JSONFormat.RecordFormat.OBJECT);
 
@@ -101,30 +101,11 @@ public class Main {
 			ImportDocumentsParameters queryParameters = new ImportDocumentsParameters();
 			queryParameters.action(IndexAction.UPSERT);
 
-			client.collections("AIUseCase2025").documents().import_(sb.toString(), queryParameters);
+			client.collections("FRTRecords").documents().import_(sb.toString(), queryParameters);
 		}
 
 		SearchParameters searchParameters = new SearchParameters().q("*").limit(250);
-		SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
-
-		searchResult.getHits().forEach((hit) ->
-			results.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));
-	}
-
-	static void searchTest(String searchTerm, ArrayList<JsonObject> results, String apiKey) throws Exception {
-		List<Node> nodes = new ArrayList<>();
-
-		nodes.add(new Node("http", "localhost", "8108"));
-
-		Configuration configuration = new Configuration(nodes, Duration.ofSeconds(2), apiKey);
-
-		Client client = new Client(configuration);
-
-		SearchParameters searchParameters = new SearchParameters()
-			.q(searchTerm)
-			.queryBy("name,bureau,high_impact,justification,use_case_topic_area,classification,intended_problem_solved,expected_outcomes,system_outputs")
-			.limit(250);
-		SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
+		SearchResult searchResult = client.collections("FRTRecords").documents().search(searchParameters);
 
 		searchResult.getHits().forEach((hit) ->
 			results.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));
