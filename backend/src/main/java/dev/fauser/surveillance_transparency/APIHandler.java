@@ -34,6 +34,7 @@ public class APIHandler implements CrudHandler {
 	@Override
 	public void getOne(@NotNull Context ctx, @NotNull String s) {
 		String useCaseCategory = ctx.queryParam("use_case_category");
+		String canonicalAgency = ctx.queryParam("canonical_agency");
 		boolean inAiInventory = Boolean.parseBoolean(ctx.queryParam("in_ai_inventory"));
 		boolean inSorns = Boolean.parseBoolean(ctx.queryParam("in_sorns"));
 		boolean inPraDocs = Boolean.parseBoolean(ctx.queryParam("in_pra"));
@@ -58,6 +59,18 @@ public class APIHandler implements CrudHandler {
 			List<String> filters = new ArrayList<>();
 
 			if (useCaseCategory != null) filters.add("use_case_category:" + useCaseCategory.toUpperCase());
+			if (canonicalAgency != null) {
+				if (canonicalAgency.split("/").length > 1) {
+					filters.add(
+						"(canonical_sub_agency:" + canonicalAgency.split("/")[1] + " || " +
+							"canonical_sub_agency:" + canonicalAgency.split("/")[1] + "_SYN)"
+					);
+				} else {
+					filters.add(
+						"(canonical_agency:" + canonicalAgency + " || canonical_agency:" + canonicalAgency + "_SYN)"
+					);
+				}
+			}
 			if (inAiInventory) filters.add("in_ai_inventory:true");
 			if (inSorns) filters.add("in_sorns:true");
 			if (inPraDocs) filters.add("in_pra:true");

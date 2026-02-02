@@ -5,7 +5,7 @@
 <details style="margin:1em 0">
 	<summary>
 		{result.frt_instance_id || "No ID"}
-		({result.canonical_agency}{#if result.canonical_sub_agency}, {result.canonical_sub_agency}{/if})
+		({result.canonical_agency}{#if result.canonical_sub_agency}&nbsp;/ {result.canonical_sub_agency}{/if})
 	</summary>
 	<p>Present in:</p>
 	<ul>
