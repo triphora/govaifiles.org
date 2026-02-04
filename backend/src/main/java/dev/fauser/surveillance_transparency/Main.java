@@ -1,7 +1,7 @@
 package dev.fauser.surveillance_transparency;
 
 import com.google.gson.*;
-import dev.fauser.surveillance_transparency.generated.db.tables.records.FrtRecordsRecord;
+import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCase_2025Record;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.Javalin;
 import org.jooq.DSLContext;
@@ -36,16 +36,15 @@ public class Main {
 
 		Dotenv env = Dotenv.load();
 
-		APIHandler crud = new APIHandler();
+		searchSetup(env.get("TYPESENSE_API_KEY"),	env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
 
-		searchSetup(crud.countries, env.get("TYPESENSE_API_KEY"),
-			env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
+		APIHandler crud = new APIHandler();
 
 		var app = Javalin.create(config -> {
 			config.useVirtualThreads = true;
 			config.http.asyncTimeout = 10_000L;
 			config.router.apiBuilder(() -> {
-				crud("dhs_2025/{query}", crud);
+				crud("ai-use-case-2025/{query}", crud);
 			});
 		});
 		app.before(ctx -> {
@@ -53,7 +52,7 @@ public class Main {
 		}).start(7070);
 	}
 
-	static void searchSetup(ArrayList<JsonObject> results, String apiKey, String url, String user, String password) throws Exception {
+	static void searchSetup(String apiKey, String url, String user, String password) throws Exception {
 		List<Node> nodes = new ArrayList<>();
 
 		nodes.add(new Node("http", "localhost", "8108"));
@@ -66,19 +65,19 @@ public class Main {
 		fields.add(new Field().name(".*").type(FieldTypes.AUTO));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
-		collectionSchema.name("FRTRecords").fields(fields);
+		collectionSchema.name("AIUseCase2025").fields(fields);
 
 		boolean hasCollection = false;
 
 		for (var i : client.collections().retrieve()) {
-			if (i.getName().equals("FRTRecords")) {
+			if (i.getName().equals("AIUseCase2025")) {
 				hasCollection = true;
 				break;
 			}
 		}
 
 		if (hasCollection) {
-			client.collections("FRTRecords").delete();
+			client.collections("AIUseCase2025").delete();
 		}
 
 		client.collections().create(collectionSchema);
@@ -86,7 +85,7 @@ public class Main {
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
-			Result<FrtRecordsRecord> records = ctx.selectFrom(FRT_RECORDS).fetch();
+			Result<AiUseCase_2025Record> records = ctx.selectFrom(AI_USE_CASE_2025).fetch();
 
 			JSONFormat jsonFormat = new JSONFormat().header(false).recordFormat(JSONFormat.RecordFormat.OBJECT);
 
@@ -101,13 +100,7 @@ public class Main {
 			ImportDocumentsParameters queryParameters = new ImportDocumentsParameters();
 			queryParameters.action(IndexAction.UPSERT);
 
-			client.collections("FRTRecords").documents().import_(sb.toString(), queryParameters);
+			client.collections("AIUseCase2025").documents().import_(sb.toString(), queryParameters);
 		}
-
-		SearchParameters searchParameters = new SearchParameters().q("*").limit(250);
-		SearchResult searchResult = client.collections("FRTRecords").documents().search(searchParameters);
-
-		searchResult.getHits().forEach((hit) ->
-			results.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));
 	}
 }

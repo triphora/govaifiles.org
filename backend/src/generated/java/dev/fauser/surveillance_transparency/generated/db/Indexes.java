@@ -5,7 +5,6 @@ package dev.fauser.surveillance_transparency.generated.db;
 
 
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
-import dev.fauser.surveillance_transparency.generated.db.tables.FrtRecords;
 
 import org.jooq.Index;
 import org.jooq.OrderField;
@@ -24,9 +23,4 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     public static final Index FLYWAY_SCHEMA_HISTORY_S_IDX = Internal.createIndex(DSL.name("flyway_schema_history_s_idx"), FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, new OrderField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.SUCCESS }, false);
-    public static final Index IDX_FRT_RECORDS_CANONICAL_AGENCY = Internal.createIndex(DSL.name("idx_frt_records_canonical_agency"), FrtRecords.FRT_RECORDS, new OrderField[] { FrtRecords.FRT_RECORDS.CANONICAL_AGENCY }, false);
-    public static final Index IDX_FRT_RECORDS_DISCLOSURE_PATTERN = Internal.createIndex(DSL.name("idx_frt_records_disclosure_pattern"), FrtRecords.FRT_RECORDS, new OrderField[] { FrtRecords.FRT_RECORDS.DISCLOSURE_PATTERN }, false);
-    public static final Index IDX_FRT_RECORDS_FRT_INSTANCE_ID = Internal.createIndex(DSL.name("idx_frt_records_frt_instance_id"), FrtRecords.FRT_RECORDS, new OrderField[] { FrtRecords.FRT_RECORDS.FRT_INSTANCE_ID }, false);
-    public static final Index IDX_FRT_RECORDS_RECORD_TYPE = Internal.createIndex(DSL.name("idx_frt_records_record_type"), FrtRecords.FRT_RECORDS, new OrderField[] { FrtRecords.FRT_RECORDS.RECORD_TYPE }, false);
-    public static final Index IDX_FRT_RECORDS_USE_CASE_CATEGORY = Internal.createIndex(DSL.name("idx_frt_records_use_case_category"), FrtRecords.FRT_RECORDS, new OrderField[] { FrtRecords.FRT_RECORDS.USE_CASE_CATEGORY }, false);
 }

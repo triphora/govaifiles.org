@@ -1,0 +1,3 @@
+[submodule "inventory"]
+	path = inventory
+	url = https://github.com/kevinschaul/2025-Federal-Agency-AI-Use-Case-Inventory.git

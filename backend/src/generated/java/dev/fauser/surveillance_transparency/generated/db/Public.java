@@ -4,8 +4,8 @@
 package dev.fauser.surveillance_transparency.generated.db;
 
 
+import dev.fauser.surveillance_transparency.generated.db.tables.AiUseCase_2025;
 import dev.fauser.surveillance_transparency.generated.db.tables.FlywaySchemaHistory;
-import dev.fauser.surveillance_transparency.generated.db.tables.FrtRecords;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,14 +30,14 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.ai_use_case_2025</code>.
+     */
+    public final AiUseCase_2025 AI_USE_CASE_2025 = AiUseCase_2025.AI_USE_CASE_2025;
+
+    /**
      * The table <code>public.flyway_schema_history</code>.
      */
     public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
-
-    /**
-     * The table <code>public.frt_records</code>.
-     */
-    public final FrtRecords FRT_RECORDS = FrtRecords.FRT_RECORDS;
 
     /**
      * No further instances allowed
@@ -55,8 +55,8 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
-            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
-            FrtRecords.FRT_RECORDS
+            AiUseCase_2025.AI_USE_CASE_2025,
+            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY
         );
     }
 }

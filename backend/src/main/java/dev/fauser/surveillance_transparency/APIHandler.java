@@ -15,12 +15,9 @@ import org.typesense.resources.Node;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class APIHandler implements CrudHandler {
-	public final ArrayList<JsonObject> countries = new ArrayList<>();
-
 	@Override
 	public void create(@NotNull Context ctx) {
 		throw new NotImplementedResponse("not implemented");
@@ -28,13 +25,13 @@ public class APIHandler implements CrudHandler {
 
 	@Override
 	public void getAll(@NotNull Context ctx) {
-		ctx.json(Arrays.toString(countries.toArray()));
+		throw new NotImplementedResponse("not implemented");
 	}
 
 	@Override
 	public void getOne(@NotNull Context ctx, @NotNull String s) {
 		String useCaseCategory = ctx.queryParam("use_case_category");
-		String canonicalAgency = ctx.queryParam("canonical_agency");
+		String agency = ctx.queryParam("agency");
 		boolean inAiInventory = Boolean.parseBoolean(ctx.queryParam("in_ai_inventory"));
 		boolean inSorns = Boolean.parseBoolean(ctx.queryParam("in_sorns"));
 		boolean inPraDocs = Boolean.parseBoolean(ctx.queryParam("in_pra"));
@@ -53,33 +50,29 @@ public class APIHandler implements CrudHandler {
 
 			SearchParameters searchParameters = new SearchParameters()
 				.q(s)
-				.queryBy("matching_name,canonical_agency,canonical_sub_agency,use_case_category,matched_terms,ai_description,sorn_description,pra_description,sorn_document_number,sorn_system_name")
+				.queryBy("agency,use_case_id,use_case_name,bureau_component,stage_of_development_raw,stage_of_development," +
+					"is_high_impact_raw,is_high_impact,justification,use_case_topic_area,ai_classification,problem_statement," +
+					"expected_benefits,system_outputs,operational_start_date,development_source,vendor_name,has_ato,systems_name," +
+					"training_and_evaluation_data,federal_data_catalog_link,involves_pii,pia_link,demographic_variables_used," +
+					"includes_custom_code,open_source_code_link,pre_deployment_testing_status,ai_impact_assessment_status," +
+					"potential_impacts_description,independent_review_status,ongoing_monitoring_process,operator_training_status," +
+					"fail_safe_status,appeal_process_status,public_and_user_feedback")
 				.limit(250);
 
 			List<String> filters = new ArrayList<>();
 
+			//filters.add("is_high_impact!=Retired"); // TODO
 			if (useCaseCategory != null) filters.add("use_case_category:" + useCaseCategory.toUpperCase());
-			if (canonicalAgency != null) {
-				if (canonicalAgency.split("/").length > 1) {
-					filters.add(
-						"(canonical_sub_agency:" + canonicalAgency.split("/")[1] + " || " +
-							"canonical_sub_agency:" + canonicalAgency.split("/")[1] + "_SYN)"
-					);
-				} else {
-					filters.add(
-						"(canonical_agency:" + canonicalAgency + " || canonical_agency:" + canonicalAgency + "_SYN)"
-					);
-				}
+			if (agency != null) {
+				filters.add("agency:" + agency);
 			}
 			if (inAiInventory) filters.add("in_ai_inventory:true");
 			if (inSorns) filters.add("in_sorns:true");
 			if (inPraDocs) filters.add("in_pra:true");
 
-			if (!filters.isEmpty()) {
-				searchParameters.filterBy(String.join(" && ", filters));
-			}
+			searchParameters.filterBy(String.join(" && ", filters));
 
-			SearchResult searchResult = client.collections("FRTRecords").documents().search(searchParameters);
+			SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
 
 			searchResult.getHits().forEach((hit) ->
 				hits.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));

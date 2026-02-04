@@ -4,6 +4,7 @@ services:
     image: postgres:18-alpine
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./inventory/data/clean:/var/lib/postgresql/import
     ports:
       - '5432:5432'
     environment:

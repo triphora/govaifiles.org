@@ -23,26 +23,14 @@
 	}
 
 	async function search() {
-		let queryString = `${PUBLIC_BACKEND_URL}/dhs_2025/${query || "*"}?`
+		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "*"}?`
 
 		if (filters.category) {
 			queryString += `use_case_category=${filters.category}&`
 		}
 
 		if (filters.agency) {
-			queryString += `canonical_agency=${filters.agency}&`
-		}
-
-		if (filters.aiUseCase) {
-			queryString += `in_ai_inventory=true&`
-		}
-
-		if (filters.sorns) {
-			queryString += `in_sorns=true&`
-		}
-
-		if (filters.praDocs) {
-			queryString += `in_pra=true`
+			queryString += `agency=${filters.agency}&`
 		}
 
 		try {
@@ -57,9 +45,9 @@
 	}
 </script>
 
-<h1>AI Disclosures</h1>
+<h1>AI Use Case Inventory, 2025</h1>
 
-<div class="flexbox">
+<!--<div class="flexbox">
 <fieldset class="flex-content">
 	<legend>Use Case Category</legend>
 	<div>
@@ -111,32 +99,38 @@
 		<label for="PRA">Paperwork Reduction Act</label>
 	</div>
 </fieldset>
-</div>
+</div>-->
 
 <select bind:value={filters.agency} name="agency" id="agency-select">
 	<option value="" selected>All Agencies</option>
+	<option>Commodity Futures Trading Commission</option>
 	<option>Department of Agriculture</option>
 	<option>Department of Commerce</option>
-	<option>Department of Defense</option>
+	<option>Department of Energy</option>
 	<option>Department of Health and Human Services</option>
-	<option>&nbsp;&nbsp; / Centers for Disease Control and Prevention</option>
 	<option>Department of Homeland Security</option>
-	<option>&nbsp;&nbsp; / Citizenship and Immigration Services</option>
-	<option>&nbsp;&nbsp; / Customs and Border Protection</option>
-	<option>&nbsp;&nbsp; / Cybersecurity and Infrastructure Security Agency</option>
-	<option>&nbsp;&nbsp; / Federal Emergency Management Agency</option>
-	<option>&nbsp;&nbsp; / Immigration and Customs Enforcement</option>
-	<option>&nbsp;&nbsp; / Office of Biometric Identity Management</option>
-	<option>&nbsp;&nbsp; / Transportation Security Administration</option>
 	<option>Department of Housing and Urban Development</option>
 	<option>Department of Justice</option>
-	<option>&nbsp;&nbsp; / Federal Bureau of Investigation</option>
+	<option>Department of Labor</option>
+	<option>Department of State</option>
 	<option>Department of the Interior</option>
+	<option>Department of the Treasury</option>
 	<option>Department of Transportation</option>
-	<option>&nbsp;&nbsp; / Federal Aviation Administration</option>
-	<option>General Services Administration</option>
+	<option>Department of Veterans Affairs</option>
+	<option>Election Assistance Commission</option>
+	<option>Equal Employment Opportunity Commission</option>
+	<option>Federal Deposit Insurance Corporation</option>
+	<option>Federal Energy Regulatory Commission</option>
+	<option>Federal Housing Finance Agency</option>
+	<option>Federal Reserve Board Of Governors</option>
+	<option>National Aeronautics And Space Administration</option>
+	<option>National Archives And Records Administration</option>
+	<option>National Credit Union Administration</option>
+	<option>Office of Personnel Management</option>
+	<option>Pension Benefit Guaranty Corporation</option>
 	<option>Securities and Exchange Commission</option>
-	<option>U.S. Postal Service</option>
+	<option>Tennessee Valley Authority</option>
+	<option>United States Trade And Development Agency</option>
 </select>
 
 <input type="text" bind:value={query} placeholder="Search..." />
