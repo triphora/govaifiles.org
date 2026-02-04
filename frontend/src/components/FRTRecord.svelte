@@ -8,16 +8,24 @@
 		{#if result.bureau_component}{result.bureau_component},&nbsp;{/if}{result.agency}
 	</summary>
 
-	<p>Details:</p>
-	<ul>
-		<li><b>Topic Area:</b> {result.use_case_topic_area}</li>
-		<li><b>Classification:</b> {result.ai_classification}</li>
-		<li><b>Stage of Development:</b> {result.stage_of_development}</li>
-		<li><b>Impact:</b> {result.is_high_impact}</li>
-		<li><b>Expected Benefits:</b> {result.expected_benefits}</li>
-		<li><b>System Outputs:</b> {result.system_outputs}</li>
-		<li><b>Development Source:</b> {result.development_source}</li>
-	</ul>
+	{#if result.stage_of_development === 'Unknown'}
+		{#if result.use_case_topic_area}
+			<p><b>Topic Area:</b> {result.use_case_topic_area}</p>
+		{:else}
+			<p>No further information was provided.</p>
+		{/if}
+	{:else}
+		<p>Details:</p>
+		<ul>
+			<li><b>Topic Area:</b> {result.use_case_topic_area}</li>
+			<li><b>Classification:</b> {result.ai_classification}</li>
+			<li><b>Stage of Development:</b> {result.stage_of_development}</li>
+			<li><b>Impact:</b> {result.is_high_impact}</li>
+			<li><b>Expected Benefits:</b> {result.expected_benefits}</li>
+			<li><b>System Outputs:</b> {result.system_outputs}</li>
+			<li><b>Development Source:</b> {result.development_source}</li>
+		</ul>
+	{/if}
 </details>
 
 
@@ -39,8 +47,4 @@
 		border-bottom: 2px solid #ccc;
 		margin-bottom: .5em;
 	}
-
-	/*details[open] p {
-		margin-bottom: .25em;
-	}*/
 </style>
