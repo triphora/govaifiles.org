@@ -1,4 +1,4 @@
-package dev.fauser.surveillance_transparency;
+package org.govaifiles.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -30,7 +30,7 @@ public class APIHandler implements CrudHandler {
 
 	@Override
 	public void getOne(@NotNull Context ctx, @NotNull String s) {
-		String useCaseCategory = ctx.queryParam("use_case_category");
+		String useCaseTopicArea = ctx.queryParam("use_case_topic_area");
 		String agency = ctx.queryParam("agency");
 		boolean inAiInventory = Boolean.parseBoolean(ctx.queryParam("in_ai_inventory"));
 		boolean inSorns = Boolean.parseBoolean(ctx.queryParam("in_sorns"));
@@ -62,7 +62,7 @@ public class APIHandler implements CrudHandler {
 			List<String> filters = new ArrayList<>();
 
 			//filters.add("is_high_impact!=Retired"); // TODO
-			if (useCaseCategory != null) filters.add("use_case_category:" + useCaseCategory.toUpperCase());
+			if (useCaseTopicArea != null) filters.add("use_case_topic_area:" + useCaseTopicArea.toUpperCase());
 			if (agency != null) {
 				filters.add("agency:" + agency);
 			}

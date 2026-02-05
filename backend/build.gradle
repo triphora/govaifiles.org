@@ -57,7 +57,7 @@ jooq {
 				inputSchema = 'public'
 			}
 			target {
-				packageName = 'dev.fauser.surveillance_transparency.generated.db'
+				packageName = 'org.govaifiles.api.generated.db'
 				directory = sourceSets.generated.java.getSrcDirs()[0]
 			}
 		}
@@ -73,7 +73,7 @@ flyway {
 }
 
 application {
-	mainClass = 'dev.fauser.surveillance_transparency.Main'
+	mainClass = 'org.govaifiles.api.Main'
 }
 
 jar {

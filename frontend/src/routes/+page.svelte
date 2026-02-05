@@ -1,6 +1,6 @@
 <script>
 	import { PUBLIC_BACKEND_URL } from '$env/static/public';
-	import FrtRecord from "../components/FRTRecord.svelte";
+	import AiUseCaseRecord from "../components/AIUseCaseRecord.svelte";
 
 	let query = "";
 
@@ -148,7 +148,7 @@
 {/if}
 
 {#each results as result (result.id)}
-	<FrtRecord {result} />
+	<AiUseCaseRecord {result} />
 {/each}
 
 <style>

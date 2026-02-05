@@ -7,9 +7,9 @@ services:
       - ./inventory/data/clean:/var/lib/postgresql/import
     ports:
       - '5432:5432'
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: xyz
       POSTGRES_HOST_AUTH_METHOD: trust
       PGUSER: admin
     healthcheck:
@@ -23,6 +23,8 @@ services:
     restart: on-failure
     ports:
       - "8108:8108"
+    env_file:
+      - .env
     volumes:
       - typesense-data:/data
     command: '--data-dir /data --api-key=$TYPESENSE_API_KEY --enable-cors'

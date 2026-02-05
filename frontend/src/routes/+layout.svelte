@@ -7,7 +7,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>Government Surveillance Transparency</title>
+	<title>Government AI Files</title>
 </svelte:head>
 
 {@render children()}

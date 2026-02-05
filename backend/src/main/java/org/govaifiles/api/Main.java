@@ -1,9 +1,9 @@
-package dev.fauser.surveillance_transparency;
+package org.govaifiles.api;
 
 import com.google.gson.*;
-import dev.fauser.surveillance_transparency.generated.db.tables.records.AiUseCase_2025Record;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.Javalin;
+import org.govaifiles.api.generated.db.tables.records.AiUseCase_2025Record;
 import org.jooq.DSLContext;
 import org.jooq.JSONFormat;
 import org.jooq.Result;
@@ -15,8 +15,6 @@ import org.typesense.model.CollectionSchema;
 import org.typesense.model.Field;
 import org.typesense.model.ImportDocumentsParameters;
 import org.typesense.model.IndexAction;
-import org.typesense.model.SearchParameters;
-import org.typesense.model.SearchResult;
 import org.typesense.resources.Node;
 
 import java.sql.Connection;
@@ -25,8 +23,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import static dev.fauser.surveillance_transparency.generated.db.Tables.*;
 import static io.javalin.apibuilder.ApiBuilder.*;
+import static org.govaifiles.api.generated.db.Tables.*;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
