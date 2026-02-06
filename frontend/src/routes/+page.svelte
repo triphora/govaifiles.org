@@ -2,7 +2,7 @@
 	import { PUBLIC_BACKEND_URL } from '$env/static/public';
 	import AiUseCaseRecord from "../components/AIUseCaseRecord.svelte";
 
-	let query = "mobile";
+	let query = "";
 
 	let filters = {
 		category: null,
@@ -146,7 +146,7 @@
 {/if}
 
 {#if results}
-	<p>{results.length}{#if results.length == 250}+{/if} results {#if results.length == 0}(Try a query!){/if}</p>
+	<p>{results.length}{#if results.length == 250}+{/if} results {#if results.length == 0}(check your query!){/if}</p>
 {/if}
 
 {#each results as result (result.id)}

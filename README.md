@@ -2,20 +2,12 @@
 
 use `.env` file for configuration (a `.env.template` file is provided)
 
-notes:
-* [SORNs](https://github.com/emmalurie/surveillance-transparency#sorns-system-of-records-notices): XMLs processed to JSON
-* [PRA data](https://github.com/emmalurie/surveillance-transparency#pra-paperwork-reduction-act-data): PDFs processed to CSV metadata
-* [AI Use Case Inventory](https://github.com/emmalurie/surveillance-transparency#ai-use-case-inventory): published as CSV, processed to merge/standardize agency names
-
-useful documentation links:
-* frontend
-  * [SvelteKit](https://svelte.dev/docs/kit)
-* backend
-  * search
-    * [TypeSense](https://typesense.org/docs/guide/building-a-search-application.html)
-    * [TypeSense Java](https://github.com/typesense/typesense-java)
-    * [TypeSense debug dashboard](https://bfritscher.github.io/typesense-dashboard/#/)
-  * db
-    * [jOOQ](https://www.jooq.org/doc/3.20/manual/)
-  * api
-    * [Javalin](https://javalin.io/documentation)
+Getting started:
+1. Configure your data by copying `.env` to `.env.template`
+1. Populate inventory data with `git submodule init && git submodule update`
+1. Start backend support services (search and database) with `docker compose up` and allow it to run in the background
+1. In the `backend` directory, run `./gradlew build`
+1. Run `java -jar build/libs/backend-all.jar` and allow it to run in the background
+   * Make sure `.env` is still in your classpath
+1. In the `frontend` directory, run `pnpm install` followed by `pnpm dev`
+1. You should now have a working site on `localhost:4173`

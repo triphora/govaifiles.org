@@ -1,7 +1,15 @@
 <script>
 </script>
 
-<h1>About Us</h1>
+<h1>About</h1>
+
+<p>In 2020, <a href="https://www.federalregister.gov/documents/2020/12/08/2020-27065/promoting-the-use-of-trustworthy-artificial-intelligence-in-the-federal-government" target="_blank">Executive Order 13960</a> established a requirement for federal agencies to publish an annual inventory of their artificial intelligence use cases. However, this data is often difficult to access or search through, especially across different agencies. This website intends to make these files more accessible to the general public.</p>
+
+<h2>Sources</h2>
+
+<p>The initial data gets published by each individual agency on their own website. The <a href="https://github.com/ombegov" target="_blank">Office of the Federal Chief Information Officer</a> then consolidates the information into a single file. As of February 6, 2025, this consolidated file has not yet been published. In the meantime, Kevin Schaul, a journalist at the Washington Post, has created a consolidated file, which we use to populate the data on this site. The consolidated file can be found <a href="https://github.com/kevinschaul/2025-Federal-Agency-AI-Use-Case-Inventory/blob/e84304715df31ea94ac60dbb7df84dbc97a1393f/data/clean/2025_consolidated_ai_inventory.csv">on GitHub</a>.</p>
+
+<h2>About us</h2>
 
 <p><strong>Contact us by email:</strong> <i>team (at) this domain</i></p>
 
