@@ -2,7 +2,7 @@
 	import { PUBLIC_BACKEND_URL } from '$env/static/public';
 	import AiUseCaseRecord from "../components/AIUseCaseRecord.svelte";
 
-	let query = "";
+	let query = "mobile";
 
 	let filters = {
 		category: null,
@@ -23,7 +23,7 @@
 	}
 
 	async function search() {
-		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "*"}?`
+		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "mobile"}?`
 
 		if (filters.category) {
 			queryString += `use_case_category=${filters.category}&`
@@ -46,6 +46,8 @@
 </script>
 
 <h1>AI Use Case Inventory, 2025</h1>
+
+<p>A dashboard to explore the documents published by the United States Federal Government detailing usage of Artificial Intelligence. <a href={"/about"}>Learn more </a></p>
 
 <!--<div class="flexbox">
 <fieldset class="flex-content">
@@ -143,8 +145,8 @@
 	<p style="color: red;">{error}</p>
 {/if}
 
-{#if results && results.length == 0}
-	<p style="color: red;">No results</p>
+{#if results}
+	<p>{results.length} results {#if results.length == 0}(Try a query!){/if}</p>
 {/if}
 
 {#each results as result (result.id)}
