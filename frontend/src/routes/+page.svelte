@@ -23,7 +23,7 @@
 	}
 
 	async function search() {
-		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "mobile"}?`
+		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "*"}?`
 
 		if (filters.category) {
 			queryString += `use_case_category=${filters.category}&`
