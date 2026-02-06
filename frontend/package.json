@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"serve": "PORT=4173 node build",
+		"serve": "PORT=4173 node build > web.log 2> web_error.log",
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",

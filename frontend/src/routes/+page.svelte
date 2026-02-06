@@ -146,7 +146,7 @@
 {/if}
 
 {#if results}
-	<p>{results.length} results {#if results.length == 0}(Try a query!){/if}</p>
+	<p>{results.length}{#if results.length == 250}+{/if} results {#if results.length == 0}(Try a query!){/if}</p>
 {/if}
 
 {#each results as result (result.id)}
