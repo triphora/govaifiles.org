@@ -16,6 +16,7 @@ import org.typesense.resources.Node;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class APIHandler implements CrudHandler {
 	@Override
@@ -30,11 +31,7 @@ public class APIHandler implements CrudHandler {
 
 	@Override
 	public void getOne(@NotNull Context ctx, @NotNull String s) {
-		String useCaseTopicArea = ctx.queryParam("use_case_topic_area");
-		String agency = ctx.queryParam("agency");
-		boolean inAiInventory = Boolean.parseBoolean(ctx.queryParam("in_ai_inventory"));
-		boolean inSorns = Boolean.parseBoolean(ctx.queryParam("in_sorns"));
-		boolean inPraDocs = Boolean.parseBoolean(ctx.queryParam("in_pra"));
+		Map<String, List<String>> queryParams = ctx.queryParamMap();
 
 		Dotenv env = Dotenv.load();
 		ArrayList<JsonObject> hits = new ArrayList<>();
@@ -61,14 +58,11 @@ public class APIHandler implements CrudHandler {
 
 			List<String> filters = new ArrayList<>();
 
-			//filters.add("is_high_impact!=Retired"); // TODO
-			if (useCaseTopicArea != null) filters.add("use_case_topic_area:" + useCaseTopicArea.toUpperCase());
-			if (agency != null) {
-				filters.add("agency:" + agency);
+			for (Map.Entry<String, List<String>> entry : queryParams.entrySet()) {
+				for (String entryValue : entry.getValue()) {
+					if (!entry.getKey().isEmpty()) filters.add(entry.getKey() + ":" + entryValue);
+				}
 			}
-			if (inAiInventory) filters.add("in_ai_inventory:true");
-			if (inSorns) filters.add("in_sorns:true");
-			if (inPraDocs) filters.add("in_pra:true");
 
 			searchParameters.filterBy(String.join(" && ", filters));
 

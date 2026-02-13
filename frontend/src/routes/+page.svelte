@@ -5,11 +5,9 @@
 	let query = "";
 
 	let filters = {
-		category: null,
 		agency: "",
-		aiUseCase: false,
-		sorns: false,
-		praDocs: false,
+		stage: "",
+		impact: "",
 	}
 
 	let results = null;
@@ -25,12 +23,16 @@
 	async function search() {
 		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "*"}?`
 
-		if (filters.category) {
-			queryString += `use_case_category=${filters.category}&`
-		}
-
 		if (filters.agency) {
 			queryString += `agency=${filters.agency}&`
+		}
+
+		if (filters.stage) {
+			queryString += `stage_of_development=${filters.stage}&`
+		}
+
+		if (filters.impact) {
+			queryString += `is_high_impact==${filters.impact}&`
 		}
 
 		try {
@@ -49,8 +51,8 @@
 
 <p>A dashboard to explore the documents published by the United States Federal Government detailing usage of Artificial Intelligence. <a href={"/about"}>Learn more </a></p>
 
-<!--<div class="flexbox">
-<fieldset class="flex-content">
+<div class="flexbox">
+<!--<fieldset class="flex-content">
 	<legend>Use Case Category</legend>
 	<div>
 		<input type="radio" id="all" on:click={filters.category = null} checked />
@@ -85,23 +87,48 @@
 		<label for="other">Uncategorized</label>
 	</div>
 </fieldset>
+-->
 
 <fieldset class="flex-content">
-	<legend>Disclosure Patterns</legend>
+	<legend>Stage of Development</legend>
 	<div>
-		<input type="checkbox" id="AIUseCase" bind:checked={filters.aiUseCase}/>
-		<label for="AIUseCase">AI Use Case Inventory</label>
+		<input name="stage" type="radio" id="anystage" on:click={filters.stage = ""} checked />
+		<label for="anystage">Any stage</label>
 	</div>
 	<div>
-		<input type="checkbox" id="SORNs" bind:checked={filters.sorns} />
-		<label for="SORNs">Systems of Records Notices</label>
+		<input name="stage" type="radio" id="predeployment" on:click={filters.stage = "Pre-deployment"} />
+		<label for="predeployment">Pre-deployment</label>
 	</div>
 	<div>
-		<input type="checkbox" id="PRA" bind:checked={filters.praDocs} />
-		<label for="PRA">Paperwork Reduction Act</label>
+		<input name="stage" type="radio" id="pilot" on:click={filters.stage = "Pilot"} />
+		<label for="pilot">Pilot</label>
+	</div>
+	<div>
+		<input name="stage" type="radio" id="deployed" on:click={filters.stage = "Deployed"} />
+		<label for="deployed">Deployed</label>
+	</div>
+	<div>
+		<input name="stage" type="radio" id="retired" on:click={filters.stage = "Retired"} />
+		<label for="retired">Retired</label>
 	</div>
 </fieldset>
-</div>-->
+
+<fieldset class="flex-content">
+	<legend>Impact</legend>
+	<div>
+		<input name="impact" type="radio" id="anyimpact" on:click={filters.impact = ""} checked />
+		<label for="anyimpact">Any impact</label>
+	</div>
+	<div>
+		<input name="impact" type="radio" id="high" on:click={filters.impact = "High-impact"} />
+		<label for="high">High impact</label>
+	</div>
+	<div>
+		<input name="impact" type="radio" id="nothigh" on:click={filters.impact = "Not high-impact"} />
+		<label for="nothigh">Not high-impact</label>
+	</div>
+</fieldset>
+</div>
 
 <select bind:value={filters.agency} name="agency" id="agency-select">
 	<option value="" selected>All Agencies</option>
