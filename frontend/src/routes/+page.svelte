@@ -24,7 +24,11 @@
 		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "*"}?`
 
 		if (filters.agency) {
-			queryString += `agency=${filters.agency}&`
+			if (filters.agency === 'cabinet') {
+
+			} else {
+				queryString += `agency=${filters.agency}&`
+			}
 		}
 
 		if (filters.stage) {
@@ -52,43 +56,6 @@
 <p>A dashboard to explore the documents published by the United States Federal Government detailing usage of Artificial Intelligence. <a href={"/about"}>Learn more </a></p>
 
 <div class="flexbox">
-<!--<fieldset class="flex-content">
-	<legend>Use Case Category</legend>
-	<div>
-		<input type="radio" id="all" on:click={filters.category = null} checked />
-		<label for="all">All</label>
-	</div>
-	<div>
-		<input type="radio" id="law_enforcement" on:click={filters.category = "law_enforcement"} />
-		<label for="law_enforcement">Law Enforcement</label>
-	</div>
-	<div>
-		<input type="radio" id="immigration" on:click={filters.category = "immigration"} />
-		<label for="immigration">Immigration</label>
-	</div>
-	<div>
-		<input type="radio" id="benefits" on:click={filters.category = "benefits"} />
-		<label for="benefits">Benefits</label>
-	</div>
-	<div>
-		<input type="radio" id="transportation" on:click={filters.category = "transportation"} />
-		<label for="transportation">Transportation</label>
-	</div>
-	<div>
-		<input type="radio" id="internal" on:click={filters.category = "internal"} />
-		<label for="internal">Internal</label>
-	</div>
-	<div>
-		<input type="radio" id="health" on:click={filters.category = "health"} />
-		<label for="health">Health</label>
-	</div>
-	<div>
-		<input type="radio" id="other" on:click={filters.category = "other"} />
-		<label for="other">Uncategorized</label>
-	</div>
-</fieldset>
--->
-
 <fieldset class="flex-content">
 	<legend>Stage of Development</legend>
 	<div>
@@ -132,34 +99,45 @@
 
 <select bind:value={filters.agency} name="agency" id="agency-select">
 	<option value="" selected>All Agencies</option>
+	<option value="Department of">All Cabinet Agencies</option>
+	<option>&nbsp;&nbsp;Department of Agriculture</option>
+	<option>&nbsp;&nbsp;Department of Commerce</option>
+	<option>&nbsp;&nbsp;Department of Defense</option>
+	<option>&nbsp;&nbsp;Department of Education</option>
+	<option>&nbsp;&nbsp;Department of Energy</option>
+	<option>&nbsp;&nbsp;Department of Health and Human Services</option>
+	<option>&nbsp;&nbsp;Department of Homeland Security</option>
+	<option>&nbsp;&nbsp;Department of Housing and Urban Development</option>
+	<option>&nbsp;&nbsp;Department of Justice</option>
+	<option>&nbsp;&nbsp;Department of Labor</option>
+	<option>&nbsp;&nbsp;Department of State</option>
+	<option>&nbsp;&nbsp;Department of the Interior</option>
+	<option>&nbsp;&nbsp;Department of the Treasury</option>
+	<option>&nbsp;&nbsp;Department of Transportation</option>
+	<option>&nbsp;&nbsp;Department of Veterans Affairs</option>
 	<option>Commodity Futures Trading Commission</option>
-	<option>Department of Agriculture</option>
-	<option>Department of Commerce</option>
-	<option>Department of Energy</option>
-	<option>Department of Health and Human Services</option>
-	<option>Department of Homeland Security</option>
-	<option>Department of Housing and Urban Development</option>
-	<option>Department of Justice</option>
-	<option>Department of Labor</option>
-	<option>Department of State</option>
-	<option>Department of the Interior</option>
-	<option>Department of the Treasury</option>
-	<option>Department of Transportation</option>
-	<option>Department of Veterans Affairs</option>
+	<option>Consumer Financial Protection Bureau</option>
 	<option>Election Assistance Commission</option>
+	<option>Environmental Protection Agency</option>
 	<option>Equal Employment Opportunity Commission</option>
 	<option>Federal Deposit Insurance Corporation</option>
 	<option>Federal Energy Regulatory Commission</option>
 	<option>Federal Housing Finance Agency</option>
-	<option>Federal Reserve Board Of Governors</option>
-	<option>National Aeronautics And Space Administration</option>
-	<option>National Archives And Records Administration</option>
+	<option>Federal Reserve Board of Governors</option>
+	<option>Federal Trade Commission</option>
+	<option>General Services Administration</option>
+	<option>National Aeronautics and Space Administration</option>
+	<option>National Science Foundation</option>
+	<option>National Archives and Records Administration</option>
 	<option>National Credit Union Administration</option>
 	<option>Office of Personnel Management</option>
+	<option>National Transportation Safety Board</option>
 	<option>Pension Benefit Guaranty Corporation</option>
 	<option>Securities and Exchange Commission</option>
+	<option>Social Security Administration</option>
 	<option>Tennessee Valley Authority</option>
-	<option>United States Trade And Development Agency</option>
+	<option>United States Agency for International Development</option>
+	<option>United States Trade and Development Agency</option>
 </select>
 
 <input type="text" bind:value={query} placeholder="Search..." />
@@ -173,7 +151,31 @@
 {/if}
 
 {#if results}
-	<p>{results.length}{#if results.length == 250}+{/if} results {#if results.length == 0}(check your query!){/if}</p>
+	<p>{results.length}{#if results.length === 250}+{/if} results</p>
+
+	{#if results.length === 0}
+		{#if filters.agency.trim() === 'Department of Defense'}
+			<p>The Department of Defense is exempt from submitting an AI Use Case Inventory for intelligence reasons.</p>
+		{:else if filters.agency.trim() === 'Consumer Financial Protection Bureau'}
+			<p>The Consumer Financial Protection Bureau has no reported AI use cases in 2025.</p>
+		{:else if filters.agency.trim() === 'National Transportation Safety Board'}
+			<p>The National Transportation Safety Board has no reported AI use cases in 2025.</p>
+		{:else if filters.agency.trim() === 'Social Security Administration'}
+			<p>The Social Security Administration has not yet published its AI Use Case Inventory (as of 2/13/26).</p>
+		{:else if filters.agency.trim() === 'United States Agency for International Development'}
+			<p>The United States Agency for International Development has not yet published its AI Use Case Inventory (as of 2/13/26). The agency is defunct as of February 2025.</p>
+		{:else if filters.agency.trim() === 'Postal Regulatory Commission'}
+			<p>The Postal Regulatory Commission has not yet published its AI Use Case Inventory (as of 2/13/26).</p>
+		{:else if filters.agency.trim() === 'Presidio Trust'}
+			<p>The Presidio Trust has not yet published its AI Use Case Inventory (as of 2/13/26).</p>
+		{:else if filters.agency.trim() === 'United States Agency for Global Media'}
+			<p>The United States Agency for Global Media has not yet published its AI Use Case Inventory (as of 2/13/26).</p>
+		{:else if filters.agency.trim() === 'United States Commission on Civil Rights'}
+			<p>The United States Commission on Civil Rights has not yet published its AI Use Case Inventory (as of 2/13/26).</p>
+		{:else}
+			<p>If you think you should be getting results, check your query and filters!</p>
+		{/if}
+	{/if}
 {/if}
 
 {#each results as result (result.id)}
