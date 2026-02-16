@@ -1,5 +1,24 @@
 <script>
 	export let result
+
+	const use_case_id = result.use_case_id || '[blank]'
+	const stage_of_development = result.stage_of_development
+	const stage_of_development_raw = result.stage_of_development_raw || '[blank]'
+	const is_high_impact = result.is_high_impact || '[blank]'
+	const justification = result.justification || '[blank]'
+	const use_case_topic_area = result.use_case_topic_area || '[blank]'
+	const ai_classification = result.ai_classification || '[blank]'
+	const problem_statement = result.problem_statement || '[blank]'
+	const expected_benefits = result.expected_benefits || '[blank]'
+	const system_outputs = result.system_outputs || '[blank]'
+	const operational_start_date = result.operational_start_date || '[blank]'
+	const development_source = result.development_source || '[blank]'
+	const vendor_name = result.vendor_name || '[blank]'
+	const has_ato = result.has_ato || '[blank]'
+	const systems_name = result.systems_name || '[blank]'
+
+	const sectionTwoRequirements = result.stage_of_development !== 'Retired'
+	const sectionThreeRequirements = ['Unknown', 'Pilot', 'Deployed'].includes(result.stage_of_development)
 </script>
 
 <details style="margin:1em 0">
@@ -8,60 +27,84 @@
 		{#if result.bureau_component}{result.bureau_component},&nbsp;{/if}{result.agency}
 	</summary>
 
-	<p><b>Internal ID:</b> {result.use_case_id}</p>
+	<h4>Use Case Identifiers</h4>
 
-	{#if result.stage_of_development === 'Unknown'}
-		{#if result.use_case_topic_area}
-			<p><b>Topic Area:</b> {result.use_case_topic_area}</p>
-		{:else}
-			<p>No further information was provided.</p>
-		{/if}
-	{:else}
+	<!--Supposed to always be filled out-->
+	<p class:blank={use_case_id === '[blank]'}>
+		<b>Internal ID:</b> {use_case_id}
+	</p>
+
+	<!--Supposed to always be filled out-->
+	<p class:blank={stage_of_development === 'Unknown'}>
+		<b>Stage of Development:</b>
+		<abbr title={stage_of_development_raw}>{stage_of_development}</abbr>
+	</p>
+
+	<!--Supposed to always be filled out-->
+	<p class:blank={is_high_impact === '[blank]'}>
+		<b>Is the AI use case high-impact?:</b> {is_high_impact}
+	</p>
+
+	<!--Supposed to filled out if not high impact-->
+	{#if result.is_high_impact === 'Not high-impact'}
+		<p class="sub-1" class:blank={justification === '[blank]'}>
+			<b>Justification:</b> {justification}
+		</p>
+	{/if}
+
+	<!--Start of section 2-->
+	{#if sectionTwoRequirements}
+		<br>
+		<h4>Use Case Summary</h4>
+	{/if}
+
+	{#if sectionTwoRequirements || use_case_topic_area !== '[blank]'}
+		<p class:blank={use_case_topic_area === '[blank]'}><b>Use Case Topic Area:</b> {result.use_case_topic_area || '[blank]'}</p>
+	{/if}
+	{#if sectionTwoRequirements || ai_classification !== '[blank]'}
+		<p class:blank={ai_classification === '[blank]'}><b>AI Classification:</b> {result.ai_classification || '[blank]'}</p>
+	{/if}
+	{#if sectionTwoRequirements || problem_statement !== '[blank]'}
+		<p class:blank={problem_statement === '[blank]'}><b>What problem is the AI intended to solve?:</b> {result.problem_statement || '[blank]'}</p>
+	{/if}
+	{#if sectionTwoRequirements || expected_benefits !== '[blank]'}
+		<p class:blank={expected_benefits === '[blank]'}><b>What are the expected benefits and positive outcomes from the AI for an agency's mission and/or the general public?:</b> {result.expected_benefits || '[blank]'}</p>
+	{/if}
+	{#if sectionTwoRequirements || system_outputs !== '[blank]'}
+		<p class:blank={system_outputs === '[blank]'}><b>Describe the AI system’s outputs:</b> {system_outputs}</p>
+	{/if}
+
+	<!--Start of section 3-->
+	{#if sectionThreeRequirements}
+		<br>
+		<h4>Documentation</h4>
+	{/if}
+
+	{#if sectionThreeRequirements || operational_start_date !== '[blank]'}
+		<p class:blank={operational_start_date === '[blank]'}><b>Date when AI use case became operational or the pilot's start date:</b> {operational_start_date}</p>
+	{/if}
+	{#if sectionThreeRequirements || development_source !== '[blank]'}
+		<p class:blank={development_source === '[blank]'}><b>Was the system involved in this use case purchased from a vendor or developed under contract(s) or in-house?:</b> {development_source}</p>
+	{/if}
+	{#if sectionThreeRequirements || vendor_name !== '[blank]'}
+		<p class="sub-1" class:blank={vendor_name === '[blank]'}><b>Vendor(s) Name:</b> {vendor_name}</p>
+	{/if}
+	{#if sectionThreeRequirements || has_ato !== '[blank]'}
+		<p class:blank={has_ato === '[blank]'}><b>Does this AI use case have an associated Authorization to Operate (ATO)?:</b> {has_ato}</p>
+	{/if}
+	{#if sectionThreeRequirements || systems_name !== '[blank]'}
+		<p class:blank={systems_name === '[blank]'}><b>System(s) Name:</b> {systems_name}</p>
+	{/if}
+
+	<!--Start of section 4-->
+	{#if sectionThreeRequirements}
+		<br>
+		<h4>Data and Code</h4>
+		<!--TODO unfinished-->
+	{/if}
+
+	{#if result.stage_of_development !== 'Unknown'}
 		<ul>
-			<li>
-				<b>Stage of Development:</b>
-				<abbr title={result.stage_of_development_raw}>{result.stage_of_development}</abbr>
-			</li>
-			{#if result.is_high_impact}
-				<li><b>Impact:</b> {result.is_high_impact}</li>
-			{/if}
-			{#if result.justification}
-				<li><b>Impact Rating Justification:</b> {result.justification}</li>
-			{/if}
-			{#if result.use_case_topic_area}
-				<li><b>Topic Area:</b> {result.use_case_topic_area}</li>
-			{/if}
-			{#if result.ai_classification}
-				<li><b>Classification:</b> {result.ai_classification}</li>
-			{/if}
-			{#if result.problem_statement}
-				<li><b>What problem is the AI intended to solve?:</b> {result.problem_statement}</li>
-			{/if}
-			{#if result.expected_benefits}
-				<li><b>What are the expected benefits and positive outcomes from the AI for an agency's mission and/or the general public?:</b> {result.expected_benefits}</li>
-			{/if}
-			{#if result.system_outputs}
-				<li><b>AI Outputs:</b> {result.system_outputs}</li>
-			{/if}
-			{#if result.operational_start_date}
-				<li><b>Date when AI use case became operational or the pilot's start date:</b> {result.operational_start_date}</li>
-			{/if}
-			{#if result.development_source}
-				<li>
-					<b>Development Source:</b> {result.development_source}
-					{#if result.vendor_name}
-						<ul>
-							<li><b>Vendor:</b> {result.vendor_name}</li>
-						</ul>
-					{/if}
-				</li>
-			{/if}
-			{#if result.has_ato}
-				<li><b>Does this AI use case have an associated Authorization to Operate (ATO)?:</b> {result.has_ato}</li>
-			{/if}
-			{#if result.systems_name}
-				<li><b>System(s) Name:</b> {result.systems_name}</li>
-			{/if}
 			{#if result.training_and_evaluation_data}
 				<li><b>Describe any data used to train, fine-tune, and/or evaluate performance of the model(s) used in this use case:</b> {result.training_and_evaluation_data}</li>
 			{/if}
@@ -135,7 +178,7 @@
 
 <style>
 	details {
-		border: 2px solid #ccc;
+		border: 2px solid #ddd;
 		border-radius: 4px;
 		padding: .5em .5em 0;
 	}
@@ -144,11 +187,27 @@
 		font-weight: bold;
 		margin: -.5em -.5em 0;
 		padding: .5em;
-		background-color: #ccc;
+		background-color: #ddd;
 	}
 
 	details[open] summary {
-		border-bottom: 2px solid #ccc;
+		border-bottom: 2px solid #ddd;
 		margin-bottom: .5em;
+	}
+
+	details > p {
+		margin-bottom: 0;
+	}
+
+	details > p:last-child {
+		margin-bottom: .5em;
+	}
+
+	.sub-1 {
+		margin-left: 1rem;
+	}
+
+	.blank {
+		color: #EE0000;
 	}
 </style>

@@ -11,7 +11,7 @@
 
 <h2>About us</h2>
 
-<p><strong>Contact us by email:</strong> <i>team (at) this domain</i></p>
+<p><strong>Contact us by email:</strong> <i>team (at) govaifiles.org</i></p>
 
 <p><strong>Sorelle Friedler</strong> is the Shibulal Family Professor of Computer Science at Haverford College, a Nonresident Senior Fellow at The Brookings Institution, and the Chair of ACM's U.S. Technology Policy Committee. She previously served as Assistant Director for Data and Democracy in the White House Office of Science and Technology Policy where she co-authored the AI Bill of Rights and contributed to federal policy on AI. Her research focuses on how AI impacts society, and she is a Co-Founder of the ACM Conference on Fairness, Accountability, and Transparency (FAccT).</p>
 

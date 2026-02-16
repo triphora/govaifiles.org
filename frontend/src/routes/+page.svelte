@@ -24,11 +24,7 @@
 		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "*"}?`
 
 		if (filters.agency) {
-			if (filters.agency === 'cabinet') {
-
-			} else {
-				queryString += `agency=${filters.agency}&`
-			}
+			queryString += `agency=${filters.agency}&`
 		}
 
 		if (filters.stage) {
