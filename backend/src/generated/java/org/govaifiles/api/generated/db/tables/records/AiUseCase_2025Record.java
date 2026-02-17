@@ -522,6 +522,20 @@ public class AiUseCase_2025Record extends TableRecordImpl<AiUseCase_2025Record> 
         return (String) get(34);
     }
 
+    /**
+     * Setter for <code>public.ai_use_case_2025.agency_importance</code>.
+     */
+    public void setAgencyImportance(Integer value) {
+        set(35, value);
+    }
+
+    /**
+     * Getter for <code>public.ai_use_case_2025.agency_importance</code>.
+     */
+    public Integer getAgencyImportance() {
+        return (Integer) get(35);
+    }
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -536,7 +550,7 @@ public class AiUseCase_2025Record extends TableRecordImpl<AiUseCase_2025Record> 
     /**
      * Create a detached, initialised AiUseCase_2025Record
      */
-    public AiUseCase_2025Record(String agency, String useCaseId, String useCaseName, String bureauComponent, String stageOfDevelopmentRaw, String stageOfDevelopment, String isHighImpactRaw, String isHighImpact, String justification, String useCaseTopicArea, String aiClassification, String problemStatement, String expectedBenefits, String systemOutputs, String operationalStartDate, String developmentSource, String vendorName, String hasAto, String systemsName, String trainingAndEvaluationData, String federalDataCatalogLink, String involvesPii, String piaLink, String demographicVariablesUsed, String includesCustomCode, String openSourceCodeLink, String preDeploymentTestingStatus, String aiImpactAssessmentStatus, String potentialImpactsDescription, String independentReviewStatus, String ongoingMonitoringProcess, String operatorTrainingStatus, String failSafeStatus, String appealProcessStatus, String publicAndUserFeedback) {
+    public AiUseCase_2025Record(String agency, String useCaseId, String useCaseName, String bureauComponent, String stageOfDevelopmentRaw, String stageOfDevelopment, String isHighImpactRaw, String isHighImpact, String justification, String useCaseTopicArea, String aiClassification, String problemStatement, String expectedBenefits, String systemOutputs, String operationalStartDate, String developmentSource, String vendorName, String hasAto, String systemsName, String trainingAndEvaluationData, String federalDataCatalogLink, String involvesPii, String piaLink, String demographicVariablesUsed, String includesCustomCode, String openSourceCodeLink, String preDeploymentTestingStatus, String aiImpactAssessmentStatus, String potentialImpactsDescription, String independentReviewStatus, String ongoingMonitoringProcess, String operatorTrainingStatus, String failSafeStatus, String appealProcessStatus, String publicAndUserFeedback, Integer agencyImportance) {
         super(AiUseCase_2025.AI_USE_CASE_2025);
 
         setAgency(agency);
@@ -574,6 +588,7 @@ public class AiUseCase_2025Record extends TableRecordImpl<AiUseCase_2025Record> 
         setFailSafeStatus(failSafeStatus);
         setAppealProcessStatus(appealProcessStatus);
         setPublicAndUserFeedback(publicAndUserFeedback);
+        setAgencyImportance(agencyImportance);
         resetTouchedOnNotNull();
     }
 }

@@ -47,6 +47,7 @@ public class APIHandler implements CrudHandler {
 
 			SearchParameters searchParameters = new SearchParameters()
 				.q(s)
+				.sortBy("agency_importance:desc,agency:asc,use_case_name:asc")
 				.queryBy("agency,use_case_id,use_case_name,bureau_component,stage_of_development_raw,stage_of_development," +
 					"is_high_impact_raw,is_high_impact,justification,use_case_topic_area,ai_classification,problem_statement," +
 					"expected_benefits,system_outputs,operational_start_date,development_source,vendor_name,has_ato,systems_name," +

@@ -229,6 +229,11 @@ public class AiUseCase_2025 extends TableImpl<AiUseCase_2025Record> {
      */
     public final TableField<AiUseCase_2025Record, String> PUBLIC_AND_USER_FEEDBACK = createField(DSL.name("public_and_user_feedback"), SQLDataType.CLOB, this, "");
 
+    /**
+     * The column <code>public.ai_use_case_2025.agency_importance</code>.
+     */
+    public final TableField<AiUseCase_2025Record, Integer> AGENCY_IMPORTANCE = createField(DSL.name("agency_importance"), SQLDataType.INTEGER.defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
+
     private AiUseCase_2025(Name alias, Table<AiUseCase_2025Record> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

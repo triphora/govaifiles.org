@@ -24,7 +24,12 @@
 		let queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${query || "*"}?`
 
 		if (filters.agency) {
-			queryString += `agency=${filters.agency}&`
+			if (filters.agency.length < 12) {
+				queryString += `bureau_component=${filters.agency}&`
+				queryString += `agency=Department Of Homeland Security&`
+			} else {
+				queryString += `agency=${filters.agency}&`
+			}
 		}
 
 		if (filters.stage) {
@@ -103,6 +108,18 @@
 	<option>&nbsp;&nbsp;Department of Energy</option>
 	<option>&nbsp;&nbsp;Department of Health and Human Services</option>
 	<option>&nbsp;&nbsp;Department of Homeland Security</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;CBP</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;CISA</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;CWMD</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;DHS</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;FEMA</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;ICE</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;MGMT</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;OHS</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;TSA</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;USCG</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;USCIS</option>
+	<option>&nbsp;&nbsp;&nbsp;&nbsp;USSS</option>
 	<option>&nbsp;&nbsp;Department of Housing and Urban Development</option>
 	<option>&nbsp;&nbsp;Department of Justice</option>
 	<option>&nbsp;&nbsp;Department of Labor</option>
