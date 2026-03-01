@@ -3,3 +3,5 @@ typesense-data/
 .env
 **/build/
 **/.gradle/
+**/.venv/
+*.iml
