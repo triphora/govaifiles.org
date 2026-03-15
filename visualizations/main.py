@@ -143,7 +143,11 @@ fig.update_xaxes(dtick=1)
 
 agency_order = sorted(df_all.agency.unique(), key=lambda s: (not s.startswith("Department of"), s))
 
-app = Dash(__name__)
+app = Dash(
+    __name__,
+    requests_pathname_prefix="/plotly/",
+    routes_pathname_prefix="/plotly/",
+)
 
 app.layout = html.Div([
     dcc.Graph(id="histogram"),
