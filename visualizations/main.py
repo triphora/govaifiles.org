@@ -125,111 +125,107 @@ def standardize_data(df, year):
     df["year"] = year
     return df
 
-def main():
-    df_2025 = pd.read_csv("../inventory/data/clean/2025_consolidated_ai_inventory.csv")
-    df_2024 = pd.read_csv("../inventory/data/clean/2024_consolidated_ai_inventory_raw_v2.csv", encoding="ISO-8859-15")
-    df_2023 = pd.read_csv("../inventory/data/clean/2023_consolidated_ai_inventory_raw.csv")
+df_2025 = pd.read_csv("../inventory/data/clean/2025_consolidated_ai_inventory.csv")
+df_2024 = pd.read_csv("../inventory/data/clean/2024_consolidated_ai_inventory_raw_v2.csv", encoding="ISO-8859-15")
+df_2023 = pd.read_csv("../inventory/data/clean/2023_consolidated_ai_inventory_raw.csv")
 
-    df_2025 = standardize_data(df_2025, 2025)
-    df_2024 = standardize_data(df_2024, 2024)
-    df_2023 = standardize_data(df_2023, 2023)
+df_2025 = standardize_data(df_2025, 2025)
+df_2024 = standardize_data(df_2024, 2024)
+df_2023 = standardize_data(df_2023, 2023)
 
-    df_all = pd.concat([df_2023, df_2024, df_2025], ignore_index=True)
+df_all = pd.concat([df_2023, df_2024, df_2025], ignore_index=True)
 
-    fig = px.histogram(df_all, x="year", color="stage",
-                       title="Stage of Development of All AI Use Cases",
-                       category_orders={"stage": ["Deployed", "Pre-deployment", "Pilot", "Retired", "Unknown"]})
+fig = px.histogram(df_all, x="year", color="stage",
+                   title="Stage of Development of All AI Use Cases",
+                   category_orders={"stage": ["Deployed", "Pre-deployment", "Pilot", "Retired", "Unknown"]})
+fig.update_layout(bargap=0.1)
+fig.update_xaxes(dtick=1)
+
+agency_order = sorted(df_all.agency.unique(), key=lambda s: (not s.startswith("Department of"), s))
+
+app = Dash(__name__)
+
+app.layout = html.Div([
+    dcc.Graph(id="histogram"),
+    dcc.Dropdown(
+        id="stage-dropdown",
+        options=[{"label": "Any Stage of Development", "value": "Any"}] +
+                [{"label": s, "value": s} for s in stage_of_development_order],
+        value="Any",
+        style={"margin-bottom": "0.5em"},
+        clearable=False,
+    ),
+    dcc.Dropdown(
+        id="agency-dropdown",
+        options=[{"label": "Any Agency", "value": "Any Agency"}] +
+                [{"label": "Any Cabinet Agency", "value": "Any Cabinet Agency"}] +
+                [{"label": s, "value": s} for s in agency_order],
+        value="Any Agency",
+        style={"margin-bottom": "0.5em"},
+        clearable=False,
+    ),
+    html.Div(
+        id="dhs-bureau-dropdown-container",
+        children=[
+            dcc.Dropdown(
+                id="dhs-bureau-dropdown",
+                options=[{"label": "Any DHS Bureau", "value": "Any"}] +
+                        [{"label": s, "value": s} for s in sorted(df_all[df_all.agency=="Department of Homeland Security"].bureau.unique())],
+                value="Any",
+                style={"margin-bottom": "0.5em"},
+                clearable=False,
+            )
+        ],
+        style={"display": "none"}
+    )
+])
+@app.callback(
+    Output("histogram", "figure"),
+    Input("stage-dropdown", "value"),
+    Input("agency-dropdown", "value"),
+    Input("dhs-bureau-dropdown", "value"),
+)
+def update(stage, agency, dhs_bureau):
+    dff = df_all if stage == "Any" else df_all[df_all.stage == stage]
+    match agency:
+        case "Any Agency":
+            pass
+        case "Any Cabinet Agency":
+            dff = dff[dff.agency.str.startswith("Department of")]
+        case _:
+            dff = dff[dff.agency == agency]
+    if dhs_bureau != "Any":
+        dff = dff[dff.bureau == dhs_bureau]
+
+    color = "stage"
+    category_orders = {"stage": stage_of_development_order}
+
+    if stage != "Any":
+        color = "agency"
+        category_orders = {"agency": significant_agencies}
+        dff.loc[~dff["agency"].isin(significant_agencies), "agency"] = "Other"
+        dff.loc[~dff["bureau"].isin(significant_dhs_bureaus), "bureau"] = "Other"
+
+        if agency == "Department of Homeland Security" and dhs_bureau == "Any":
+            color = "bureau"
+            category_orders = {"bureau": significant_dhs_bureaus}
+        elif not agency.startswith("Any"):
+            color = "impact"
+            category_orders = {"impact": ["High-impact", "Not high-impact"]}
+
+    fig = px.histogram(dff, x="year", color=color,
+                       title="AI Use Cases",
+                       category_orders=category_orders)
     fig.update_layout(bargap=0.1)
     fig.update_xaxes(dtick=1)
 
-    agency_order = sorted(df_all.agency.unique(), key=lambda s: (not s.startswith("Department of"), s))
+    return fig
 
-    app = Dash(__name__)
+@app.callback(
+    Output("dhs-bureau-dropdown-container", "style"),
+    Input("agency-dropdown", "value"),
+)
+def toggle_dropdown(val):
+    return {"display": "block" if val == "Department of Homeland Security" else "none"}
 
-    app.layout = html.Div([
-        dcc.Graph(id="histogram"),
-        dcc.Dropdown(
-            id="stage-dropdown",
-            options=[{"label": "Any Stage of Development", "value": "Any"}] +
-                    [{"label": s, "value": s} for s in stage_of_development_order],
-            value="Any",
-            style={"margin-bottom": "0.5em"},
-            clearable=False,
-        ),
-        dcc.Dropdown(
-            id="agency-dropdown",
-            options=[{"label": "Any Agency", "value": "Any Agency"}] +
-                    [{"label": "Any Cabinet Agency", "value": "Any Cabinet Agency"}] +
-                    [{"label": s, "value": s} for s in agency_order],
-            value="Any Agency",
-            style={"margin-bottom": "0.5em"},
-            clearable=False,
-        ),
-        html.Div(
-            id="dhs-bureau-dropdown-container",
-            children=[
-                dcc.Dropdown(
-                    id="dhs-bureau-dropdown",
-                    options=[{"label": "Any DHS Bureau", "value": "Any"}] +
-                            [{"label": s, "value": s} for s in sorted(df_all[df_all.agency=="Department of Homeland Security"].bureau.unique())],
-                    value="Any",
-                    style={"margin-bottom": "0.5em"},
-                    clearable=False,
-                )
-            ],
-            style={"display": "none"}
-        )
-    ])
-    @app.callback(
-        Output("histogram", "figure"),
-        Input("stage-dropdown", "value"),
-        Input("agency-dropdown", "value"),
-        Input("dhs-bureau-dropdown", "value"),
-    )
-    def update(stage, agency, dhs_bureau):
-        dff = df_all if stage == "Any" else df_all[df_all.stage == stage]
-        match agency:
-            case "Any Agency":
-                pass
-            case "Any Cabinet Agency":
-                dff = dff[dff.agency.str.startswith("Department of")]
-            case _:
-                dff = dff[dff.agency == agency]
-        if dhs_bureau != "Any":
-            dff = dff[dff.bureau == dhs_bureau]
-
-        color = "stage"
-        category_orders = {"stage": stage_of_development_order}
-
-        if stage != "Any":
-            color = "agency"
-            category_orders = {"agency": significant_agencies}
-            dff.loc[~dff["agency"].isin(significant_agencies), "agency"] = "Other"
-            dff.loc[~dff["bureau"].isin(significant_dhs_bureaus), "bureau"] = "Other"
-
-            if agency == "Department of Homeland Security" and dhs_bureau == "Any":
-                color = "bureau"
-                category_orders = {"bureau": significant_dhs_bureaus}
-            elif not agency.startswith("Any"):
-                color = "impact"
-                category_orders = {"impact": ["High-impact", "Not high-impact"]}
-
-        fig = px.histogram(dff, x="year", color=color,
-                           title="AI Use Cases",
-                           category_orders=category_orders)
-        fig.update_layout(bargap=0.1)
-        fig.update_xaxes(dtick=1)
-
-        return fig
-
-    @app.callback(
-        Output("dhs-bureau-dropdown-container", "style"),
-        Input("agency-dropdown", "value"),
-    )
-    def toggle_dropdown(val):
-        return {"display": "block" if val == "Department of Homeland Security" else "none"}
-
-    app.run(debug=False)
-
-if __name__ == "__main__":
-    main()
+server = app.server
