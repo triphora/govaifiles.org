@@ -1,6 +1,7 @@
 #!/bin/python3
 import pandas as pd
 import plotly.express as px
+from dash import Dash, dcc, html, Output, Input
 
 # chosen by agencies with more than 100 deployed entries in 2025 (rearranged)
 significant_agencies = [
@@ -36,10 +37,12 @@ stage_of_development_replacements = {
     r"^Initiat(ed|ion)": "Pre-deployment",
     r"^Planned.*": "Pre-deployment",
     r".*Pre[- ][Dd]eployment.*": "Pre-deployment",
+    "Ideation": "Pre-deployment",
 
     r"^User Acceptance Testing.*": "Pilot",
     "Implementation and Assessment": "Pilot",
     "This is a pilot initiative": "Pilot",
+    # misspelling intentional (as is in dataset)
     "Refinments planned for future release": "Pilot",
     "Successfully tested but not in production.": "Pilot",
 
@@ -53,6 +56,17 @@ stage_of_development_replacements = {
     "Completed": "Retired",
 }
 
+stage_of_development_order = ["Deployed", "Pre-deployment", "Pilot", "Retired", "Unknown"]
+
+impact_replacements = {
+    # newline is present because that's how it is in the data
+    "Rights-Impacting\n": "High-impact",
+    "Safety-Impacting": "High-impact",
+    "Both": "High-impact",
+
+    "Neither": "Not high-impact",
+}
+
 agency_replacements = {
     r"\sOf\s": " of ",
     r"\sThe\s": " the ",
@@ -64,9 +78,11 @@ bureau_replacements = {
     "DHS": "Department-wide",
     "CBP": "Customs and Border Protection",
     "CISA": "Cybersecurity and Infrastructure Security Agency",
+    "CWMD": "Countering Weapons of Mass Destruction",
     "FEMA": "Federal Emergency Management Agency",
     "ICE": "Immigration and Customs Enforcement",
     "MGMT": "Management Directorate",
+    "OHS": "Office of Health Security",
     "TSA": "Transportation Security Administration",
     "USCG": "United States Coast Guard",
     "USCIS": "United States Citizenship and Immigration Services",
@@ -84,10 +100,10 @@ def standardize_data(df, year):
 
     elif year == 2024:
         df = df.rename(columns={
-            "3_agency": "agency",
-            "4_bureau": "bureau",
-            "16_dev_stage": "stage",
-            "17_impact_type": "impact"
+            "Agency": "agency",
+            "Bureau": "bureau",
+            "Stage of Development": "stage",
+            "Is the AI use case rights-impacting, safety-impacting, both, or neither?": "impact"
         })
 
     elif year == 2023:
@@ -99,6 +115,7 @@ def standardize_data(df, year):
         df["impact"] = None  # no impact field in 2023
 
     df["stage"] = df["stage"].replace(stage_of_development_replacements, regex=True)
+    df["impact"] = df["impact"].replace(impact_replacements)
     df["agency"] = df["agency"].replace(agency_replacements, regex=True)
     df["bureau"] = df["bureau"].replace(bureau_replacements, regex=True)
 
@@ -110,7 +127,7 @@ def standardize_data(df, year):
 
 def main():
     df_2025 = pd.read_csv("../inventory/data/clean/2025_consolidated_ai_inventory.csv")
-    df_2024 = pd.read_csv("../inventory/data/clean/2024_consolidated_ai_inventory_raw.csv")
+    df_2024 = pd.read_csv("../inventory/data/clean/2024_consolidated_ai_inventory_raw_v2.csv", encoding="ISO-8859-15")
     df_2023 = pd.read_csv("../inventory/data/clean/2023_consolidated_ai_inventory_raw.csv")
 
     df_2025 = standardize_data(df_2025, 2025)
@@ -124,47 +141,95 @@ def main():
                        category_orders={"stage": ["Deployed", "Pre-deployment", "Pilot", "Retired", "Unknown"]})
     fig.update_layout(bargap=0.1)
     fig.update_xaxes(dtick=1)
-    fig.show(renderer="browser")
 
-    df_deployed = df_all[df_all["stage"]=="Deployed"]
-    df_deployed.loc[~df_deployed["agency"].isin(significant_agencies), "agency"] = "Other"
+    agency_order = sorted(df_all.agency.unique(), key=lambda s: (not s.startswith("Department of"), s))
 
-    fig = px.histogram(df_deployed, x="year", color="agency",
-                       title="Agency of Deployed AI Use Cases",
-                       category_orders={"agency": significant_agencies})
-    fig.update_layout(bargap=0.1)
-    fig.update_xaxes(dtick=1)
-    fig.show(renderer="browser")
+    app = Dash(__name__)
 
-    df_dhs_deployed = df_deployed[df_deployed["agency"]=="Department of Homeland Security"]
-    df_dhs_deployed.loc[~df_dhs_deployed["bureau"].isin(significant_dhs_bureaus), "bureau"] = "Other"
+    app.layout = html.Div([
+        dcc.Graph(id="histogram"),
+        dcc.Dropdown(
+            id="stage-dropdown",
+            options=[{"label": "Any Stage of Development", "value": "Any"}] +
+                    [{"label": s, "value": s} for s in stage_of_development_order],
+            value="Any",
+            style={"margin-bottom": "0.5em"},
+            clearable=False,
+        ),
+        dcc.Dropdown(
+            id="agency-dropdown",
+            options=[{"label": "Any Agency", "value": "Any Agency"}] +
+                    [{"label": "Any Cabinet Agency", "value": "Any Cabinet Agency"}] +
+                    [{"label": s, "value": s} for s in agency_order],
+            value="Any Agency",
+            style={"margin-bottom": "0.5em"},
+            clearable=False,
+        ),
+        html.Div(
+            id="dhs-bureau-dropdown-container",
+            children=[
+                dcc.Dropdown(
+                    id="dhs-bureau-dropdown",
+                    options=[{"label": "Any DHS Bureau", "value": "Any"}] +
+                            [{"label": s, "value": s} for s in sorted(df_all[df_all.agency=="Department of Homeland Security"].bureau.unique())],
+                    value="Any",
+                    style={"margin-bottom": "0.5em"},
+                    clearable=False,
+                )
+            ],
+            style={"display": "none"}
+        )
+    ])
+    @app.callback(
+        Output("histogram", "figure"),
+        Input("stage-dropdown", "value"),
+        Input("agency-dropdown", "value"),
+        Input("dhs-bureau-dropdown", "value"),
+    )
+    def update(stage, agency, dhs_bureau):
+        dff = df_all if stage == "Any" else df_all[df_all.stage == stage]
+        match agency:
+            case "Any Agency":
+                pass
+            case "Any Cabinet Agency":
+                dff = dff[dff.agency.str.startswith("Department of")]
+            case _:
+                dff = dff[dff.agency == agency]
+        if dhs_bureau != "Any":
+            dff = dff[dff.bureau == dhs_bureau]
 
-    fig = px.histogram(df_dhs_deployed, x="year", color="bureau",
-                       title="Bureau of DHS Deployed AI Use Cases",
-                       category_orders={"bureau": significant_dhs_bureaus})
-    fig.update_layout(bargap=0.1)
-    fig.update_xaxes(dtick=1)
-    fig.show(renderer="browser")
+        color = "stage"
+        category_orders = {"stage": stage_of_development_order}
 
-    df_deployed_high_impact = df_deployed[df_deployed["impact"].isin({"High-impact", "Rights-Impacting", "Safety-Impacting", "Both"})]
-    df_deployed_high_impact.loc[~df_deployed_high_impact["agency"].isin(significant_agencies_high_impact), "agency"] = "Other"
+        if stage != "Any":
+            color = "agency"
+            category_orders = {"agency": significant_agencies}
+            dff.loc[~dff["agency"].isin(significant_agencies), "agency"] = "Other"
+            dff.loc[~dff["bureau"].isin(significant_dhs_bureaus), "bureau"] = "Other"
 
-    fig = px.histogram(df_deployed_high_impact, x="year", color="agency",
-                       title="Agency of High-Impact Deployed AI Use Cases",
-                       category_orders={"agency": significant_agencies_high_impact})
-    fig.update_layout(bargap=0.1)
-    fig.update_xaxes(dtick=1)
-    fig.show(renderer="browser")
+            if agency == "Department of Homeland Security" and dhs_bureau == "Any":
+                color = "bureau"
+                category_orders = {"bureau": significant_dhs_bureaus}
+            elif not agency.startswith("Any"):
+                color = "impact"
+                category_orders = {"impact": ["High-impact", "Not high-impact"]}
 
-    df_dhs_deployed_high_impact = df_deployed_high_impact[df_deployed_high_impact["agency"]=="Department of Homeland Security"]
-    df_dhs_deployed_high_impact.loc[~df_dhs_deployed_high_impact["bureau"].isin(significant_dhs_bureaus), "bureau"] = "Other"
+        fig = px.histogram(dff, x="year", color=color,
+                           title="AI Use Cases",
+                           category_orders=category_orders)
+        fig.update_layout(bargap=0.1)
+        fig.update_xaxes(dtick=1)
 
-    fig = px.histogram(df_dhs_deployed_high_impact, x="year", color="bureau",
-                       title="Bureau of DHS High-Impact Deployed AI Use Cases",
-                       category_orders={"bureau": significant_dhs_bureaus})
-    fig.update_layout(bargap=0.1)
-    fig.update_xaxes(dtick=1)
-    fig.show(renderer="browser")
+        return fig
+
+    @app.callback(
+        Output("dhs-bureau-dropdown-container", "style"),
+        Input("agency-dropdown", "value"),
+    )
+    def toggle_dropdown(val):
+        return {"display": "block" if val == "Department of Homeland Security" else "none"}
+
+    app.run(debug=False)
 
 if __name__ == "__main__":
     main()
