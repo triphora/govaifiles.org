@@ -1,6 +1,6 @@
 <script>
 </script>
 
-<h1>Graphs</h1>
+<h1>Interactive Data Exploration</h1>
 
-<iframe title="Interactive Graph" src="https://govaifiles.org/plotly" width=100% height=600></iframe>
+<iframe title="Interactive Graph" src="https://govaifiles.org/plotly" width=100% height=625></iframe>

@@ -57,20 +57,24 @@ stage_of_development_replacements = {
 }
 
 stage_of_development_order = ["Deployed", "Pre-deployment", "Pilot", "Retired", "Unknown"]
+impact_order = ["High-impact", "Not high-impact"]
 
 impact_replacements = {
-    # newline is present because that's how it is in the data
-    "Rights-Impacting\n": "High-impact",
-    "Safety-Impacting": "High-impact",
+    r"^Rights-[Ii]mpacting.?": "High-impact",
+    r"^Safety-[Ii]mpacting.?": "High-impact",
     "Both": "High-impact",
 
     "Neither": "Not high-impact",
+    "Case-by-case assessment": "Not high-impact",
+    r"^No.*": "Not high-impact",
 }
 
 agency_replacements = {
     r"\sOf\s": " of ",
     r"\sThe\s": " the ",
     r"\sAnd\s": " and ",
+    r"^U.S.": "",
+    r"^United States": "",
 }
 
 bureau_replacements = {
@@ -115,7 +119,7 @@ def standardize_data(df, year):
         df["impact"] = None  # no impact field in 2023
 
     df["stage"] = df["stage"].replace(stage_of_development_replacements, regex=True)
-    df["impact"] = df["impact"].replace(impact_replacements)
+    df["impact"] = df["impact"].replace(impact_replacements, regex=True)
     df["agency"] = df["agency"].replace(agency_replacements, regex=True)
     df["bureau"] = df["bureau"].replace(bureau_replacements, regex=True)
 
@@ -152,21 +156,50 @@ app = Dash(
 app.layout = html.Div([
     dcc.Graph(id="histogram"),
     dcc.Dropdown(
-        id="stage-dropdown",
-        options=[{"label": "Any Stage of Development", "value": "Any"}] +
-                [{"label": s, "value": s} for s in stage_of_development_order],
-        value="Any",
-        style={"margin-bottom": "0.5em"},
+        id="color-dropdown",
+        options=[{"label": "Group by Stage of Development", "value": "stage"}] +
+                [{"label": "Group by Impact", "value": "impact"}] +
+                [{"label": "Group by Agency", "value": "agency"}],
+        value="stage",
         clearable=False,
     ),
-    dcc.Dropdown(
-        id="agency-dropdown",
-        options=[{"label": "Any Agency", "value": "Any Agency"}] +
-                [{"label": "Any Cabinet Agency", "value": "Any Cabinet Agency"}] +
-                [{"label": s, "value": s} for s in agency_order],
-        value="Any Agency",
-        style={"margin-bottom": "0.5em"},
-        clearable=False,
+    html.H3(
+        "Filters",
+        style={"margin-bottom": "0.25rem"}
+    ),
+    html.Div(
+        style={
+            "display": "flex",
+            "gap": "8px",
+            "flexWrap": "wrap",
+        },
+        children=[
+            dcc.Dropdown(
+                id="stage-dropdown",
+                options=[{"label": "Any Stage of Development", "value": "Any"}] +
+                        [{"label": s, "value": s} for s in stage_of_development_order],
+                value="Any",
+                style={"width": "235px"},
+                clearable=False,
+            ),
+            dcc.Dropdown(
+                id="impact-dropdown",
+                options=[{"label": "Any Impact", "value": "Any"}] +
+                        [{"label": s, "value": s} for s in impact_order],
+                value="Any",
+                style={"width": "165px"},
+                clearable=False,
+            ),
+            dcc.Dropdown(
+                id="agency-dropdown",
+                options=[{"label": "Any Agency", "value": "Any Agency"}] +
+                        [{"label": "Any Cabinet Agency", "value": "Any Cabinet Agency"}] +
+                        [{"label": s, "value": s} for s in agency_order],
+                value="Any Agency",
+                style={"width": "365px"},
+                clearable=False,
+            ),
+        ]
     ),
     html.Div(
         id="dhs-bureau-dropdown-container",
@@ -176,7 +209,7 @@ app.layout = html.Div([
                 options=[{"label": "Any DHS Bureau", "value": "Any"}] +
                         [{"label": s, "value": s} for s in sorted(df_all[df_all.agency=="Department of Homeland Security"].bureau.unique())],
                 value="Any",
-                style={"margin-bottom": "0.5em"},
+                style={"margin-top": "0.5em"},
                 clearable=False,
             )
         ],
@@ -186,11 +219,14 @@ app.layout = html.Div([
 @app.callback(
     Output("histogram", "figure"),
     Input("stage-dropdown", "value"),
+    Input("impact-dropdown", "value"),
     Input("agency-dropdown", "value"),
     Input("dhs-bureau-dropdown", "value"),
+    Input("color-dropdown", "value"),
 )
-def update(stage, agency, dhs_bureau):
+def update(stage, impact, agency, dhs_bureau, color):
     dff = df_all if stage == "Any" else df_all[df_all.stage == stage]
+    dff = dff if impact == "Any" else dff[dff.impact == impact]
     match agency:
         case "Any Agency":
             pass
@@ -201,27 +237,33 @@ def update(stage, agency, dhs_bureau):
     if dhs_bureau != "Any":
         dff = dff[dff.bureau == dhs_bureau]
 
-    color = "stage"
     category_orders = {"stage": stage_of_development_order}
-
-    if stage != "Any":
-        color = "agency"
-        category_orders = {"agency": significant_agencies}
-        dff.loc[~dff["agency"].isin(significant_agencies), "agency"] = "Other"
-        dff.loc[~dff["bureau"].isin(significant_dhs_bureaus), "bureau"] = "Other"
-
-        if agency == "Department of Homeland Security" and dhs_bureau == "Any":
-            color = "bureau"
-            category_orders = {"bureau": significant_dhs_bureaus}
-        elif not agency.startswith("Any"):
-            color = "impact"
-            category_orders = {"impact": ["High-impact", "Not high-impact"]}
+    match color:
+        case "impact":
+            category_orders = {"impact": impact_order}
+        case "agency":
+            dff.loc[~dff["agency"].isin(significant_agencies), "agency"] = "Other"
+            dff.loc[~dff["bureau"].isin(significant_dhs_bureaus), "bureau"] = "Other"
+            if agency == "Department of Homeland Security":
+                color = "bureau"
+                category_orders = {"bureau": significant_dhs_bureaus}
+            else:
+                category_orders = {"agency": significant_agencies}
 
     fig = px.histogram(dff, x="year", color=color,
-                       title="AI Use Cases",
+                       #title="AI Use Cases",
                        category_orders=category_orders)
     fig.update_layout(bargap=0.1)
     fig.update_xaxes(dtick=1)
+    fig.update_layout(
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="left",
+            x=0
+        )
+    )
 
     return fig
 
