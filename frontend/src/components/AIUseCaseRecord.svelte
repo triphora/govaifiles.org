@@ -1,201 +1,500 @@
-<script>
-	export let result
+<script lang="ts">
+	import { displayValue, hasValue, impactClass, isUrl, normalizeValue, stageClass } from '$lib/explorer';
 
-	const use_case_id = result.use_case_id || '[blank]'
-	const stage_of_development = result.stage_of_development
-	const stage_of_development_raw = result.stage_of_development_raw || '[blank]'
-	const is_high_impact = result.is_high_impact || '[blank]'
-	const justification = result.justification || '[blank]'
-	const use_case_topic_area = result.use_case_topic_area || '[blank]'
-	const ai_classification = result.ai_classification || '[blank]'
-	const problem_statement = result.problem_statement || '[blank]'
-	const expected_benefits = result.expected_benefits || '[blank]'
-	const system_outputs = result.system_outputs || '[blank]'
-	const operational_start_date = result.operational_start_date || '[blank]'
-	const development_source = result.development_source || '[blank]'
-	const vendor_name = result.vendor_name || '[blank]'
-	const has_ato = result.has_ato || '[blank]'
-	const systems_name = result.systems_name || '[blank]'
-	const training_and_evaluation_data = result.training_and_evaluation_data || '[blank]'
-	const federal_data_catalog_link = result.federal_data_catalog_link || '[blank]'
-	const involves_pii = result.involves_pii || '[blank]'
-	const pia_link = result.pia_link || '[blank]'
-	const demographic_variables_used = result.demographic_variables_used || '[blank]'
-	const includes_custom_code = result.includes_custom_code || '[blank]'
-	const open_source_code_link = result.open_source_code_link || '[blank]'
-	const pre_deployment_testing_status = result.pre_deployment_testing_status || '[blank]'
-	const ai_impact_assessment_status = result.ai_impact_assessment_status || '[blank]'
-	const potential_impacts_description = result.potential_impacts_description || '[blank]'
-	const independent_review_status = result.independent_review_status || '[blank]'
-	const ongoing_monitoring_process = result.ongoing_monitoring_process || '[blank]'
-	const operator_training_status = result.operator_training_status || '[blank]'
-	const fail_safe_status = result.fail_safe_status || '[blank]'
-	const appeal_process_status = result.appeal_process_status || '[blank]'
-	const public_and_user_feedback = result.public_and_user_feedback || '[blank]'
+	type UseCaseRecord = Record<string, string | undefined | null>;
 
-	const sectionTwoRequirements = stage_of_development !== 'Retired'
-	const sectionThreeRequirements = ['Unknown', 'Pilot', 'Deployed'].includes(stage_of_development)
-	const sectionFiveRequirements = ['Unknown', 'Deployed'].includes(stage_of_development) && ['High-impact', '[blank]'].includes(is_high_impact)
+	export let result: UseCaseRecord;
+	export let index: number;
+
+	let expanded = index === 1;
+	let sectionTwoRequirements = false;
+	let sectionThreeRequirements = false;
+	let sectionFiveRequirements = false;
+	let summaryFields: Array<{ label: string; value: string | undefined | null; show: boolean }> = [];
+	let documentationFields: Array<{ label: string; value: string | undefined | null; show: boolean }> = [];
+	let dataFields: Array<{ label: string; value: string | undefined | null; show: boolean }> = [];
+	let riskFields: Array<{ label: string; value: string | undefined | null; show: boolean; wide?: boolean }> = [];
+
+	$: sectionTwoRequirements = result.stage_of_development !== 'Retired';
+	$: sectionThreeRequirements = ['Unknown', 'Pilot', 'Deployed'].includes(result.stage_of_development || '');
+	$: sectionFiveRequirements = ['Unknown', 'Deployed'].includes(result.stage_of_development || '') && ['High-impact', '[blank]', ''].includes(result.is_high_impact || '');
+
+	$: summaryFields = [
+		{ label: 'Problem Statement', value: result.problem_statement, show: sectionTwoRequirements || hasValue(result.problem_statement) },
+		{ label: 'Expected Benefits', value: result.expected_benefits, show: sectionTwoRequirements || hasValue(result.expected_benefits) },
+		{ label: 'AI System Outputs', value: result.system_outputs, show: sectionTwoRequirements || hasValue(result.system_outputs) }
+	];
+
+	$: documentationFields = [
+		{ label: 'Operational Date', value: result.operational_start_date, show: sectionThreeRequirements || hasValue(result.operational_start_date) },
+		{ label: 'Development Method', value: result.development_source, show: sectionThreeRequirements || hasValue(result.development_source) },
+		{ label: 'Vendor Name', value: result.vendor_name, show: sectionThreeRequirements || hasValue(result.vendor_name) },
+		{ label: 'Authorization (ATO)', value: result.has_ato, show: sectionThreeRequirements || hasValue(result.has_ato) }
+	];
+
+	$: dataFields = [
+		{ label: 'PII', value: result.involves_pii, show: sectionThreeRequirements || hasValue(result.involves_pii) },
+		{ label: 'Custom Code', value: result.includes_custom_code, show: sectionThreeRequirements || hasValue(result.includes_custom_code) },
+		{ label: 'Federal Data Catalog', value: result.federal_data_catalog_link, show: sectionThreeRequirements || hasValue(result.federal_data_catalog_link) },
+		{ label: 'Privacy Impact Assessment', value: result.pia_link, show: sectionThreeRequirements || hasValue(result.pia_link) },
+		{ label: 'Model Features', value: result.demographic_variables_used, show: sectionThreeRequirements || hasValue(result.demographic_variables_used) },
+		{ label: 'Open Source Code', value: result.open_source_code_link, show: sectionThreeRequirements || hasValue(result.open_source_code_link) },
+		{ label: 'Training and Evaluation Data', value: result.training_and_evaluation_data, show: sectionThreeRequirements || hasValue(result.training_and_evaluation_data) }
+	];
+
+	$: riskFields = [
+		{ label: 'Pre-deploy Test', value: result.pre_deployment_testing_status, show: sectionFiveRequirements || hasValue(result.pre_deployment_testing_status) },
+		{ label: 'Impact Assessment', value: result.ai_impact_assessment_status, show: sectionFiveRequirements || hasValue(result.ai_impact_assessment_status) },
+		{ label: 'Independent Review', value: result.independent_review_status, show: sectionFiveRequirements || hasValue(result.independent_review_status) },
+		{ label: 'Fail-safe', value: result.fail_safe_status, show: sectionFiveRequirements || hasValue(result.fail_safe_status) },
+		{ label: 'Potential Impact', value: result.potential_impacts_description, show: sectionFiveRequirements || hasValue(result.potential_impacts_description), wide: true },
+		{ label: 'Ongoing Monitoring', value: result.ongoing_monitoring_process, show: sectionFiveRequirements || hasValue(result.ongoing_monitoring_process), wide: true },
+		{ label: 'Operator Training', value: result.operator_training_status, show: sectionFiveRequirements || hasValue(result.operator_training_status), wide: true },
+		{ label: 'Appeal Process', value: result.appeal_process_status, show: sectionFiveRequirements || hasValue(result.appeal_process_status), wide: true },
+		{ label: 'Public Feedback', value: result.public_and_user_feedback, show: sectionFiveRequirements || hasValue(result.public_and_user_feedback), wide: true }
+	];
+
+	function impactLabel(value: string | undefined | null) {
+		const normalized = displayValue(value, 'Not reported');
+		if (normalized === 'High-impact') {
+			return 'High Impact';
+		}
+
+		if (normalized === 'Not high-impact') {
+			return 'Not High Impact';
+		}
+
+		return normalized;
+	}
+
+	function stageLabel(value: string | undefined | null) {
+		return displayValue(value, 'Unknown');
+	}
+
+	function agencyLabel() {
+		return [result.bureau_component, result.agency].filter(Boolean).join(' · ');
+	}
+
+	function renderValue(value: string | undefined | null) {
+		return displayValue(value);
+	}
 </script>
 
-<details style="margin:1em 0">
-	<summary>
-		{result.use_case_name}<br><br>
-		{#if result.bureau_component}{result.bureau_component},&nbsp;{/if}{result.agency}
-	</summary>
+<article class:expanded class="record-card">
+	<button
+		type="button"
+		class="record-summary"
+		on:click={() => (expanded = !expanded)}
+		aria-expanded={expanded}
+	>
+		<div class="record-summary__lead">
+			<div class="record-index">{index}</div>
+			<div>
+				<h3>{result.use_case_name}</h3>
+				<p class="record-meta">
+					{displayValue(result.use_case_id, 'No ID reported')}
+					{#if hasValue(result.problem_statement)}
+						<span>{displayValue(result.problem_statement).slice(0, 150)}{displayValue(result.problem_statement).length > 150 ? '...' : ''}</span>
+					{/if}
+				</p>
+			</div>
+		</div>
 
-	<!--Start of section 1-->
-	<h4>Use Case Identifiers</h4>
+		<div class="record-summary__cols">
+			<div class="record-summary__item">
+				<span>Agency</span>
+				<p>{agencyLabel() || 'Not reported'}</p>
+			</div>
+			<div class="record-summary__item">
+				<span>Stage</span>
+				<p><span class={`stage-pill ${stageClass(result.stage_of_development)}`}>{stageLabel(result.stage_of_development)}</span></p>
+			</div>
+			<div class="record-summary__item">
+				<span>Impact</span>
+				<p><span class={`impact-pill ${impactClass(result.is_high_impact)}`}>{impactLabel(result.is_high_impact)}</span></p>
+			</div>
+			<div class="record-summary__item">
+				<span>Topic Area</span>
+				<p>{renderValue(result.use_case_topic_area)}</p>
+			</div>
+			<div class="record-summary__item">
+				<span>AI Classification</span>
+				<p>{renderValue(result.ai_classification)}</p>
+			</div>
+		</div>
 
-	<p class:blank={use_case_id === '[blank]'}><b>Internal ID:</b> {use_case_id}</p>
-	<p class:blank={stage_of_development === 'Unknown'}><b>Stage of Development:</b> <abbr title={stage_of_development_raw}>{stage_of_development}</abbr></p>
-	<p class:blank={is_high_impact === '[blank]'}><b>Is the AI use case high-impact?:</b> {is_high_impact}</p>
+		<span class="record-chevron" aria-hidden="true">›</span>
+	</button>
 
-	<!--Supposed to filled out if not high impact-->
-	{#if result.is_high_impact === 'Not high-impact'}
-		<p class="sub-1" class:blank={justification === '[blank]'}><b>Justification:</b> {justification}</p>
-	{/if}
+	{#if expanded}
+		<div class="record-detail">
+			<div class="record-detail__columns">
+				<section class="record-section">
+					<p class="record-section__label">Problem and Purpose</p>
 
-	<!--Start of section 2-->
-	{#if sectionTwoRequirements}
-		<br>
-		<h4>Use Case Summary</h4>
-	{/if}
+					{#if sectionTwoRequirements || hasValue(result.use_case_topic_area)}
+						<div class="record-field">
+							<h4>Topic Area</h4>
+							<div class="record-richtext {hasValue(result.use_case_topic_area) ? '' : 'is-empty'}">{renderValue(result.use_case_topic_area)}</div>
+						</div>
+					{/if}
 
-	{#if sectionTwoRequirements || use_case_topic_area !== '[blank]'}
-		<p class:blank={use_case_topic_area === '[blank]'}><b>Use Case Topic Area:</b> {use_case_topic_area}</p>
-	{/if}
-	{#if sectionTwoRequirements || ai_classification !== '[blank]'}
-		<p class:blank={ai_classification === '[blank]'}><b>AI Classification:</b> {ai_classification}</p>
-	{/if}
-	{#if sectionTwoRequirements || problem_statement !== '[blank]'}
-		<p class:blank={problem_statement === '[blank]'}><b>What problem is the AI intended to solve?:</b> {problem_statement}</p>
-	{/if}
-	{#if sectionTwoRequirements || expected_benefits !== '[blank]'}
-		<p class:blank={expected_benefits === '[blank]'}><b>What are the expected benefits and positive outcomes from the AI for an agency's mission and/or the general public?:</b> {expected_benefits}</p>
-	{/if}
-	{#if sectionTwoRequirements || system_outputs !== '[blank]'}
-		<p class:blank={system_outputs === '[blank]'}><b>Describe the AI system’s outputs:</b> {system_outputs}</p>
-	{/if}
+					{#if sectionTwoRequirements || hasValue(result.ai_classification)}
+						<div class="record-field">
+							<h4>AI Classification</h4>
+							<div class="record-richtext {hasValue(result.ai_classification) ? '' : 'is-empty'}">{renderValue(result.ai_classification)}</div>
+						</div>
+					{/if}
 
-	<!--Start of section 3-->
-	{#if sectionThreeRequirements}
-		<br>
-		<h4>Documentation</h4>
-	{/if}
+					{#each summaryFields as field}
+						{#if field.show}
+							<div class="record-field">
+								<h4>{field.label}</h4>
+								<div class={`record-richtext ${hasValue(field.value) ? '' : 'is-empty'}`}>{renderValue(field.value)}</div>
+							</div>
+						{/if}
+					{/each}
 
-	{#if sectionThreeRequirements || operational_start_date !== '[blank]'}
-		<p class:blank={operational_start_date === '[blank]'}><b>Date when AI use case became operational or the pilot's start date:</b> {operational_start_date}</p>
-	{/if}
-	{#if sectionThreeRequirements || development_source !== '[blank]'}
-		<p class:blank={development_source === '[blank]'}><b>Was the system involved in this use case purchased from a vendor or developed under contract(s) or in-house?:</b> {development_source}</p>
-	{/if}
-	{#if sectionThreeRequirements || vendor_name !== '[blank]'}
-		<p class="sub-1" class:blank={vendor_name === '[blank]'}><b>Vendor(s) Name:</b> {vendor_name}</p>
-	{/if}
-	{#if sectionThreeRequirements || has_ato !== '[blank]'}
-		<p class:blank={has_ato === '[blank]'}><b>Does this AI use case have an associated Authorization to Operate (ATO)?:</b> {has_ato}</p>
-	{/if}
-	{#if sectionThreeRequirements || systems_name !== '[blank]'}
-		<p class:blank={systems_name === '[blank]'}><b>System(s) Name:</b> {systems_name}</p>
-	{/if}
+					{#if normalizeValue(result.is_high_impact) === 'Not high-impact'}
+						<div class="record-field">
+							<h4>Impact Justification</h4>
+							<div class={`record-richtext ${hasValue(result.justification) ? '' : 'is-empty'}`}>{renderValue(result.justification)}</div>
+						</div>
+					{/if}
+				</section>
 
-	<!--Start of section 4-->
-	{#if sectionThreeRequirements}
-		<br>
-		<h4>Data and Code</h4>
-	{/if}
+				<section class="record-section">
+					<p class="record-section__label">Documentation and Data</p>
 
-	{#if sectionThreeRequirements || training_and_evaluation_data !== '[blank]'}
-		<p class:blank={training_and_evaluation_data === '[blank]'}><b>Describe any data used to train, fine-tune, and/or evaluate performance of the model(s) used in this use case:</b> {training_and_evaluation_data}</p>
-	{/if}
-	{#if sectionThreeRequirements || federal_data_catalog_link !== '[blank]'}
-		<p class:blank={federal_data_catalog_link === '[blank]'}><b>If the data is required to be publicly disclosed as an open government data asset, provide a link to the entry on the Federal Data Catalog:</b> {federal_data_catalog_link}</p>
-	{/if}
-	{#if sectionThreeRequirements || involves_pii !== '[blank]'}
-		<p class:blank={involves_pii === '[blank]'}><b>Does this AI use case involve personally identifiable information (PII) that is maintained by the agency?:</b> {involves_pii}</p>
-	{/if}
-	{#if sectionThreeRequirements || pia_link !== '[blank]'}
-		<p class:blank={pia_link === '[blank]'}><b>If publicly available, provide the link to the AI use case's associated Privacy Impact Assessment (PIA):</b> {pia_link}</p>
-	{/if}
-	{#if sectionThreeRequirements || demographic_variables_used !== '[blank]'}
-		<p class:blank={demographic_variables_used === '[blank]'}><b>Which, if any, demographic variables does the AI use case explicitly use as model features?:</b> {demographic_variables_used}</p>
-	{/if}
-	{#if sectionThreeRequirements || includes_custom_code !== '[blank]'}
-		<p class:blank={includes_custom_code === '[blank]'}><b>Does this project include custom-developed code?:</b> {includes_custom_code}</p>
-	{/if}
-	{#if sectionThreeRequirements || open_source_code_link !== '[blank]'}
-		<p class:blank={open_source_code_link === '[blank]'}><b>If the code is open source, provide the link for the publicly available source code:</b> {open_source_code_link}</p>
-	{/if}
+					<div class="record-doc-grid">
+						{#each documentationFields as field}
+							{#if field.show}
+								<div class="record-key-value">
+									<h4>{field.label}</h4>
+									<div class:blank={!hasValue(field.value)}>{renderValue(field.value)}</div>
+								</div>
+							{/if}
+						{/each}
+					</div>
 
-	<!--Start of section 5-->
-	{#if sectionFiveRequirements}
-		<br>
-		<h4>Risk Management</h4>
-	{/if}
+					{#if sectionThreeRequirements || hasValue(result.systems_name)}
+						<div class="record-field record-field--spaced">
+							<h4>System Name</h4>
+							<div class={`record-richtext ${hasValue(result.systems_name) ? '' : 'is-empty'}`}>{renderValue(result.systems_name)}</div>
+						</div>
+					{/if}
 
-	{#if sectionFiveRequirements || pre_deployment_testing_status !== '[blank]'}
-		<p class:blank={pre_deployment_testing_status === '[blank]'}><b>Has pre-deployment testing been conducted?:</b> {pre_deployment_testing_status}</p>
-	{/if}
-	{#if sectionFiveRequirements || ai_impact_assessment_status !== '[blank]'}
-		<p class:blank={ai_impact_assessment_status === '[blank]'}><b>Has an AI impact assessment been completed?:</b> {ai_impact_assessment_status}</p>
-	{/if}
-	{#if sectionFiveRequirements || potential_impacts_description !== '[blank]'}
-		<p class:blank={potential_impacts_description === '[blank]'}><b>What are the potential impacts of using the AI for this particular use case and how were they identified?:</b> {potential_impacts_description}</p>
-	{/if}
-	{#if sectionFiveRequirements || independent_review_status !== '[blank]'}
-		<p class:blank={independent_review_status === '[blank]'}><b>Has an independent review of the AI use case been conducted?:</b> {independent_review_status}</p>
-	{/if}
-	{#if sectionFiveRequirements || ongoing_monitoring_process !== '[blank]'}
-		<p class:blank={ongoing_monitoring_process === '[blank]'}><b>Is there a process to conduct ongoing monitoring to identify any adverse impacts to the performance and security of the AI functionality, as well as to privacy, civil rights, and civil liberties?:</b> {ongoing_monitoring_process}</p>
-	{/if}
-	{#if sectionFiveRequirements || operator_training_status !== '[blank]'}
-		<p class:blank={operator_training_status === '[blank]'}><b>Has the agency established sufficient and periodic training for operators of the AI to interpret and act on the its output and managed associated risks?:</b> {operator_training_status}</p>
-	{/if}
-	{#if sectionFiveRequirements || fail_safe_status !== '[blank]'}
-		<p class:blank={fail_safe_status === '[blank]'}><b>Does this AI use case have an appropriate fail-safe that minimizes the risk of significant harm?:</b> {fail_safe_status}</p>
-	{/if}
-	{#if sectionFiveRequirements || appeal_process_status !== '[blank]'}
-		<p class:blank={appeal_process_status === '[blank]'}><b>Is there an established appeal process in the event that an impacted individual would like to appeal or contest the AI system's outcome?:</b> {appeal_process_status}</p>
-	{/if}
-	{#if sectionFiveRequirements || public_and_user_feedback !== '[blank]'}
-		<p class:blank={public_and_user_feedback === '[blank]'}><b>What steps has the agency taken to consult and incorporate feedback from end users of this AI use case and the public?:</b> {public_and_user_feedback}</p>
-	{/if}
-</details>
+					<div class="record-data-list">
+						{#each dataFields as field}
+							{#if field.show}
+								<div class="record-key-value">
+									<h4>{field.label}</h4>
+									{#if isUrl(field.value)}
+										<a href={displayValue(field.value)} target="_blank" rel="noreferrer">{displayValue(field.value)}</a>
+									{:else}
+										<div class:blank={!hasValue(field.value)}>{renderValue(field.value)}</div>
+									{/if}
+								</div>
+							{/if}
+						{/each}
+					</div>
+				</section>
+			</div>
 
+			{#if riskFields.some((field) => field.show)}
+				<section class="record-section record-section--risk">
+					<p class="record-section__label">Risk Management</p>
+					<div class="record-risk-grid">
+						{#each riskFields as field}
+							{#if field.show}
+								<div class:wide={field.wide} class="record-key-value">
+									<h4>{field.label}</h4>
+									<div class:blank={!hasValue(field.value)}>{renderValue(field.value)}</div>
+								</div>
+							{/if}
+						{/each}
+					</div>
+				</section>
+			{/if}
+		</div>
+	{/if}
+</article>
 
 <style>
-	details {
-		border: 2px solid #ddd;
-		border-radius: 4px;
-		padding: .5em .5em 0;
+	.record-card {
+		border-radius: var(--radius-xl);
+		background: var(--surface-card);
+		border: 1px solid rgba(167, 190, 180, 0.55);
+		overflow: hidden;
+		box-shadow: var(--shadow-soft);
 	}
 
-	summary {
-		font-weight: bold;
-		margin: -.5em -.5em 0;
-		padding: .5em;
-		background-color: #ddd;
+	.record-summary {
+		width: 100%;
+		display: grid;
+		grid-template-columns: minmax(0, 2.35fr) minmax(140px, 1.1fr) minmax(104px, 0.7fr) minmax(110px, 0.8fr) minmax(120px, 0.95fr) minmax(160px, 1.2fr) 24px;
+		gap: 12px;
+		align-items: start;
+		padding: 18px;
+		color: inherit;
+		text-align: left;
 	}
 
-	details[open] summary {
-		border-bottom: 2px solid #ddd;
-		margin-bottom: .5em;
+	.record-summary__lead {
+		display: flex;
+		gap: 12px;
+		min-width: 0;
 	}
 
-	details > p {
-		margin-bottom: .25em;
+	.record-index {
+		width: 28px;
+		height: 28px;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.92);
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--ink-muted);
+		flex-shrink: 0;
 	}
 
-	details > p:last-child {
-		margin-bottom: .5em;
+	h3 {
+		margin: 0;
+		font-size: 1.08rem;
+		line-height: 1.35;
 	}
 
-	.sub-1 {
-		margin-left: 2rem;
+	.record-meta,
+	.record-summary__cols p {
+		margin: 6px 0 0;
+		font-size: 0.94rem;
+		line-height: 1.5;
+		color: var(--ink-soft);
 	}
 
-	.blank {
-		color: #EE0000;
+	.record-summary__item {
+		display: grid;
+		gap: 6px;
+	}
+
+	.record-summary__item > span {
+		display: none;
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--ink-muted);
+	}
+
+	.record-meta {
+		display: grid;
+		gap: 4px;
+	}
+
+	.record-summary__cols {
+		display: contents;
+	}
+
+	.record-chevron {
+		align-self: center;
+		justify-self: end;
+		font-size: 1.8rem;
+		color: var(--brand-dark);
+		transform: rotate(0deg);
+		transition: transform 0.16s ease;
+	}
+
+	.expanded .record-chevron {
+		transform: rotate(90deg);
+	}
+
+	.stage-pill,
+	.impact-pill {
+		display: inline-flex;
+		align-items: center;
+		border-radius: 999px;
+		padding: 6px 10px;
+		font-size: 0.8rem;
+		font-family: var(--font-mono);
+	}
+
+	.stage-deployed {
+		background: #dcefe5;
+		color: #2f6f54;
+	}
+
+	.stage-pilot {
+		background: #e8edf6;
+		color: #476280;
+	}
+
+	.stage-pre {
+		background: var(--warning-pale);
+		color: var(--warning);
+	}
+
+	.stage-retired,
+	.stage-unknown {
+		background: #ecefea;
+		color: #6b7772;
+	}
+
+	.impact-high {
+		background: var(--danger-pale);
+		color: var(--danger);
+	}
+
+	.impact-low {
+		background: #edf3ef;
+		color: #5d7168;
+	}
+
+	.impact-unknown {
+		background: #f1f2ee;
+		color: var(--ink-muted);
+	}
+
+	.record-detail {
+		border-top: 1px solid rgba(167, 190, 180, 0.6);
+		padding: 0 18px 18px;
+	}
+
+	.record-detail__columns {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 24px;
+		padding-top: 18px;
+	}
+
+	.record-section {
+		display: grid;
+		gap: 16px;
+	}
+
+	.record-section--risk {
+		margin-top: 22px;
+		padding-top: 20px;
+		border-top: 1px solid rgba(167, 190, 180, 0.6);
+	}
+
+	.record-section__label {
+		display: flex;
+		align-items: flex-start;
+		margin: 0;
+		min-height: 34px;
+		padding-bottom: 10px;
+		border-bottom: 1px solid rgba(167, 190, 180, 0.6);
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		line-height: 1.1;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--ink-muted);
+	}
+
+	.record-field,
+	.record-key-value {
+		display: grid;
+		gap: 6px;
+	}
+
+	.record-field--spaced {
+		padding-top: 4px;
+	}
+
+	h4 {
+		margin: 0;
+		font-size: 0.92rem;
+		font-weight: 500;
+		color: var(--ink-soft);
+	}
+
+	.record-richtext,
+	.record-key-value div,
+	.record-key-value a {
+		font-size: 0.97rem;
+		line-height: 1.65;
+		color: var(--ink);
+		word-break: break-word;
+	}
+
+	.record-doc-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 16px;
+	}
+
+	.record-data-list,
+	.record-risk-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 16px 20px;
+	}
+
+	.record-risk-grid .wide {
+		grid-column: 1 / -1;
+	}
+
+	.blank,
+	.is-empty {
+		color: var(--ink-muted);
+		font-style: italic;
+	}
+
+	@media (max-width: 1100px) {
+		.record-summary {
+			grid-template-columns: minmax(0, 1fr) 24px;
+			gap: 14px;
+		}
+
+		.record-summary__cols {
+			grid-column: 1 / -1;
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 12px;
+			padding-left: 40px;
+		}
+
+		.record-summary__item > span {
+			display: inline-block;
+		}
+
+		.record-summary__cols p {
+			margin: 0;
+		}
+
+		.record-detail__columns,
+		.record-data-list,
+		.record-risk-grid,
+		.record-doc-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 720px) {
+		.record-card {
+			border-radius: 22px;
+		}
+
+		.record-summary {
+			padding: 16px;
+		}
+
+		.record-summary__lead {
+			grid-column: 1 / -1;
+		}
+
+		.record-summary__cols {
+			padding-left: 0;
+			grid-template-columns: 1fr;
+		}
+
+		.record-index {
+			width: 24px;
+			height: 24px;
+			font-size: 0.72rem;
+		}
 	}
 </style>

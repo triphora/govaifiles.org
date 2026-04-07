@@ -3,6 +3,9 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
+		classpath 'com.gradleup.shadow:shadow-gradle-plugin:9.3.1'
+		classpath 'org.flywaydb:flyway-gradle-plugin:11.20.2'
+		classpath 'org.jooq:jooq-codegen-gradle:3.20.10'
 		classpath libs.flyway.postgresql
 	}
 }
@@ -10,11 +13,11 @@ buildscript {
 plugins {
 	id 'java'
 	id 'application'
-	alias libs.plugins.shadow
-	alias libs.plugins.dotenv
-	alias libs.plugins.flyway
-	alias libs.plugins.jooq.codegen.gradle
 }
+
+apply plugin: 'com.gradleup.shadow'
+apply plugin: 'org.flywaydb.flyway'
+apply plugin: 'org.jooq.jooq-codegen-gradle'
 
 sourceSets {
 	generated
@@ -28,6 +31,25 @@ repositories {
 	mavenCentral()
 }
 
+def dotenvFile = file('../.env')
+def dotenv = [:]
+
+if (dotenvFile.exists()) {
+	dotenvFile.eachLine { line ->
+		def trimmed = line.trim()
+		if (!trimmed.isEmpty() && !trimmed.startsWith('#')) {
+			def idx = trimmed.indexOf('=')
+			if (idx > 0) {
+				def key = trimmed.substring(0, idx).trim()
+				def value = trimmed.substring(idx + 1).trim()
+				dotenv[key] = value
+			}
+		}
+	}
+}
+
+def envValue = { key -> System.getenv(key) ?: dotenv[key] }
+
 dependencies {
 	implementation libs.bundles.implementation
 	generatedImplementation libs.bundles.generatedImplementation
@@ -37,9 +59,9 @@ dependencies {
 }
 
 def dbCredentials = [
-		url: 'jdbc:' + env.POSTGRES_URL.orNull(),
-		user: env.POSTGRES_USER.orNull(),
-		password: env.POSTGRES_PASSWORD.orNull(),
+		url: 'jdbc:' + envValue('POSTGRES_URL'),
+		user: envValue('POSTGRES_USER'),
+		password: envValue('POSTGRES_PASSWORD'),
 ]
 
 jooq {
@@ -69,6 +91,7 @@ flyway {
 	user = dbCredentials['user']
 	password = dbCredentials['password']
 	schemas = ['public']
+	locations = ['filesystem:src/main/resources/db/migrations']
 	baselineOnMigrate = true
 }
 

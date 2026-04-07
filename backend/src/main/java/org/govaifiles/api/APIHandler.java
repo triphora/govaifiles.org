@@ -75,7 +75,8 @@ public class APIHandler implements CrudHandler {
 			throw new RuntimeException(e);
 		}
 
-		ctx.json(!hits.isEmpty() ? hits.toString() : "[]");
+		ctx.contentType("application/json");
+		ctx.result(new Gson().toJson(hits));
 	}
 
 	@Override

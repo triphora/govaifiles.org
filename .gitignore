@@ -5,3 +5,4 @@ typesense-data/
 **/.gradle/
 **/.venv/
 *.iml
+*/PROJECT.md
