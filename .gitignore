@@ -6,3 +6,8 @@ typesense-data/
 **/.venv/
 *.iml
 */PROJECT.md
+*.class
+/bin/
+.classpath
+.project
+.settings
