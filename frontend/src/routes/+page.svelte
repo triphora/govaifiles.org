@@ -358,7 +358,7 @@
 		loading = true;
 		error = '';
 
-		const queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${encodeURIComponent(query.trim() || '*')}?`;
+		const queryString = `${PUBLIC_BACKEND_URL}/ai-use-cases/${encodeURIComponent(query.trim() || '*')}?`;
 
 		try {
 			const response = await fetch(queryString);

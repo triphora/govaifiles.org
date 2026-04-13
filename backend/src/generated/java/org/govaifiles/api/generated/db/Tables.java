@@ -4,7 +4,7 @@
 package org.govaifiles.api.generated.db;
 
 
-import org.govaifiles.api.generated.db.tables.AiUseCase_2025;
+import org.govaifiles.api.generated.db.tables.AiUseCases;
 import org.govaifiles.api.generated.db.tables.FlywaySchemaHistory;
 
 
@@ -15,9 +15,9 @@ import org.govaifiles.api.generated.db.tables.FlywaySchemaHistory;
 public class Tables {
 
     /**
-     * The table <code>public.ai_use_case_2025</code>.
+     * The table <code>public.ai_use_cases</code>.
      */
-    public static final AiUseCase_2025 AI_USE_CASE_2025 = AiUseCase_2025.AI_USE_CASE_2025;
+    public static final AiUseCases AI_USE_CASES = AiUseCases.AI_USE_CASES;
 
     /**
      * The table <code>public.flyway_schema_history</code>.

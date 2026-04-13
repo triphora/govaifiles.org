@@ -3,7 +3,7 @@ package org.govaifiles.api;
 import com.google.gson.*;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.Javalin;
-import org.govaifiles.api.generated.db.tables.records.AiUseCase_2025Record;
+import org.govaifiles.api.generated.db.tables.records.AiUseCasesRecord;
 import org.jooq.DSLContext;
 import org.jooq.JSONFormat;
 import org.jooq.Result;
@@ -42,7 +42,7 @@ public class Main {
 			config.useVirtualThreads = true;
 			config.http.asyncTimeout = 10_000L;
 			config.router.apiBuilder(() -> {
-				crud("ai-use-case-2025/{query}", crud);
+				crud("ai-use-cases/{query}", crud);
 			});
 		});
 		app.before(ctx -> {
@@ -62,23 +62,23 @@ public class Main {
 		List<Field> fields = new ArrayList<>();
 		fields.add(new Field().name(".*").type(FieldTypes.AUTO));
 		fields.add(new Field().name("agency_importance").type(FieldTypes.INT32).sort(true));
-		fields.add(new Field().name("agency").type(FieldTypes.STRING).sort(true));
+		fields.add(new Field().name("canonical_agency").type(FieldTypes.STRING).sort(true));
 		fields.add(new Field().name("use_case_name").type(FieldTypes.STRING).sort(true));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
-		collectionSchema.name("AIUseCase2025").fields(fields);
+		collectionSchema.name("AIUseCases").fields(fields);
 
 		boolean hasCollection = false;
 
 		for (var i : client.collections().retrieve()) {
-			if (i.getName().equals("AIUseCase2025")) {
+			if (i.getName().equals("AIUseCases")) {
 				hasCollection = true;
 				break;
 			}
 		}
 
 		if (hasCollection) {
-			client.collections("AIUseCase2025").delete();
+			client.collections("AIUseCases").delete();
 		}
 
 		client.collections().create(collectionSchema);
@@ -86,7 +86,7 @@ public class Main {
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
-			Result<AiUseCase_2025Record> records = ctx.selectFrom(AI_USE_CASE_2025).fetch();
+			Result<AiUseCasesRecord> records = ctx.selectFrom(AI_USE_CASES).fetch();
 
 			JSONFormat jsonFormat = new JSONFormat().header(false).recordFormat(JSONFormat.RecordFormat.OBJECT);
 
@@ -101,7 +101,7 @@ public class Main {
 			ImportDocumentsParameters queryParameters = new ImportDocumentsParameters();
 			queryParameters.action(IndexAction.UPSERT);
 
-			client.collections("AIUseCase2025").documents().import_(sb.toString(), queryParameters);
+			client.collections("AIUseCases").documents().import_(sb.toString(), queryParameters);
 		}
 	}
 }
