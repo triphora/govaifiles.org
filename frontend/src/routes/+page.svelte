@@ -56,8 +56,8 @@
 	let filters: MultiFilters = { ...defaultFilters };
 	let expandedSections: ExpandedSections = { ...defaultExpandedSections };
 	let sortState: SortState = { key: 'useCase', direction: 'asc' };
-	let yearFrom = '';
-	let yearTo = '';
+	let yearFrom = 2024;
+	let yearTo = 2025;
 
 	const emptyStateMessages: EmptyStateMap = {
 		'Department of Defense':
@@ -172,21 +172,6 @@
 		return normalizeFilterValue(value).toLowerCase();
 	}
 
-	function parseYearValue(value: string) {
-		const parsed = Number.parseInt(value, 10);
-		return Number.isFinite(parsed) ? parsed : null;
-	}
-
-	function recordYear(result: UseCaseRecord) {
-		const rawDate = normalizeFilterValue(result.operational_start_date);
-		if (!rawDate) {
-			return null;
-		}
-
-		const matched = rawDate.match(/(\d{4})/);
-		return matched ? parseYearValue(matched[1]) : null;
-	}
-
 	function agencyLabel(result: UseCaseRecord) {
 		return [normalizeFilterValue(result.bureau_component), normalizeFilterValue(result.agency)]
 			.filter(Boolean)
@@ -227,15 +212,15 @@
 	}
 
 	function matchesYearRange(result: UseCaseRecord) {
-		const from = parseYearValue(yearFrom);
-		const to = parseYearValue(yearTo);
-		const lowerBound = from !== null && to !== null ? Math.min(from, to) : from;
-		const upperBound = from !== null && to !== null ? Math.max(from, to) : to;
+		const from = yearFrom;
+		const to = yearTo;
+		const lowerBound = Math.min(from, to);
+		const upperBound = Math.max(from, to);
 		if (from === null && to === null) {
 			return true;
 		}
 
-		const year = recordYear(result);
+		const year: number = result.data_year;
 		if (year === null) {
 			return false;
 		}
@@ -413,8 +398,8 @@
 	function clearAllFilters() {
 		query = '';
 		filters = { ...defaultFilters };
-		yearFrom = '';
-		yearTo = '';
+		yearFrom = 2024;
+		yearTo = 2025;
 		expandedSections = { ...defaultExpandedSections };
 		mobileFiltersOpen = false;
 		sortState = { key: 'useCase', direction: 'asc' };
@@ -511,7 +496,7 @@
 									type="text"
 									inputmode="numeric"
 									maxlength="4"
-									placeholder="2022"
+									placeholder="2024"
 									aria-label="Year from"
 								/>
 								<span class="year-dash">-</span>

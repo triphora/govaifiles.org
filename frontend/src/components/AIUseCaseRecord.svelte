@@ -17,50 +17,50 @@
 
 	$: sectionTwoRequirements = result.stage_of_development !== 'Retired';
 	$: sectionThreeRequirements = ['Unknown', 'Pilot', 'Deployed'].includes(result.stage_of_development || '');
-	$: sectionFiveRequirements = ['Unknown', 'Deployed'].includes(result.stage_of_development || '') && ['High-impact', '[blank]', ''].includes(result.is_high_impact || '');
+	$: sectionFiveRequirements = ['Unknown', 'Deployed'].includes(result.stage_of_development || '') && ['high_impact', '[blank]', ''].includes(result.high_impact_status || '');
 
 	$: summaryFields = [
-		{ label: 'Problem Statement', value: result.problem_statement, show: sectionTwoRequirements || hasValue(result.problem_statement) },
+		{ label: 'Purpose Statement', value: result.purpose_and_benefits, show: sectionTwoRequirements || hasValue(result.problem_statement) },
 		{ label: 'Expected Benefits', value: result.expected_benefits, show: sectionTwoRequirements || hasValue(result.expected_benefits) },
 		{ label: 'AI System Outputs', value: result.system_outputs, show: sectionTwoRequirements || hasValue(result.system_outputs) }
 	];
 
 	$: documentationFields = [
 		{ label: 'Operational Date', value: result.operational_start_date, show: sectionThreeRequirements || hasValue(result.operational_start_date) },
-		{ label: 'Development Method', value: result.development_source, show: sectionThreeRequirements || hasValue(result.development_source) },
-		{ label: 'Vendor Name', value: result.vendor_name, show: sectionThreeRequirements || hasValue(result.vendor_name) },
+		{ label: 'Development Source Type', value: result.development_source_type, show: sectionThreeRequirements || hasValue(result.development_source) },
+		{ label: 'Vendor Name(s)', value: result.vendor_name, show: sectionThreeRequirements || hasValue(result.vendor_name) },
 		{ label: 'Authorization (ATO)', value: result.has_ato, show: sectionThreeRequirements || hasValue(result.has_ato) }
 	];
 
 	$: dataFields = [
-		{ label: 'PII', value: result.involves_pii, show: sectionThreeRequirements || hasValue(result.involves_pii) },
-		{ label: 'Custom Code', value: result.includes_custom_code, show: sectionThreeRequirements || hasValue(result.includes_custom_code) },
+		{ label: 'PII', value: result.uses_pii, show: sectionThreeRequirements || hasValue(result.involves_pii) },
+		{ label: 'Custom Code', value: result.has_custom_code, show: sectionThreeRequirements || hasValue(result.includes_custom_code) },
 		{ label: 'Federal Data Catalog', value: result.federal_data_catalog_link, show: sectionThreeRequirements || hasValue(result.federal_data_catalog_link) },
 		{ label: 'Privacy Impact Assessment', value: result.pia_link, show: sectionThreeRequirements || hasValue(result.pia_link) },
-		{ label: 'Model Features', value: result.demographic_variables_used, show: sectionThreeRequirements || hasValue(result.demographic_variables_used) },
+		{ label: 'Demographic Variables', value: result.demographic_variables_used, show: sectionThreeRequirements || hasValue(result.demographic_variables_used) },
 		{ label: 'Open Source Code', value: result.open_source_code_link, show: sectionThreeRequirements || hasValue(result.open_source_code_link) },
-		{ label: 'Training and Evaluation Data', value: result.training_and_evaluation_data, show: sectionThreeRequirements || hasValue(result.training_and_evaluation_data) }
+		{ label: 'Training and Evaluation Data', value: result.training_data_description, show: sectionThreeRequirements || hasValue(result.training_and_evaluation_data) }
 	];
 
 	$: riskFields = [
-		{ label: 'Pre-deploy Test', value: result.pre_deployment_testing_status, show: sectionFiveRequirements || hasValue(result.pre_deployment_testing_status) },
-		{ label: 'Impact Assessment', value: result.ai_impact_assessment_status, show: sectionFiveRequirements || hasValue(result.ai_impact_assessment_status) },
-		{ label: 'Independent Review', value: result.independent_review_status, show: sectionFiveRequirements || hasValue(result.independent_review_status) },
-		{ label: 'Fail-safe', value: result.fail_safe_status, show: sectionFiveRequirements || hasValue(result.fail_safe_status) },
-		{ label: 'Potential Impact', value: result.potential_impacts_description, show: sectionFiveRequirements || hasValue(result.potential_impacts_description), wide: true },
-		{ label: 'Ongoing Monitoring', value: result.ongoing_monitoring_process, show: sectionFiveRequirements || hasValue(result.ongoing_monitoring_process), wide: true },
-		{ label: 'Operator Training', value: result.operator_training_status, show: sectionFiveRequirements || hasValue(result.operator_training_status), wide: true },
-		{ label: 'Appeal Process', value: result.appeal_process_status, show: sectionFiveRequirements || hasValue(result.appeal_process_status), wide: true },
-		{ label: 'Public Feedback', value: result.public_and_user_feedback, show: sectionFiveRequirements || hasValue(result.public_and_user_feedback), wide: true }
+		{ label: 'Pre-deploy Test', value: result.pre_deployment_testing_conducted, show: sectionFiveRequirements || hasValue(result.pre_deployment_testing_status) },
+		{ label: 'Impact Assessment', value: result.ai_impact_assessment_completed, show: sectionFiveRequirements || hasValue(result.ai_impact_assessment_status) },
+		{ label: 'Independent Review', value: result.independent_review_conducted, show: sectionFiveRequirements || hasValue(result.independent_review_status) },
+		{ label: 'Fail-safe', value: result.failsafe_in_place, show: sectionFiveRequirements || hasValue(result.fail_safe_status) },
+		{ label: 'Potential Impact', value: result.potential_impacts_identified, show: sectionFiveRequirements || hasValue(result.potential_impacts_description), wide: true },
+		{ label: 'Ongoing Monitoring', value: result.ongoing_monitoring_established, show: sectionFiveRequirements || hasValue(result.ongoing_monitoring_process), wide: true },
+		{ label: 'Operator Training', value: result.operator_training_established, show: sectionFiveRequirements || hasValue(result.operator_training_status), wide: true },
+		{ label: 'Appeal Process', value: result.appeal_process_available, show: sectionFiveRequirements || hasValue(result.appeal_process_status), wide: true },
+		{ label: 'Public Feedback', value: result.user_feedback_steps, show: sectionFiveRequirements || hasValue(result.public_and_user_feedback), wide: true }
 	];
 
 	function impactLabel(value: string | undefined | null) {
 		const normalized = displayValue(value, 'Not reported');
-		if (normalized === 'High-impact') {
+		if (normalized === 'high_impact') {
 			return 'High Impact';
 		}
 
-		if (normalized === 'Not high-impact') {
+		if (normalized === 'not_high_impact' || normalized === 'presumed_high_impact_not_high_impact') {
 			return 'Not High Impact';
 		}
 
@@ -111,7 +111,7 @@
 			</div>
 			<div class="record-summary__item">
 				<span>Impact</span>
-				<p><span class={`impact-pill ${impactClass(result.is_high_impact)}`}>{impactLabel(result.is_high_impact)}</span></p>
+				<p><span class={`impact-pill ${impactClass(result.high_impact_status)}`}>{impactLabel(result.high_impact_status)}</span></p>
 			</div>
 			<div class="record-summary__item">
 				<span>Topic Area</span>
@@ -155,7 +155,7 @@
 						{/if}
 					{/each}
 
-					{#if normalizeValue(result.is_high_impact) === 'Not high-impact'}
+					{#if normalizeValue(result.high_impact_status) === 'not_high_impact'}
 						<div class="record-field">
 							<h4>Impact Justification</h4>
 							<div class={`record-richtext ${hasValue(result.justification) ? '' : 'is-empty'}`}>{renderValue(result.justification)}</div>
@@ -177,10 +177,10 @@
 						{/each}
 					</div>
 
-					{#if sectionThreeRequirements || hasValue(result.systems_name)}
+					{#if sectionThreeRequirements || hasValue(result.system_names)}
 						<div class="record-field record-field--spaced">
-							<h4>System Name</h4>
-							<div class={`record-richtext ${hasValue(result.systems_name) ? '' : 'is-empty'}`}>{renderValue(result.systems_name)}</div>
+							<h4>System Names</h4>
+							<div class={`record-richtext ${hasValue(result.system_names) ? '' : 'is-empty'}`}>{renderValue(result.system_names)}</div>
 						</div>
 					{/if}
 

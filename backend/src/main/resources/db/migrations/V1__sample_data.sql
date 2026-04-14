@@ -56,3 +56,4 @@ CREATE TABLE ai_use_cases (
 );
 
 COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_2025_20260413_101402.csv' DELIMITER ',' CSV HEADER;
+COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_multi_20260413_101408.csv' DELIMITER ',' CSV HEADER;
