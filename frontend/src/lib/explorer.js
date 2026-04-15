@@ -303,7 +303,7 @@ export function stageClass(value) {
 			return 'stage-deployed';
 		case 'Pilot':
 			return 'stage-pilot';
-		case 'Pre-deployment':
+		case 'Pre_deployment':
 			return 'stage-pre';
 		case 'Retired':
 			return 'stage-retired';

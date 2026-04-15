@@ -15,7 +15,7 @@
 	let dataFields: Array<{ label: string; value: string | undefined | null; show: boolean }> = [];
 	let riskFields: Array<{ label: string; value: string | undefined | null; show: boolean; wide?: boolean }> = [];
 
-	$: sectionTwoRequirements = result.stage_of_development !== 'Retired';
+	$: sectionTwoRequirements = result.stage_of_development !== 'Retired' && parseInt(result.data_year) >= 2025;
 	$: sectionThreeRequirements = ['Unknown', 'Pilot', 'Deployed'].includes(result.stage_of_development || '');
 	$: sectionFiveRequirements = ['Unknown', 'Deployed'].includes(result.stage_of_development || '') && ['high_impact', '[blank]', ''].includes(result.high_impact_status || '');
 
@@ -72,7 +72,7 @@
 	}
 
 	function agencyLabel() {
-		return [result.bureau_component, result.agency].filter(Boolean).join(' · ');
+		return [result.bureau_component, result.canonical_agency].filter(Boolean).join(' · ');
 	}
 
 	function renderValue(value: string | undefined | null) {
@@ -154,13 +154,6 @@
 							</div>
 						{/if}
 					{/each}
-
-					{#if normalizeValue(result.high_impact_status) === 'not_high_impact'}
-						<div class="record-field">
-							<h4>Impact Justification</h4>
-							<div class={`record-richtext ${hasValue(result.justification) ? '' : 'is-empty'}`}>{renderValue(result.justification)}</div>
-						</div>
-					{/if}
 				</section>
 
 				<section class="record-section">

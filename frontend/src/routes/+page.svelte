@@ -873,7 +873,7 @@
 				</div>
 			{:else}
 				<div class="results-list">
-					{#each results as result, index (result.use_case_id || `${result.agency}-${result.use_case_name}`)}
+					{#each results as result, index (`${result.data_year}-${result.use_case_id}-${result.agency}-${result.use_case_name}-${result.validation_notes}`)}
 						<AiUseCaseRecord {result} index={index + 1} />
 					{/each}
 				</div>
