@@ -47,14 +47,15 @@ public class APIHandler implements CrudHandler {
 
 			SearchParameters searchParameters = new SearchParameters()
 				.q(s)
-				.sortBy("agency_importance:desc,agency:asc,use_case_name:asc")
-				.queryBy("agency,use_case_id,use_case_name,bureau_component,stage_of_development_raw,stage_of_development," +
-					"is_high_impact_raw,is_high_impact,justification,use_case_topic_area,ai_classification,problem_statement," +
-					"expected_benefits,system_outputs,operational_start_date,development_source,vendor_name,has_ato,systems_name," +
-					"training_and_evaluation_data,federal_data_catalog_link,involves_pii,pia_link,demographic_variables_used," +
-					"includes_custom_code,open_source_code_link,pre_deployment_testing_status,ai_impact_assessment_status," +
-					"potential_impacts_description,independent_review_status,ongoing_monitoring_process,operator_training_status," +
-					"fail_safe_status,appeal_process_status,public_and_user_feedback")
+				.sortBy("agency_importance:desc,canonical_agency:asc,use_case_name:asc")
+				.queryBy("use_case_name,use_case_id,agency,bureau_component,canonical_agency,canonical_abbreviation," +
+					"canonical_sub_agency,canonical_agency,contact_email,public_reporting_status,stage_of_development," +
+					"high_impact_status,use_case_topic_area,ai_classification,purpose_and_benefits," +
+					"expected_benefits,system_outputs,development_source_type,vendor_names,system_names," +
+					"training_data_description,demographic_variables_used,pre_deployment_testing_conducted," +
+					"ai_impact_assessment_completed,potential_impacts_identified,independent_review_conducted," +
+					"ongoing_monitoring_established,operator_training_established,failsafe_in_place,appeal_process_available," +
+					"user_feedback_steps")
 				.limit(250);
 
 			List<String> filters = new ArrayList<>();
@@ -67,7 +68,7 @@ public class APIHandler implements CrudHandler {
 
 			searchParameters.filterBy(String.join(" && ", filters));
 
-			SearchResult searchResult = client.collections("AIUseCase2025").documents().search(searchParameters);
+			SearchResult searchResult = client.collections("AIUseCases").documents().search(searchParameters);
 
 			searchResult.getHits().forEach((hit) ->
 				hits.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));

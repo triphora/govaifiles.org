@@ -58,21 +58,24 @@ export const fieldGuideGroups = [
 			{
 				label: 'Use Case',
 				source: 'use_case_name',
-				description: 'The reported name of the AI system or workflow. This stays unchanged in the explorer.'
+				description:
+					'The reported name of the AI system or workflow. This stays unchanged in the explorer.'
 			},
 			{
 				label: 'Agency',
 				source: 'agency / bureau_component',
-				description: 'The reporting agency and, when available, the bureau or component responsible for the use case.'
+				description:
+					'The reporting agency and, when available, the bureau or component responsible for the use case.'
 			},
 			{
 				label: 'Stage',
 				source: 'stage_of_development',
-				description: 'A shortened display label for the reported lifecycle stage such as Deployed, Pilot, or Retired.'
+				description:
+					'A shortened display label for the reported lifecycle stage such as Deployed, Pilot, or Retired.'
 			},
 			{
 				label: 'Impact',
-				source: 'is_high_impact',
+				source: 'high_impact_status',
 				description: 'A shorter version of the agency-reported high-impact status.'
 			},
 			{
@@ -83,7 +86,8 @@ export const fieldGuideGroups = [
 			{
 				label: 'AI Classification',
 				source: 'ai_classification',
-				description: 'The reported technical category of AI, shown with a shorter interface label but the same underlying value.'
+				description:
+					'The reported technical category of AI, shown with a shorter interface label but the same underlying value.'
 			}
 		]
 	},
@@ -93,7 +97,8 @@ export const fieldGuideGroups = [
 			{
 				label: 'Problem Statement',
 				source: 'problem_statement',
-				description: 'Simplified label for the original question asking what problem the AI is intended to solve.'
+				description:
+					'Simplified label for the original question asking what problem the AI is intended to solve.'
 			},
 			{
 				label: 'Expected Benefits',
@@ -108,7 +113,8 @@ export const fieldGuideGroups = [
 			{
 				label: 'Impact Justification',
 				source: 'justification',
-				description: 'Shown when a use case is marked not high-impact, preserving the agency justification text.'
+				description:
+					'Shown when a use case is marked not high-impact, preserving the agency justification text.'
 			}
 		]
 	},
@@ -118,12 +124,14 @@ export const fieldGuideGroups = [
 			{
 				label: 'Operational Date',
 				source: 'operational_start_date',
-				description: 'Shorter label for the date when the AI became operational or the pilot started.'
+				description:
+					'Shorter label for the date when the AI became operational or the pilot started.'
 			},
 			{
 				label: 'Development Method',
 				source: 'development_source',
-				description: 'Simplified label for whether the system came from a vendor, contract, or in-house development.'
+				description:
+					'Simplified label for whether the system came from a vendor, contract, or in-house development.'
 			},
 			{
 				label: 'Vendor Name',
@@ -143,7 +151,8 @@ export const fieldGuideGroups = [
 			{
 				label: 'Training and Evaluation Data',
 				source: 'training_and_evaluation_data',
-				description: 'Shortened display label for the narrative description of training, fine-tuning, and evaluation data.'
+				description:
+					'Shortened display label for the narrative description of training, fine-tuning, and evaluation data.'
 			},
 			{
 				label: 'Federal Data Catalog',
@@ -153,17 +162,20 @@ export const fieldGuideGroups = [
 			{
 				label: 'PII',
 				source: 'involves_pii',
-				description: 'Short label for whether the use case involves agency-maintained personally identifiable information.'
+				description:
+					'Short label for whether the use case involves agency-maintained personally identifiable information.'
 			},
 			{
 				label: 'Privacy Impact Assessment',
 				source: 'pia_link',
-				description: 'Short label for the publicly available Privacy Impact Assessment link, when reported.'
+				description:
+					'Short label for the publicly available Privacy Impact Assessment link, when reported.'
 			},
 			{
 				label: 'Model Features',
 				source: 'demographic_variables_used',
-				description: 'A simplified label for demographic variables explicitly used as model features.'
+				description:
+					'A simplified label for demographic variables explicitly used as model features.'
 			},
 			{
 				label: 'Custom Code',
@@ -193,7 +205,8 @@ export const fieldGuideGroups = [
 			{
 				label: 'Potential Impact',
 				source: 'potential_impacts_description',
-				description: 'The agency narrative describing possible impacts and how they were identified.'
+				description:
+					'The agency narrative describing possible impacts and how they were identified.'
 			},
 			{
 				label: 'Independent Review',
@@ -203,7 +216,8 @@ export const fieldGuideGroups = [
 			{
 				label: 'Ongoing Monitoring',
 				source: 'ongoing_monitoring_process',
-				description: 'Simplified label for the reported monitoring process covering performance, security, privacy, civil rights, and civil liberties.'
+				description:
+					'Simplified label for the reported monitoring process covering performance, security, privacy, civil rights, and civil liberties.'
 			},
 			{
 				label: 'Operator Training',
@@ -223,7 +237,8 @@ export const fieldGuideGroups = [
 			{
 				label: 'Public Feedback',
 				source: 'public_and_user_feedback',
-				description: 'Short label for the narrative about consultation and feedback from users or the public.'
+				description:
+					'Short label for the narrative about consultation and feedback from users or the public.'
 			}
 		]
 	}
@@ -233,8 +248,8 @@ export const stageOptions = ['Deployed', 'Pilot', 'Pre-deployment', 'Retired'];
 
 export const impactOptions = [
 	{ value: '', label: 'All' },
-	{ value: 'High-impact', label: 'High Impact' },
-	{ value: 'Not high-impact', label: 'Not High Impact' }
+	{ value: 'high_impact', label: 'High Impact' },
+	{ value: 'not_high_impact', label: 'Not High Impact' }
 ];
 
 export const dhsComponents = new Set(['CBP', 'CISA', 'CWMD', 'DHS', 'FEMA', 'ICE', 'MGMT', 'OHS', 'TSA', 'USCG', 'USCIS', 'USSS']);
@@ -248,7 +263,7 @@ export function normalizeValue(value) {
 		return '[blank]';
 	}
 
-	const trimmed = value.trim();
+	const trimmed = value;
 	return trimmed === '' ? '[blank]' : trimmed;
 }
 
@@ -288,7 +303,7 @@ export function stageClass(value) {
 			return 'stage-deployed';
 		case 'Pilot':
 			return 'stage-pilot';
-		case 'Pre-deployment':
+		case 'Pre_deployment':
 			return 'stage-pre';
 		case 'Retired':
 			return 'stage-retired';
@@ -303,11 +318,11 @@ export function stageClass(value) {
  */
 export function impactClass(value) {
 	const normalized = displayValue(value, 'Not reported');
-	if (normalized === 'High-impact') {
+	if (normalized === 'high_impact') {
 		return 'impact-high';
 	}
 
-	if (normalized === 'Not high-impact') {
+	if (normalized === 'not_high_impact') {
 		return 'impact-low';
 	}
 

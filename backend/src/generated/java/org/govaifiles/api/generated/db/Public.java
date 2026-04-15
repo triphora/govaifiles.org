@@ -7,7 +7,7 @@ package org.govaifiles.api.generated.db;
 import java.util.Arrays;
 import java.util.List;
 
-import org.govaifiles.api.generated.db.tables.AiUseCase_2025;
+import org.govaifiles.api.generated.db.tables.AiUseCases;
 import org.govaifiles.api.generated.db.tables.FlywaySchemaHistory;
 import org.jooq.Catalog;
 import org.jooq.Table;
@@ -29,9 +29,9 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
-     * The table <code>public.ai_use_case_2025</code>.
+     * The table <code>public.ai_use_cases</code>.
      */
-    public final AiUseCase_2025 AI_USE_CASE_2025 = AiUseCase_2025.AI_USE_CASE_2025;
+    public final AiUseCases AI_USE_CASES = AiUseCases.AI_USE_CASES;
 
     /**
      * The table <code>public.flyway_schema_history</code>.
@@ -54,7 +54,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.asList(
-            AiUseCase_2025.AI_USE_CASE_2025,
+            AiUseCases.AI_USE_CASES,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY
         );
     }
