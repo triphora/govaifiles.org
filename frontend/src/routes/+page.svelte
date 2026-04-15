@@ -44,6 +44,7 @@
 		.filter((option) => option.value)
 		.map((option) => option.value);
 	const impactSelectableOptions = [...impactValueOptions, ''];
+	const SEARCH_DEBOUNCE_MS = 250;
 
 	let query = '';
 	let loading = false;
@@ -58,6 +59,9 @@
 	let sortState: SortState = { key: 'useCase', direction: 'asc' };
 	let yearFrom = '';
 	let yearTo = '';
+	let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+	let activeSearchController: AbortController | null = null;
+	let latestSearchRequest = 0;
 
 	const emptyStateMessages: EmptyStateMap = {
 		'Department of Defense':
@@ -115,6 +119,8 @@
 	});
 
 	onDestroy(() => {
+		clearPendingSearch();
+		activeSearchController?.abort();
 		unlockPageScroll();
 	});
 
@@ -354,14 +360,39 @@
 		return leftValue.localeCompare(rightValue, undefined, { sensitivity: 'base' }) * direction;
 	}
 
+	function clearPendingSearch() {
+		if (searchDebounceTimer) {
+			clearTimeout(searchDebounceTimer);
+			searchDebounceTimer = null;
+		}
+	}
+
+	function queueSearch() {
+		clearPendingSearch();
+		searchDebounceTimer = setTimeout(() => {
+			searchDebounceTimer = null;
+			void search();
+		}, SEARCH_DEBOUNCE_MS);
+	}
+
+	function submitSearch() {
+		clearPendingSearch();
+		void search();
+	}
+
 	async function search() {
+		const requestId = ++latestSearchRequest;
+		const controller = new AbortController();
+
+		activeSearchController?.abort();
+		activeSearchController = controller;
 		loading = true;
 		error = '';
 
 		const queryString = `${PUBLIC_BACKEND_URL}/ai-use-case-2025/${encodeURIComponent(query.trim() || '*')}?`;
 
 		try {
-			const response = await fetch(queryString);
+			const response = await fetch(queryString, { signal: controller.signal });
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}`);
 			}
@@ -382,6 +413,10 @@
 				)
 			];
 
+			if (requestId !== latestSearchRequest) {
+				return;
+			}
+
 			serverResults = nextResults;
 			filters = {
 				...filters,
@@ -391,10 +426,17 @@
 				)
 			};
 		} catch (searchError) {
+			if (searchError instanceof DOMException && searchError.name === 'AbortError') {
+				return;
+			}
+
 			error = searchError instanceof Error ? searchError.message : 'Unknown error';
 			serverResults = [];
 		} finally {
-			loading = false;
+			if (requestId === latestSearchRequest) {
+				loading = false;
+				activeSearchController = null;
+			}
 		}
 	}
 
@@ -418,7 +460,7 @@
 		expandedSections = { ...defaultExpandedSections };
 		mobileFiltersOpen = false;
 		sortState = { key: 'useCase', direction: 'asc' };
-		search();
+		submitSearch();
 	}
 
 	function toggleSection(key: SectionKey) {
@@ -454,12 +496,13 @@
 			</p>
 		</div>
 
-		<form class="explorer-search" on:submit|preventDefault={search}>
+		<form class="explorer-search" on:submit|preventDefault={submitSearch}>
 			<label class="visually-hidden" for="search-use-cases">Search use cases</label>
 			<input
 				id="search-use-cases"
 				type="search"
 				bind:value={query}
+				on:input={queueSearch}
 				placeholder="Search use cases, agencies, vendors, systems..."
 			/>
 			<button type="submit">Search</button>
@@ -1046,6 +1089,9 @@
 	.explorer-sidebar {
 		position: sticky;
 		top: 86px;
+		align-self: start;
+		height: calc(100vh - 110px);
+		max-height: calc(100vh - 110px);
 	}
 
 	.filter-panel,
@@ -1062,6 +1108,10 @@
 		border-radius: var(--radius-lg);
 		display: grid;
 		gap: 18px;
+		height: 100%;
+		max-height: 100%;
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	.filter-panel__header {
@@ -1494,6 +1544,8 @@
 		.explorer-sidebar {
 			position: static;
 			display: none;
+			height: auto;
+			max-height: none;
 		}
 
 		.explorer-sidebar.open,
