@@ -19,6 +19,42 @@ import java.util.List;
 import java.util.Map;
 
 public class APIHandler implements CrudHandler {
+	private static void sanitizeDocument(JsonObject document) {
+		if (!document.has("use_case_id") || document.get("use_case_id").isJsonNull()) {
+			return;
+		}
+
+		document.addProperty("use_case_id", sanitizeUseCaseId(document.get("use_case_id").getAsString()));
+	}
+
+	private static String sanitizeUseCaseId(String value) {
+		if (value == null) {
+			return null;
+		}
+
+		if (!value.contains("dtype:") && !value.contains("Use Case ID")) {
+			return value;
+		}
+
+		for (String line : value.split("\\R")) {
+			String candidate = line.trim();
+			if (candidate.isEmpty() || candidate.startsWith("Name:") || candidate.startsWith("dtype:")) {
+				continue;
+			}
+
+			candidate = candidate.replaceFirst("(?i)^Use Case ID\\s+", "");
+			candidate = candidate.replaceFirst("^\\d+\\s+", "").trim();
+			if (!candidate.isEmpty()
+				&& !candidate.equalsIgnoreCase("nan")
+				&& !candidate.equalsIgnoreCase("none")
+				&& !candidate.equalsIgnoreCase("null")) {
+				return candidate;
+			}
+		}
+
+		return value.trim();
+	}
+
 	@Override
 	public void create(@NotNull Context ctx) {
 		throw new NotImplementedResponse("not implemented");
@@ -70,8 +106,11 @@ public class APIHandler implements CrudHandler {
 
 			SearchResult searchResult = client.collections("AIUseCases").documents().search(searchParameters);
 
-			searchResult.getHits().forEach((hit) ->
-				hits.add(new Gson().toJsonTree(hit.getDocument()).getAsJsonObject()));
+			searchResult.getHits().forEach((hit) -> {
+				JsonObject document = new Gson().toJsonTree(hit.getDocument()).getAsJsonObject();
+				sanitizeDocument(document);
+				hits.add(document);
+			});
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

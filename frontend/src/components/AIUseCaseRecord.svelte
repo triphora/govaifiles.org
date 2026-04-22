@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { displayValue, hasValue, impactClass, isUrl, normalizeValue, stageClass } from '$lib/explorer';
+	import { displayUseCaseId, displayValue, hasValue, impactClass, isUrl, normalizeValue, stageClass } from '$lib/explorer';
 
 	type UseCaseRecord = Record<string, string | undefined | null>;
 
@@ -15,7 +15,8 @@
 	let dataFields: Array<{ label: string; value: string | undefined | null; show: boolean }> = [];
 	let riskFields: Array<{ label: string; value: string | undefined | null; show: boolean; wide?: boolean }> = [];
 
-	$: sectionTwoRequirements = result.stage_of_development !== 'Retired' && parseInt(result.data_year) >= 2025;
+	$: sectionTwoRequirements =
+		result.stage_of_development !== 'Retired' && parseInt(result.data_year ?? '', 10) >= 2025;
 	$: sectionThreeRequirements = ['Unknown', 'Pilot', 'Deployed'].includes(result.stage_of_development || '');
 	$: sectionFiveRequirements = ['Unknown', 'Deployed'].includes(result.stage_of_development || '') && ['high_impact', '[blank]', ''].includes(result.high_impact_status || '');
 
@@ -92,7 +93,7 @@
 			<div>
 				<h3>{result.use_case_name}</h3>
 				<p class="record-meta">
-					{displayValue(result.use_case_id, 'No ID reported')}
+					{displayUseCaseId(result.use_case_id, 'No ID reported')}
 					{#if hasValue(result.problem_statement)}
 						<span>{displayValue(result.problem_statement).slice(0, 150)}{displayValue(result.problem_statement).length > 150 ? '...' : ''}</span>
 					{/if}

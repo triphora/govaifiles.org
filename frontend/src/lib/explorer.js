@@ -1,4 +1,4 @@
-export const agencyOptions = [
+export const topLevelAgencyOptions = [
 	'Department of Agriculture',
 	'Department of Commerce',
 	'Department of Defense',
@@ -6,18 +6,6 @@ export const agencyOptions = [
 	'Department of Energy',
 	'Department of Health and Human Services',
 	'Department of Homeland Security',
-	'CBP',
-	'CISA',
-	'CWMD',
-	'DHS',
-	'FEMA',
-	'ICE',
-	'MGMT',
-	'OHS',
-	'TSA',
-	'USCG',
-	'USCIS',
-	'USSS',
 	'Department of Housing and Urban Development',
 	'Department of Justice',
 	'Department of Labor',
@@ -50,6 +38,24 @@ export const agencyOptions = [
 	'United States Agency for International Development',
 	'United States Trade and Development Agency'
 ];
+
+export const bureauOptionsByAgency = {
+	'Department of Homeland Security': [
+		'CBP',
+		'CISA',
+		'CWMD',
+		'FEMA',
+		'ICE',
+		'MGMT',
+		'OHS',
+		'TSA',
+		'USCG',
+		'USCIS',
+		'USSS'
+	]
+};
+
+export const agencyOptions = topLevelAgencyOptions;
 
 export const fieldGuideGroups = [
 	{
@@ -252,7 +258,7 @@ export const impactOptions = [
 	{ value: 'not_high_impact', label: 'Not High Impact' }
 ];
 
-export const dhsComponents = new Set(['CBP', 'CISA', 'CWMD', 'DHS', 'FEMA', 'ICE', 'MGMT', 'OHS', 'TSA', 'USCG', 'USCIS', 'USSS']);
+export const dhsComponents = new Set(bureauOptionsByAgency['Department of Homeland Security']);
 
 /**
  * @param {string | null | undefined} value
@@ -283,6 +289,44 @@ export function hasValue(value) {
 export function displayValue(value, fallback = 'Not reported') {
 	const normalized = normalizeValue(value);
 	return normalized === '[blank]' ? fallback : normalized;
+}
+
+/**
+	* @param {string | null | undefined} value
+	* @returns {string | null}
+	*/
+function extractUseCaseIdFromSeriesDump(value) {
+	if (!value || (!value.includes('dtype:') && !value.includes('Use Case ID'))) {
+		return null;
+	}
+
+	for (const line of value.split(/\r?\n/)) {
+		let candidate = line.trim();
+		if (!candidate || /^Name:/i.test(candidate) || /^dtype:/i.test(candidate)) {
+			continue;
+		}
+
+		candidate = candidate.replace(/^Use Case ID\s+/i, '').replace(/^\d+\s+/, '').trim();
+		if (candidate && !/^(nan|none|null)$/i.test(candidate)) {
+			return candidate;
+		}
+	}
+
+	return null;
+}
+
+/**
+	* @param {string | null | undefined} value
+	* @param {string} [fallback='No ID reported']
+	* @returns {string}
+	*/
+export function displayUseCaseId(value, fallback = 'No ID reported') {
+	const normalized = normalizeValue(value);
+	if (normalized === '[blank]') {
+		return fallback;
+	}
+
+	return extractUseCaseIdFromSeriesDump(normalized) ?? normalized;
 }
 
 /**

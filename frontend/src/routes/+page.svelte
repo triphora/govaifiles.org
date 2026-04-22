@@ -4,10 +4,10 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import AiUseCaseRecord from '../components/AIUseCaseRecord.svelte';
 	import FieldGuideContent from '../components/FieldGuideContent.svelte';
-	import { agencyOptions, impactOptions, stageOptions } from '$lib/explorer';
+	import { agencyOptions, dhsComponents, impactOptions, stageOptions } from '$lib/explorer';
 
 	type UseCaseRecord = Record<string, string | undefined | null>;
-	type FilterKey = 'agency' | 'stage' | 'impact' | 'topic' | 'aiClassification';
+	type FilterKey = 'agency' | 'bureau' | 'stage' | 'impact' | 'topic' | 'aiClassification';
 	type SortKey = 'useCase' | 'agency' | 'stage' | 'impact' | 'topic' | 'aiClassification';
 	type EmptyStateMap = Record<string, string>;
 	type MultiFilters = Record<FilterKey, string[]>;
@@ -18,6 +18,7 @@
 	const defaultExpandedSections: ExpandedSections = {
 		year: true,
 		agency: true,
+		bureau: true,
 		stage: true,
 		impact: true,
 		topic: true,
@@ -26,6 +27,7 @@
 
 	const defaultFilters: MultiFilters = {
 		agency: [],
+		bureau: [],
 		stage: [],
 		impact: [],
 		topic: [],
@@ -44,7 +46,12 @@
 		.filter((option) => option.value)
 		.map((option) => option.value);
 	const impactSelectableOptions = [...impactValueOptions, ''];
+	const topLevelAgencyOptions = agencyOptions;
+	const bureauOptionsByAgency: Record<string, string[]> = {
+		'Department of Homeland Security': [...dhsComponents]
+	};
 	const SEARCH_DEBOUNCE_MS = 250;
+	const BACKEND_URL = PUBLIC_BACKEND_URL;
 
 	let query = '';
 	let loading = false;
@@ -96,8 +103,9 @@
 			serverResults.map((result) => normalizeFilterValue(result.ai_classification)).filter(Boolean)
 		)
 	].sort((a, b) => a.localeCompare(b));
-	$: agencyFilterOptions = agencyOptions.filter((agency) =>
-		serverResults.some((result) => getAgencyValues(result).includes(agency))
+	$: agencyFilterOptions = topLevelAgencyOptions;
+	$: bureauFilterOptions = filters.agency.flatMap(
+		(agency) => bureauOptionsByAgency[agency as keyof typeof bureauOptionsByAgency] ?? []
 	);
 	$: filteredResults = serverResults.filter((result) => matchesFilters(result, filters));
 	$: yearFilteredResults = filteredResults.filter(matchesYearRange);
@@ -184,11 +192,77 @@
 			.join(' · ');
 	}
 
-	function getAgencyValues(result: UseCaseRecord) {
-		return [
-			normalizeFilterValue(result.bureau_component),
-			normalizeFilterValue(result.agency)
-		].filter(Boolean);
+	function getImpactValue(result: UseCaseRecord) {
+		return normalizeFilterValue(result.high_impact_status ?? result.is_high_impact);
+	}
+
+	function parseYearInput(value: string) {
+		const normalizedValue = normalizeFilterValue(value);
+		if (!/^\d{4}$/.test(normalizedValue)) {
+			return null;
+		}
+
+		return Number.parseInt(normalizedValue, 10);
+	}
+
+	function encodeFilterValue(value: string) {
+		return `\`${normalizeFilterValue(value).replace(/`/g, '\\`')}\``;
+	}
+
+	function encodeFilterSelection(values: string[]) {
+		const normalizedValues = values.map(normalizeFilterValue).filter(Boolean);
+		if (normalizedValues.length === 0) {
+			return null;
+		}
+
+		if (normalizedValues.length === 1) {
+			return encodeFilterValue(normalizedValues[0]);
+		}
+
+		return `[${normalizedValues.map(encodeFilterValue).join(',')}]`;
+	}
+
+	function buildSearchParams() {
+		const params = new URLSearchParams();
+		const agencyFilter = encodeFilterSelection(filters.agency);
+		if (agencyFilter) {
+			params.set('agency', agencyFilter);
+		}
+
+		const bureauFilter = encodeFilterSelection(filters.bureau);
+		if (bureauFilter) {
+			params.set('bureau_component', bureauFilter);
+		}
+
+		const stageFilter = encodeFilterSelection(filters.stage);
+		if (stageFilter) {
+			params.set('stage_of_development', stageFilter);
+		}
+
+		const impactFilter = encodeFilterSelection(
+			filters.impact.filter((value) => normalizeFilterValue(value) !== '')
+		);
+		if (impactFilter) {
+			params.set('high_impact_status', impactFilter);
+		}
+
+		const topicFilter = encodeFilterSelection(filters.topic);
+		if (topicFilter) {
+			params.set('use_case_topic_area', topicFilter);
+		}
+
+		const aiClassificationFilter = encodeFilterSelection(filters.aiClassification);
+		if (aiClassificationFilter) {
+			params.set('ai_classification', aiClassificationFilter);
+		}
+
+		const fromYear = parseYearInput(yearFrom);
+		const toYear = parseYearInput(yearTo);
+		if (fromYear !== null && toYear !== null && fromYear === toYear) {
+			params.set('data_year', String(fromYear));
+		}
+
+		return params;
 	}
 
 	function matchesAnySelection(selections: string[], value: string) {
@@ -203,12 +277,16 @@
 	function matchesFilters(result: UseCaseRecord, activeFilters: MultiFilters) {
 		const matchesAgency =
 			activeFilters.agency.length === 0 ||
-			getAgencyValues(result).some((value) => matchesAnySelection(activeFilters.agency, value));
+			matchesAnySelection(activeFilters.agency, normalizeFilterValue(result.agency));
+		const matchesBureau =
+			activeFilters.bureau.length === 0 ||
+			matchesAnySelection(activeFilters.bureau, normalizeFilterValue(result.bureau_component));
 
 		return (
 			matchesAgency &&
+			matchesBureau &&
 			matchesAnySelection(activeFilters.stage, normalizeFilterValue(result.stage_of_development)) &&
-			matchesAnySelection(activeFilters.impact, normalizeFilterValue(result.is_high_impact)) &&
+			matchesAnySelection(activeFilters.impact, getImpactValue(result)) &&
 			matchesAnySelection(activeFilters.topic, normalizeFilterValue(result.use_case_topic_area)) &&
 			matchesAnySelection(
 				activeFilters.aiClassification,
@@ -218,18 +296,19 @@
 	}
 
 	function matchesYearRange(result: UseCaseRecord) {
-		const from = yearFrom;
-		const to = yearTo;
-		const lowerBound = Math.min(from, to);
-		const upperBound = Math.max(from, to);
+		const from = parseYearInput(yearFrom);
+		const to = parseYearInput(yearTo);
 		if (from === null && to === null) {
 			return true;
 		}
 
-		const year: number = result.data_year;
+		const year = parseYearInput(String(result.data_year ?? ''));
 		if (year === null) {
 			return false;
 		}
+
+		const lowerBound = from === null ? to : to === null ? from : Math.min(from, to);
+		const upperBound = from === null ? to : to === null ? from : Math.max(from, to);
 
 		if (lowerBound !== null && year < lowerBound) {
 			return false;
@@ -245,7 +324,11 @@
 	function countMatchingOption(key: FilterKey, value: string) {
 		return serverResults.filter((result) => {
 			if (key === 'agency') {
-				return getAgencyValues(result).includes(value);
+				return normalizeFilterValue(result.agency) === value;
+			}
+
+			if (key === 'bureau') {
+				return normalizeFilterValue(result.bureau_component) === value;
 			}
 
 			if (key === 'stage') {
@@ -253,7 +336,7 @@
 			}
 
 			if (key === 'impact') {
-				return normalizeFilterValue(result.is_high_impact) === value;
+				return getImpactValue(result) === value;
 			}
 
 			if (key === 'topic') {
@@ -265,21 +348,25 @@
 	}
 
 	function countBlankImpact() {
-		return serverResults.filter((result) => normalizeFilterValue(result.is_high_impact) === '')
+		return serverResults.filter((result) => getImpactValue(result) === '')
 			.length;
 	}
 
 	function countAllForGroup(key: FilterKey, options: string[]) {
 		if (key === 'impact') {
 			return serverResults.filter((result) => {
-				const value = normalizeFilterValue(result.is_high_impact);
+				const value = getImpactValue(result);
 				return options.includes(value) || value === '';
 			}).length;
 		}
 
 		return serverResults.filter((result) => {
 			if (key === 'agency') {
-				return getAgencyValues(result).some((value) => options.includes(value));
+				return options.includes(normalizeFilterValue(result.agency));
+			}
+
+			if (key === 'bureau') {
+				return options.includes(normalizeFilterValue(result.bureau_component));
 			}
 
 			if (key === 'stage') {
@@ -299,10 +386,26 @@
 	}
 
 	function toggleAllFilterValues(key: FilterKey, options: string[]) {
+		const nextValues = isAllSelected(key, options) ? [] : [...options];
+
+		if (key === 'agency') {
+			const nextBureauOptions = nextValues.flatMap(
+				(agency) => bureauOptionsByAgency[agency as keyof typeof bureauOptionsByAgency] ?? []
+			);
+			filters = {
+				...filters,
+				agency: nextValues,
+				bureau: filters.bureau.filter((bureau) => nextBureauOptions.includes(bureau))
+			};
+			submitSearch();
+			return;
+		}
+
 		filters = {
 			...filters,
-			[key]: isAllSelected(key, options) ? [] : [...options]
+			[key]: nextValues
 		};
+		submitSearch();
 	}
 
 	function getSortableValue(result: UseCaseRecord, key: SortKey) {
@@ -314,7 +417,7 @@
 			case 'stage':
 				return normalizeFilterValue(result.stage_of_development);
 			case 'impact':
-				return normalizeFilterValue(result.is_high_impact);
+				return getImpactValue(result);
 			case 'topic':
 				return normalizeFilterValue(result.use_case_topic_area);
 			case 'aiClassification':
@@ -374,7 +477,8 @@
 		loading = true;
 		error = '';
 
-		const queryString = `${PUBLIC_BACKEND_URL}/ai-use-cases/${encodeURIComponent(query.trim() || '*')}?`;
+		const searchParams = buildSearchParams();
+		const queryString = `${BACKEND_URL}/ai-use-cases/${encodeURIComponent(query.trim() || '*')}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
 
 		try {
 			const response = await fetch(queryString, { signal: controller.signal });
@@ -430,18 +534,40 @@
 			? filters[key].filter((entry) => entry !== value)
 			: [...filters[key], value];
 
+		if (key === 'agency') {
+			const nextBureauOptions = nextValues.flatMap(
+				(agency) => bureauOptionsByAgency[agency as keyof typeof bureauOptionsByAgency] ?? []
+			);
+
+			filters = {
+				...filters,
+				agency: nextValues,
+				bureau: filters.bureau.filter((bureau) => nextBureauOptions.includes(bureau))
+			};
+			submitSearch();
+			return;
+		}
+
 		filters = { ...filters, [key]: nextValues };
+		submitSearch();
 	}
 
 	function clearFilterGroup(key: FilterKey) {
+		if (key === 'agency') {
+			filters = { ...filters, agency: [], bureau: [] };
+			submitSearch();
+			return;
+		}
+
 		filters = { ...filters, [key]: [] };
+		submitSearch();
 	}
 
 	function clearAllFilters() {
 		query = '';
 		filters = { ...defaultFilters };
-		yearFrom = 2024;
-		yearTo = 2025;
+		yearFrom = '';
+		yearTo = '';
 		expandedSections = { ...defaultExpandedSections };
 		mobileFiltersOpen = false;
 		sortState = { key: 'useCase', direction: 'asc' };
@@ -533,25 +659,27 @@
 					{#if expandedSections.year}
 						<div class="filter-section__body">
 							<div class="year-row">
-								<input
-									bind:value={yearFrom}
-									class="year-input"
-									type="text"
-									inputmode="numeric"
-									maxlength="4"
-									placeholder="2024"
-									aria-label="Year from"
-								/>
+							<input
+								bind:value={yearFrom}
+								class="year-input"
+								type="text"
+								inputmode="numeric"
+								maxlength="4"
+								on:input={queueSearch}
+								placeholder="2024"
+								aria-label="Year from"
+							/>
 								<span class="year-dash">-</span>
-								<input
-									bind:value={yearTo}
-									class="year-input"
-									type="text"
-									inputmode="numeric"
-									maxlength="4"
-									placeholder="2025"
-									aria-label="Year to"
-								/>
+							<input
+								bind:value={yearTo}
+								class="year-input"
+								type="text"
+								inputmode="numeric"
+								maxlength="4"
+								on:input={queueSearch}
+								placeholder="2025"
+								aria-label="Year to"
+							/>
 							</div>
 						</div>
 					{/if}
@@ -600,17 +728,74 @@
 										<span class="checkbox-count">{countMatchingOption('agency', agency)}</span>
 									</button>
 								{/each}
+						</div>
+						{#if filters.agency.length > 0}
+							<button
+								type="button"
+								class="filter-clear"
+								on:click={() => clearFilterGroup('agency')}>Clear agency</button
+							>
+						{/if}
+					</div>
+				{/if}
+			</section>
+
+			{#if bureauFilterOptions.length > 0}
+				<section class="filter-section">
+					<button
+						type="button"
+						class="filter-section__toggle"
+						on:click={() => toggleSection('bureau')}
+						aria-expanded={expandedSections.bureau}
+					>
+						<span>Bureau / Component</span>
+						<span
+							class:expanded={expandedSections.bureau}
+							class="filter-section__icon"
+							aria-hidden="true"
+						></span>
+					</button>
+					{#if expandedSections.bureau}
+						<div class="filter-section__body">
+							<div class="checkbox-list">
+								<button
+									type="button"
+									class:checked={isAllSelected('bureau', bureauFilterOptions)}
+									class="checkbox-item"
+									on:click={() => toggleAllFilterValues('bureau', bureauFilterOptions)}
+								>
+									<span class="checkbox-mark"
+										>{isAllSelected('bureau', bureauFilterOptions) ? '✓' : ''}</span
+									>
+									<span class="checkbox-label">Select All</span>
+									<span class="checkbox-count"
+										>{countAllForGroup('bureau', bureauFilterOptions)}</span
+									>
+								</button>
+								{#each bureauFilterOptions as bureau (bureau)}
+									<button
+										type="button"
+										class:checked={filters.bureau.includes(bureau)}
+										class="checkbox-item"
+										on:click={() => toggleFilterValue('bureau', bureau)}
+									>
+										<span class="checkbox-mark">{filters.bureau.includes(bureau) ? '✓' : ''}</span>
+										<span class="checkbox-label">{bureau}</span>
+										<span class="checkbox-count">{countMatchingOption('bureau', bureau)}</span>
+									</button>
+								{/each}
 							</div>
-							{#if filters.agency.length > 0}
+							{#if filters.bureau.length > 0}
 								<button
 									type="button"
 									class="filter-clear"
-									on:click={() => clearFilterGroup('agency')}>Clear agency</button
+									on:click={() => clearFilterGroup('bureau')}>Clear bureau</button
 								>
 							{/if}
 						</div>
 					{/if}
 				</section>
+			{/if}
 
 				<section class="filter-section">
 					<button
