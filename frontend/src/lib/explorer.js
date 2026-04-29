@@ -1,42 +1,92 @@
+import filterOptionsCsv from '../../GOVAI_Filter_Options.csv?raw';
+
+const agencyAliases = {
+	'Board of Governors of the Federal Reserve System': 'Federal Reserve Board of Governors',
+	'U.S. Agency for Global Media': 'United States Agency for Global Media',
+	'U.S. Agency for International Development': 'United States Agency for International Development',
+	'U.S. Commission on Civil Rights': 'United States Commission on Civil Rights',
+	'U.S. Election Assistance Commission': 'Election Assistance Commission'
+};
+
+const impactOptionLabels = {
+	high_impact: 'High Impact',
+	not_high_impact: 'Not High Impact',
+	presumed_high_impact_not_high_impact: 'Presumed High Impact / Not High Impact'
+};
+
+/** @typedef {Record<string, string>} FilterOptionRow */
+
+/**
+ * @param {string} row
+ * @returns {string[]}
+ */
+function parseCsvRow(row) {
+	const values = [];
+	let currentValue = '';
+	let inQuotes = false;
+
+	for (let index = 0; index < row.length; index += 1) {
+		const character = row[index];
+
+		if (character === '"') {
+			if (inQuotes && row[index + 1] === '"') {
+				currentValue += '"';
+				index += 1;
+			} else {
+				inQuotes = !inQuotes;
+			}
+			continue;
+		}
+
+		if (character === ',' && !inQuotes) {
+			values.push(currentValue);
+			currentValue = '';
+			continue;
+		}
+
+		currentValue += character;
+	}
+
+	values.push(currentValue);
+	return values;
+}
+
+/**
+ * @param {string} source
+ * @returns {FilterOptionRow[]}
+ */
+function parseFilterOptionsCsv(source) {
+	const [headerRow, ...dataRows] = source.trim().split(/\r?\n/);
+	const headers = parseCsvRow(headerRow);
+
+	return dataRows
+		.map((row) => parseCsvRow(row))
+		.filter((row) => row.some((value) => value.trim() !== ''))
+		.map((row) =>
+			Object.fromEntries(headers.map((header, index) => [header, row[index]?.trim() ?? '']))
+		);
+}
+
+/**
+ * @param {FilterOptionRow[]} rows
+ * @param {string} key
+ * @param {(value: string) => string} [transform]
+ * @returns {string[]}
+ */
+function uniqueColumnValues(rows, key, transform = (value) => value) {
+	return [...new Set(rows.map((row) => transform(row[key] ?? '')).filter(Boolean))].sort((a, b) =>
+		a.localeCompare(b)
+	);
+}
+
+const filterOptionRows = parseFilterOptionsCsv(filterOptionsCsv);
+
 export const topLevelAgencyOptions = [
-	'Department of Agriculture',
-	'Department of Commerce',
-	'Department of Defense',
-	'Department of Education',
-	'Department of Energy',
-	'Department of Health and Human Services',
-	'Department of Homeland Security',
-	'Department of Housing and Urban Development',
-	'Department of Justice',
-	'Department of Labor',
-	'Department of State',
-	'Department of the Interior',
-	'Department of the Treasury',
-	'Department of Transportation',
-	'Department of Veterans Affairs',
-	'Commodity Futures Trading Commission',
-	'Consumer Financial Protection Bureau',
-	'Election Assistance Commission',
-	'Environmental Protection Agency',
-	'Equal Employment Opportunity Commission',
-	'Federal Deposit Insurance Corporation',
-	'Federal Energy Regulatory Commission',
-	'Federal Housing Finance Agency',
-	'Federal Reserve Board of Governors',
-	'Federal Trade Commission',
-	'General Services Administration',
-	'National Aeronautics and Space Administration',
-	'National Science Foundation',
-	'National Archives and Records Administration',
-	'National Credit Union Administration',
-	'Office of Personnel Management',
-	'National Transportation Safety Board',
-	'Pension Benefit Guaranty Corporation',
-	'Securities and Exchange Commission',
-	'Social Security Administration',
-	'Tennessee Valley Authority',
-	'United States Agency for International Development',
-	'United States Trade and Development Agency'
+	...uniqueColumnValues(
+		filterOptionRows,
+		'canonical_agency',
+		(value) => agencyAliases[/** @type {keyof typeof agencyAliases} */ (value)] ?? value
+	)
 ];
 
 export const bureauOptionsByAgency = {
@@ -56,6 +106,12 @@ export const bureauOptionsByAgency = {
 };
 
 export const agencyOptions = topLevelAgencyOptions;
+
+export const topicOptions = uniqueColumnValues(filterOptionRows, 'use_case_topic_area');
+
+export const aiClassificationOptions = uniqueColumnValues(filterOptionRows, 'ai_classification');
+
+export const complianceOptions = ['In compliance', 'Not in compliance', 'Not required'];
 
 export const fieldGuideGroups = [
 	{
@@ -250,12 +306,16 @@ export const fieldGuideGroups = [
 	}
 ];
 
-export const stageOptions = ['Deployed', 'Pilot', 'Pre-deployment', 'Retired'];
+export const stageOptions = uniqueColumnValues(filterOptionRows, 'stage_of_development');
 
 export const impactOptions = [
 	{ value: '', label: 'All' },
-	{ value: 'high_impact', label: 'High Impact' },
-	{ value: 'not_high_impact', label: 'Not High Impact' }
+	...uniqueColumnValues(filterOptionRows, 'high_impact_status').map((value) => ({
+		value,
+		label:
+			impactOptionLabels[/** @type {keyof typeof impactOptionLabels} */ (value)] ??
+			value.replace(/_/g, ' ')
+	}))
 ];
 
 export const dhsComponents = new Set(bureauOptionsByAgency['Department of Homeland Security']);
@@ -292,9 +352,9 @@ export function displayValue(value, fallback = 'Not reported') {
 }
 
 /**
-	* @param {string | null | undefined} value
-	* @returns {string | null}
-	*/
+ * @param {string | null | undefined} value
+ * @returns {string | null}
+ */
 function extractUseCaseIdFromSeriesDump(value) {
 	if (!value || (!value.includes('dtype:') && !value.includes('Use Case ID'))) {
 		return null;
@@ -306,7 +366,10 @@ function extractUseCaseIdFromSeriesDump(value) {
 			continue;
 		}
 
-		candidate = candidate.replace(/^Use Case ID\s+/i, '').replace(/^\d+\s+/, '').trim();
+		candidate = candidate
+			.replace(/^Use Case ID\s+/i, '')
+			.replace(/^\d+\s+/, '')
+			.trim();
 		if (candidate && !/^(nan|none|null)$/i.test(candidate)) {
 			return candidate;
 		}
@@ -316,10 +379,23 @@ function extractUseCaseIdFromSeriesDump(value) {
 }
 
 /**
-	* @param {string | null | undefined} value
-	* @param {string} [fallback='No ID reported']
-	* @returns {string}
-	*/
+ * @param {string | null | undefined} value
+ * @returns {string}
+ */
+function slugifyFragment(value) {
+	return (
+		normalizeValue(value)
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '') || 'item'
+	);
+}
+
+/**
+ * @param {string | null | undefined} value
+ * @param {string} [fallback='No ID reported']
+ * @returns {string}
+ */
 export function displayUseCaseId(value, fallback = 'No ID reported') {
 	const normalized = normalizeValue(value);
 	if (normalized === '[blank]') {
@@ -327,6 +403,24 @@ export function displayUseCaseId(value, fallback = 'No ID reported') {
 	}
 
 	return extractUseCaseIdFromSeriesDump(normalized) ?? normalized;
+}
+
+/**
+ * @param {Record<string, string | null | undefined>} record
+ * @returns {string}
+ */
+export function useCaseAnchorId(record) {
+	const useCaseId =
+		extractUseCaseIdFromSeriesDump(record.use_case_id) ?? normalizeValue(record.use_case_id);
+	const primaryId = useCaseId !== '[blank]' ? useCaseId : record.use_case_name;
+
+	return [
+		'use-case',
+		slugifyFragment(record.data_year),
+		slugifyFragment(record.canonical_agency ?? record.agency),
+		slugifyFragment(primaryId),
+		slugifyFragment(record.use_case_name)
+	].join('-');
 }
 
 /**
@@ -371,4 +465,46 @@ export function impactClass(value) {
 	}
 
 	return 'impact-unknown';
+}
+
+/**
+ * @param {string | null | undefined} value
+ * @returns {number}
+ */
+export function parseComplianceScore(value) {
+	const parsed = Number.parseInt(value ?? '', 10);
+	return Number.isNaN(parsed) ? -1 : parsed;
+}
+
+/**
+ * @param {string | null | undefined} stage
+ * @param {string | null | undefined} impact
+ * @param {number} score
+ * @returns {'In compliance' | 'Not in compliance' | 'Not required'}
+ */
+export function getComplianceStatus(stage, impact, score) {
+	const isDeployed = displayValue(stage, 'Unknown') === 'Deployed';
+	const isHighRisk = displayValue(impact, 'Not reported') === 'high_impact';
+
+	if (!isDeployed || !isHighRisk || score < 0) {
+		return 'Not required';
+	}
+
+	return score >= 9 ? 'In compliance' : 'Not in compliance';
+}
+
+/**
+ * @param {string} status
+ * @returns {string}
+ */
+export function getComplianceStatusClass(status) {
+	if (status === 'In compliance') {
+		return 'compliance-status--good';
+	}
+
+	if (status === 'Not in compliance') {
+		return 'compliance-status--warn';
+	}
+
+	return 'compliance-status--neutral';
 }

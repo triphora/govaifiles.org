@@ -1,59 +1,200 @@
 <script lang="ts">
-	import { displayUseCaseId, displayValue, hasValue, impactClass, isUrl, normalizeValue, stageClass } from '$lib/explorer';
+	import { createEventDispatcher } from 'svelte';
+	import {
+		displayUseCaseId,
+		displayValue,
+		getComplianceStatus,
+		getComplianceStatusClass,
+		hasValue,
+		impactClass,
+		isUrl,
+		parseComplianceScore,
+		stageClass
+	} from '$lib/explorer';
 
 	type UseCaseRecord = Record<string, string | undefined | null>;
 
 	export let result: UseCaseRecord;
 	export let index: number;
+	export let anchorId: string;
+
+	const dispatch = createEventDispatcher<{
+		share: { anchorId: string; title: string };
+	}>();
 
 	let expanded = index === 1;
 	let sectionTwoRequirements = false;
 	let sectionThreeRequirements = false;
 	let sectionFiveRequirements = false;
 	let summaryFields: Array<{ label: string; value: string | undefined | null; show: boolean }> = [];
-	let documentationFields: Array<{ label: string; value: string | undefined | null; show: boolean }> = [];
+	let documentationFields: Array<{
+		label: string;
+		value: string | undefined | null;
+		show: boolean;
+	}> = [];
 	let dataFields: Array<{ label: string; value: string | undefined | null; show: boolean }> = [];
-	let riskFields: Array<{ label: string; value: string | undefined | null; show: boolean; wide?: boolean }> = [];
+	let riskFields: Array<{
+		label: string;
+		value: string | undefined | null;
+		show: boolean;
+		wide?: boolean;
+	}> = [];
+	let complianceScore = -1;
+	let complianceStatus = 'Not required';
+	let complianceStatusClass = 'compliance-status--neutral';
+	let showComplianceGauge = false;
+	let complianceGaugeDegrees = 0;
 
 	$: sectionTwoRequirements =
 		result.stage_of_development !== 'Retired' && parseInt(result.data_year ?? '', 10) >= 2025;
-	$: sectionThreeRequirements = ['Unknown', 'Pilot', 'Deployed'].includes(result.stage_of_development || '');
-	$: sectionFiveRequirements = ['Unknown', 'Deployed'].includes(result.stage_of_development || '') && ['high_impact', '[blank]', ''].includes(result.high_impact_status || '');
+	$: sectionThreeRequirements = ['Unknown', 'Pilot', 'Deployed'].includes(
+		result.stage_of_development || ''
+	);
+	$: sectionFiveRequirements =
+		['Unknown', 'Deployed'].includes(result.stage_of_development || '') &&
+		['high_impact', '[blank]', ''].includes(result.high_impact_status || '');
 
 	$: summaryFields = [
-		{ label: 'Purpose Statement', value: result.purpose_and_benefits, show: sectionTwoRequirements || hasValue(result.problem_statement) },
-		{ label: 'Expected Benefits', value: result.expected_benefits, show: sectionTwoRequirements || hasValue(result.expected_benefits) },
-		{ label: 'AI System Outputs', value: result.system_outputs, show: sectionTwoRequirements || hasValue(result.system_outputs) }
+		{
+			label: 'Purpose Statement',
+			value: result.purpose_and_benefits,
+			show: sectionTwoRequirements || hasValue(result.problem_statement)
+		},
+		{
+			label: 'Expected Benefits',
+			value: result.expected_benefits,
+			show: sectionTwoRequirements || hasValue(result.expected_benefits)
+		},
+		{
+			label: 'AI System Outputs',
+			value: result.system_outputs,
+			show: sectionTwoRequirements || hasValue(result.system_outputs)
+		}
 	];
 
 	$: documentationFields = [
-		{ label: 'Operational Date', value: result.operational_start_date, show: sectionThreeRequirements || hasValue(result.operational_start_date) },
-		{ label: 'Development Source Type', value: result.development_source_type, show: sectionThreeRequirements || hasValue(result.development_source) },
-		{ label: 'Vendor Name(s)', value: result.vendor_name, show: sectionThreeRequirements || hasValue(result.vendor_name) },
-		{ label: 'Authorization (ATO)', value: result.has_ato, show: sectionThreeRequirements || hasValue(result.has_ato) }
+		{
+			label: 'Operational Date',
+			value: result.operational_start_date,
+			show: sectionThreeRequirements || hasValue(result.operational_start_date)
+		},
+		{
+			label: 'Development Source Type',
+			value: result.development_source_type,
+			show: sectionThreeRequirements || hasValue(result.development_source)
+		},
+		{
+			label: 'Vendor Name(s)',
+			value: result.vendor_name,
+			show: sectionThreeRequirements || hasValue(result.vendor_name)
+		},
+		{
+			label: 'Authorization (ATO)',
+			value: result.has_ato,
+			show: sectionThreeRequirements || hasValue(result.has_ato)
+		}
 	];
 
 	$: dataFields = [
-		{ label: 'PII', value: result.uses_pii, show: sectionThreeRequirements || hasValue(result.involves_pii) },
-		{ label: 'Custom Code', value: result.has_custom_code, show: sectionThreeRequirements || hasValue(result.includes_custom_code) },
-		{ label: 'Federal Data Catalog', value: result.federal_data_catalog_link, show: sectionThreeRequirements || hasValue(result.federal_data_catalog_link) },
-		{ label: 'Privacy Impact Assessment', value: result.pia_link, show: sectionThreeRequirements || hasValue(result.pia_link) },
-		{ label: 'Demographic Variables', value: result.demographic_variables_used, show: sectionThreeRequirements || hasValue(result.demographic_variables_used) },
-		{ label: 'Open Source Code', value: result.open_source_code_link, show: sectionThreeRequirements || hasValue(result.open_source_code_link) },
-		{ label: 'Training and Evaluation Data', value: result.training_data_description, show: sectionThreeRequirements || hasValue(result.training_and_evaluation_data) }
+		{
+			label: 'PII',
+			value: result.uses_pii,
+			show: sectionThreeRequirements || hasValue(result.involves_pii)
+		},
+		{
+			label: 'Custom Code',
+			value: result.has_custom_code,
+			show: sectionThreeRequirements || hasValue(result.includes_custom_code)
+		},
+		{
+			label: 'Federal Data Catalog',
+			value: result.federal_data_catalog_link,
+			show: sectionThreeRequirements || hasValue(result.federal_data_catalog_link)
+		},
+		{
+			label: 'Privacy Impact Assessment',
+			value: result.pia_link,
+			show: sectionThreeRequirements || hasValue(result.pia_link)
+		},
+		{
+			label: 'Demographic Variables',
+			value: result.demographic_variables_used,
+			show: sectionThreeRequirements || hasValue(result.demographic_variables_used)
+		},
+		{
+			label: 'Open Source Code',
+			value: result.open_source_code_link,
+			show: sectionThreeRequirements || hasValue(result.open_source_code_link)
+		},
+		{
+			label: 'Training and Evaluation Data',
+			value: result.training_data_description,
+			show: sectionThreeRequirements || hasValue(result.training_and_evaluation_data)
+		}
 	];
 
 	$: riskFields = [
-		{ label: 'Pre-deploy Test', value: result.pre_deployment_testing_conducted, show: sectionFiveRequirements || hasValue(result.pre_deployment_testing_status) },
-		{ label: 'Impact Assessment', value: result.ai_impact_assessment_completed, show: sectionFiveRequirements || hasValue(result.ai_impact_assessment_status) },
-		{ label: 'Independent Review', value: result.independent_review_conducted, show: sectionFiveRequirements || hasValue(result.independent_review_status) },
-		{ label: 'Fail-safe', value: result.failsafe_in_place, show: sectionFiveRequirements || hasValue(result.fail_safe_status) },
-		{ label: 'Potential Impact', value: result.potential_impacts_identified, show: sectionFiveRequirements || hasValue(result.potential_impacts_description), wide: true },
-		{ label: 'Ongoing Monitoring', value: result.ongoing_monitoring_established, show: sectionFiveRequirements || hasValue(result.ongoing_monitoring_process), wide: true },
-		{ label: 'Operator Training', value: result.operator_training_established, show: sectionFiveRequirements || hasValue(result.operator_training_status), wide: true },
-		{ label: 'Appeal Process', value: result.appeal_process_available, show: sectionFiveRequirements || hasValue(result.appeal_process_status), wide: true },
-		{ label: 'Public Feedback', value: result.user_feedback_steps, show: sectionFiveRequirements || hasValue(result.public_and_user_feedback), wide: true }
+		{
+			label: 'Pre-deploy Test',
+			value: result.pre_deployment_testing_conducted,
+			show: sectionFiveRequirements || hasValue(result.pre_deployment_testing_status)
+		},
+		{
+			label: 'Impact Assessment',
+			value: result.ai_impact_assessment_completed,
+			show: sectionFiveRequirements || hasValue(result.ai_impact_assessment_status)
+		},
+		{
+			label: 'Independent Review',
+			value: result.independent_review_conducted,
+			show: sectionFiveRequirements || hasValue(result.independent_review_status)
+		},
+		{
+			label: 'Fail-safe',
+			value: result.failsafe_in_place,
+			show: sectionFiveRequirements || hasValue(result.fail_safe_status)
+		},
+		{
+			label: 'Potential Impact',
+			value: result.potential_impacts_identified,
+			show: sectionFiveRequirements || hasValue(result.potential_impacts_description),
+			wide: true
+		},
+		{
+			label: 'Ongoing Monitoring',
+			value: result.ongoing_monitoring_established,
+			show: sectionFiveRequirements || hasValue(result.ongoing_monitoring_process),
+			wide: true
+		},
+		{
+			label: 'Operator Training',
+			value: result.operator_training_established,
+			show: sectionFiveRequirements || hasValue(result.operator_training_status),
+			wide: true
+		},
+		{
+			label: 'Appeal Process',
+			value: result.appeal_process_available,
+			show: sectionFiveRequirements || hasValue(result.appeal_process_status),
+			wide: true
+		},
+		{
+			label: 'Public Feedback',
+			value: result.user_feedback_steps,
+			show: sectionFiveRequirements || hasValue(result.public_and_user_feedback),
+			wide: true
+		}
 	];
+
+	$: complianceScore = parseComplianceScore(result.risk_management_compliance_score);
+	$: complianceStatus = getComplianceStatus(
+		result.stage_of_development,
+		result.high_impact_status,
+		complianceScore
+	);
+	$: complianceStatusClass = getComplianceStatusClass(complianceStatus);
+	$: showComplianceGauge = complianceScore >= 0 && complianceStatus !== 'Not required';
+	$: complianceGaugeDegrees = (Math.max(0, Math.min(complianceScore, 9)) / 9) * 360;
 
 	function impactLabel(value: string | undefined | null) {
 		const normalized = displayValue(value, 'Not reported');
@@ -79,53 +220,107 @@
 	function renderValue(value: string | undefined | null) {
 		return displayValue(value);
 	}
+
+	function shareRecord() {
+		dispatch('share', {
+			anchorId,
+			title: displayValue(result.use_case_name, 'this use case')
+		});
+	}
 </script>
 
-<article class:expanded class="record-card">
-	<button
-		type="button"
-		class="record-summary"
-		on:click={() => (expanded = !expanded)}
-		aria-expanded={expanded}
-	>
-		<div class="record-summary__lead">
-			<div class="record-index">{index}</div>
-			<div>
-				<h3>{result.use_case_name}</h3>
-				<p class="record-meta">
-					{displayUseCaseId(result.use_case_id, 'No ID reported')}
-					{#if hasValue(result.problem_statement)}
-						<span>{displayValue(result.problem_statement).slice(0, 150)}{displayValue(result.problem_statement).length > 150 ? '...' : ''}</span>
-					{/if}
-				</p>
+<article id={anchorId} class:expanded class="record-card">
+	<div class="record-summary-shell">
+		<button
+			type="button"
+			class="record-summary"
+			on:click={() => (expanded = !expanded)}
+			aria-expanded={expanded}
+		>
+			<div class="record-summary__lead">
+				<div class="record-index">{index}</div>
+				<div>
+					<h3>{result.use_case_name}</h3>
+					<p class="record-meta">
+						{displayUseCaseId(result.use_case_id, 'No ID reported')}
+						{#if hasValue(result.problem_statement)}
+							<span
+								>{displayValue(result.problem_statement).slice(0, 150)}{displayValue(
+									result.problem_statement
+								).length > 150
+									? '...'
+									: ''}</span
+							>
+						{/if}
+					</p>
+					<div class="record-compliance">
+						<div class="record-compliance__copy">
+							<span>Compliance</span>
+							<p>
+								<strong class={`compliance-status ${complianceStatusClass}`}
+									>{complianceStatus}</strong
+								>
+							</p>
+						</div>
+						{#if showComplianceGauge}
+							<div
+								class={`compliance-gauge ${complianceStatus === 'In compliance' ? 'compliance-gauge--good' : 'compliance-gauge--warn'}`}
+								style={`--gauge-deg: ${complianceGaugeDegrees}deg;`}
+								aria-label={`Risk management compliance score ${complianceScore} out of 9`}
+							>
+								<div class="compliance-gauge__inner">
+									<strong>{complianceScore}</strong>
+									<span>/9</span>
+								</div>
+							</div>
+						{/if}
+					</div>
+				</div>
 			</div>
-		</div>
 
-		<div class="record-summary__cols">
-			<div class="record-summary__item">
-				<span>Agency</span>
-				<p>{agencyLabel() || 'Not reported'}</p>
+			<div class="record-summary__cols">
+				<div class="record-summary__item">
+					<span>Agency</span>
+					<p>{agencyLabel() || 'Not reported'}</p>
+				</div>
+				<div class="record-summary__item">
+					<span>Stage</span>
+					<p>
+						<span class={`stage-pill ${stageClass(result.stage_of_development)}`}
+							>{stageLabel(result.stage_of_development)}</span
+						>
+					</p>
+				</div>
+				<div class="record-summary__item">
+					<span>Impact</span>
+					<p>
+						<span class={`impact-pill ${impactClass(result.high_impact_status)}`}
+							>{impactLabel(result.high_impact_status)}</span
+						>
+					</p>
+				</div>
+				<div class="record-summary__item">
+					<span>Topic Area</span>
+					<p>{renderValue(result.use_case_topic_area)}</p>
+				</div>
+				<div class="record-summary__item">
+					<span>AI Classification</span>
+					<p>{renderValue(result.ai_classification)}</p>
+				</div>
 			</div>
-			<div class="record-summary__item">
-				<span>Stage</span>
-				<p><span class={`stage-pill ${stageClass(result.stage_of_development)}`}>{stageLabel(result.stage_of_development)}</span></p>
-			</div>
-			<div class="record-summary__item">
-				<span>Impact</span>
-				<p><span class={`impact-pill ${impactClass(result.high_impact_status)}`}>{impactLabel(result.high_impact_status)}</span></p>
-			</div>
-			<div class="record-summary__item">
-				<span>Topic Area</span>
-				<p>{renderValue(result.use_case_topic_area)}</p>
-			</div>
-			<div class="record-summary__item">
-				<span>AI Classification</span>
-				<p>{renderValue(result.ai_classification)}</p>
-			</div>
-		</div>
 
-		<span class="record-chevron" aria-hidden="true">›</span>
-	</button>
+			<span class="record-chevron" aria-hidden="true">›</span>
+		</button>
+
+		<button
+			type="button"
+			class="record-share"
+			on:click={shareRecord}
+			aria-label={`Share ${displayValue(result.use_case_name, 'this use case')}`}
+		>
+			Share
+		</button>
+	</div>
 
 	{#if expanded}
 		<div class="record-detail">
@@ -136,14 +331,18 @@
 					{#if sectionTwoRequirements || hasValue(result.use_case_topic_area)}
 						<div class="record-field">
 							<h4>Topic Area</h4>
-							<div class="record-richtext {hasValue(result.use_case_topic_area) ? '' : 'is-empty'}">{renderValue(result.use_case_topic_area)}</div>
+							<div class="record-richtext {hasValue(result.use_case_topic_area) ? '' : 'is-empty'}">
+								{renderValue(result.use_case_topic_area)}
+							</div>
 						</div>
 					{/if}
 
 					{#if sectionTwoRequirements || hasValue(result.ai_classification)}
 						<div class="record-field">
 							<h4>AI Classification</h4>
-							<div class="record-richtext {hasValue(result.ai_classification) ? '' : 'is-empty'}">{renderValue(result.ai_classification)}</div>
+							<div class="record-richtext {hasValue(result.ai_classification) ? '' : 'is-empty'}">
+								{renderValue(result.ai_classification)}
+							</div>
 						</div>
 					{/if}
 
@@ -151,7 +350,9 @@
 						{#if field.show}
 							<div class="record-field">
 								<h4>{field.label}</h4>
-								<div class={`record-richtext ${hasValue(field.value) ? '' : 'is-empty'}`}>{renderValue(field.value)}</div>
+								<div class={`record-richtext ${hasValue(field.value) ? '' : 'is-empty'}`}>
+									{renderValue(field.value)}
+								</div>
 							</div>
 						{/if}
 					{/each}
@@ -174,7 +375,9 @@
 					{#if sectionThreeRequirements || hasValue(result.system_names)}
 						<div class="record-field record-field--spaced">
 							<h4>System Names</h4>
-							<div class={`record-richtext ${hasValue(result.system_names) ? '' : 'is-empty'}`}>{renderValue(result.system_names)}</div>
+							<div class={`record-richtext ${hasValue(result.system_names) ? '' : 'is-empty'}`}>
+								{renderValue(result.system_names)}
+							</div>
 						</div>
 					{/if}
 
@@ -184,7 +387,9 @@
 								<div class="record-key-value">
 									<h4>{field.label}</h4>
 									{#if isUrl(field.value)}
-										<a href={displayValue(field.value)} target="_blank" rel="noreferrer">{displayValue(field.value)}</a>
+										<a href={displayValue(field.value)} target="_blank" rel="noreferrer"
+											>{displayValue(field.value)}</a
+										>
 									{:else}
 										<div class:blank={!hasValue(field.value)}>{renderValue(field.value)}</div>
 									{/if}
@@ -221,17 +426,52 @@
 		border: 1px solid rgba(167, 190, 180, 0.55);
 		overflow: hidden;
 		box-shadow: var(--shadow-soft);
+		scroll-margin-top: 100px;
+	}
+
+	.record-summary-shell {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 12px;
+		padding: 18px;
+		align-items: start;
 	}
 
 	.record-summary {
 		width: 100%;
 		display: grid;
-		grid-template-columns: minmax(0, 2.35fr) minmax(140px, 1.1fr) minmax(104px, 0.7fr) minmax(110px, 0.8fr) minmax(120px, 0.95fr) minmax(160px, 1.2fr) 24px;
+		grid-template-columns:
+			minmax(0, 2.35fr) minmax(140px, 1.1fr) minmax(104px, 0.7fr) minmax(110px, 0.8fr)
+			minmax(120px, 0.95fr) minmax(160px, 1.2fr) 24px;
 		gap: 12px;
 		align-items: start;
-		padding: 18px;
+		padding: 0;
 		color: inherit;
 		text-align: left;
+	}
+
+	.record-share {
+		align-self: center;
+		padding: 10px 14px;
+		border-radius: 999px;
+		border: 1px solid var(--line);
+		background: var(--surface);
+		color: var(--ink-soft);
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		transition:
+			transform 0.16s ease,
+			border-color 0.16s ease,
+			background-color 0.16s ease,
+			color 0.16s ease;
+	}
+
+	.record-share:hover {
+		transform: translateY(-1px);
+		border-color: var(--brand);
+		color: var(--brand-dark);
 	}
 
 	.record-summary__lead {
@@ -285,6 +525,105 @@
 	.record-meta {
 		display: grid;
 		gap: 4px;
+	}
+
+	.record-compliance {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		margin-top: 14px;
+		flex-wrap: wrap;
+	}
+
+	.record-compliance__copy {
+		display: grid;
+		gap: 4px;
+	}
+
+	.record-compliance__copy > span {
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--ink-muted);
+	}
+
+	.record-compliance__copy p {
+		margin: 0;
+	}
+
+	.compliance-status {
+		display: inline-flex;
+		align-items: center;
+		padding: 7px 11px;
+		border-radius: 999px;
+		font-size: 0.8rem;
+		font-family: var(--font-mono);
+		font-weight: 600;
+	}
+
+	.compliance-status--good {
+		background: #dcefe5;
+		color: #2f6f54;
+	}
+
+	.compliance-status--warn {
+		background: #f7e5d9;
+		color: #9a5c21;
+	}
+
+	.compliance-status--neutral {
+		background: #edf1ec;
+		color: #66756d;
+	}
+
+	.compliance-gauge {
+		--gauge-deg: 0deg;
+		--gauge-fill: #8a9f92;
+		position: relative;
+		width: 68px;
+		height: 68px;
+		border-radius: 50%;
+		background:
+			radial-gradient(circle at center, rgba(248, 250, 246, 0.98) 0 58%, transparent 59%),
+			conic-gradient(
+				var(--gauge-fill) 0deg var(--gauge-deg),
+				rgba(184, 197, 190, 0.3) var(--gauge-deg) 360deg
+			);
+		box-shadow: inset 0 0 0 1px rgba(167, 190, 180, 0.35);
+		flex-shrink: 0;
+	}
+
+	.compliance-gauge--good {
+		--gauge-fill: #4b8c69;
+	}
+
+	.compliance-gauge--warn {
+		--gauge-fill: #c18244;
+	}
+
+	.compliance-gauge__inner {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		align-content: center;
+		gap: 1px;
+		text-align: center;
+	}
+
+	.compliance-gauge__inner strong {
+		font-size: 1rem;
+		line-height: 1;
+		color: var(--ink);
+	}
+
+	.compliance-gauge__inner span {
+		font-family: var(--font-mono);
+		font-size: 0.62rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--ink-muted);
 	}
 
 	.record-summary__cols {
@@ -438,9 +777,17 @@
 	}
 
 	@media (max-width: 1100px) {
+		.record-summary-shell {
+			align-items: stretch;
+		}
+
 		.record-summary {
 			grid-template-columns: minmax(0, 1fr) 24px;
 			gap: 14px;
+		}
+
+		.record-share {
+			align-self: start;
 		}
 
 		.record-summary__cols {
@@ -472,12 +819,22 @@
 			border-radius: 22px;
 		}
 
-		.record-summary {
+		.record-summary-shell {
+			grid-template-columns: 1fr;
 			padding: 16px;
+			gap: 14px;
 		}
 
 		.record-summary__lead {
 			grid-column: 1 / -1;
+		}
+
+		.record-compliance {
+			justify-content: space-between;
+		}
+
+		.record-share {
+			width: fit-content;
 		}
 
 		.record-summary__cols {

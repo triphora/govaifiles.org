@@ -4,10 +4,28 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import AiUseCaseRecord from '../components/AIUseCaseRecord.svelte';
 	import FieldGuideContent from '../components/FieldGuideContent.svelte';
-	import { agencyOptions, dhsComponents, impactOptions, stageOptions } from '$lib/explorer';
+	import {
+		agencyOptions,
+		aiClassificationOptions as configuredAiClassificationOptions,
+		complianceOptions,
+		dhsComponents,
+		getComplianceStatus,
+		impactOptions,
+		parseComplianceScore,
+		stageOptions,
+		topicOptions as configuredTopicOptions,
+		useCaseAnchorId
+	} from '$lib/explorer';
 
 	type UseCaseRecord = Record<string, string | undefined | null>;
-	type FilterKey = 'agency' | 'bureau' | 'stage' | 'impact' | 'topic' | 'aiClassification';
+	type FilterKey =
+		| 'agency'
+		| 'bureau'
+		| 'stage'
+		| 'impact'
+		| 'compliance'
+		| 'topic'
+		| 'aiClassification';
 	type SortKey = 'useCase' | 'agency' | 'stage' | 'impact' | 'topic' | 'aiClassification';
 	type EmptyStateMap = Record<string, string>;
 	type MultiFilters = Record<FilterKey, string[]>;
@@ -21,6 +39,7 @@
 		bureau: true,
 		stage: true,
 		impact: true,
+		compliance: true,
 		topic: true,
 		aiClassification: true
 	};
@@ -30,6 +49,7 @@
 		bureau: [],
 		stage: [],
 		impact: [],
+		compliance: [],
 		topic: [],
 		aiClassification: []
 	};
@@ -52,14 +72,20 @@
 	};
 	const SEARCH_DEBOUNCE_MS = 250;
 	const BACKEND_URL = PUBLIC_BACKEND_URL;
+	const BLANK_URL_VALUE = '__blank__';
 
 	let query = '';
 	let loading = false;
 	let error = '';
 	let mobileFiltersOpen = false;
 	let fieldGuideOpen = false;
+	let shareDialogOpen = false;
 	let fieldGuideDialog: HTMLDivElement | null = null;
+	let shareDialog: HTMLDivElement | null = null;
 	let lastFocusedElement: HTMLElement | null = null;
+	let shareUrl = '';
+	let shareTitle = '';
+	let shareStatus = '';
 	let serverResults: UseCaseRecord[] = [];
 	let filters: MultiFilters = { ...defaultFilters };
 	let expandedSections: ExpandedSections = { ...defaultExpandedSections };
@@ -91,18 +117,8 @@
 			'The United States Commission on Civil Rights has not yet published its AI Use Case Inventory (as of 2/13/26).'
 	};
 
-	$: topicOptions = [
-		...new Set(
-			serverResults
-				.map((result) => normalizeFilterValue(result.use_case_topic_area))
-				.filter(Boolean)
-		)
-	].sort((a, b) => a.localeCompare(b));
-	$: aiClassificationOptions = [
-		...new Set(
-			serverResults.map((result) => normalizeFilterValue(result.ai_classification)).filter(Boolean)
-		)
-	].sort((a, b) => a.localeCompare(b));
+	$: topicOptions = configuredTopicOptions;
+	$: aiClassificationOptions = configuredAiClassificationOptions;
 	$: agencyFilterOptions = topLevelAgencyOptions;
 	$: bureauFilterOptions = filters.agency.flatMap(
 		(agency) => bureauOptionsByAgency[agency as keyof typeof bureauOptionsByAgency] ?? []
@@ -123,13 +139,31 @@
 			: 'If you think you should be getting results, check your query and filters.';
 
 	onMount(() => {
-		search();
+		applyStateFromUrl(new URL(window.location.href));
+
+		const handlePopstate = () => {
+			applyStateFromUrl(new URL(window.location.href));
+		};
+
+		const handleHashchange = () => {
+			void scrollToHashTarget();
+		};
+
+		window.addEventListener('popstate', handlePopstate);
+		window.addEventListener('hashchange', handleHashchange);
+
+		return () => {
+			window.removeEventListener('popstate', handlePopstate);
+			window.removeEventListener('hashchange', handleHashchange);
+		};
 	});
 
 	onDestroy(() => {
 		clearPendingSearch();
 		activeSearchController?.abort();
-		unlockPageScroll();
+		if (browser) {
+			document.body.style.overflow = '';
+		}
 	});
 
 	async function openFieldGuide() {
@@ -140,42 +174,95 @@
 		lastFocusedElement =
 			document.activeElement instanceof HTMLElement ? document.activeElement : null;
 		fieldGuideOpen = true;
-		lockPageScroll();
+		updatePageScrollLock();
 		await tick();
 		fieldGuideDialog?.focus();
 	}
 
 	function closeFieldGuide() {
 		fieldGuideOpen = false;
-		unlockPageScroll();
+		updatePageScrollLock();
+		if (shareDialogOpen) {
+			return;
+		}
+
 		lastFocusedElement?.focus();
 	}
 
-	function lockPageScroll() {
+	function updatePageScrollLock() {
 		if (!browser) {
 			return;
 		}
 
-		document.body.style.overflow = 'hidden';
-	}
-
-	function unlockPageScroll() {
-		if (!browser) {
-			return;
-		}
-
-		document.body.style.overflow = '';
+		document.body.style.overflow = fieldGuideOpen || shareDialogOpen ? 'hidden' : '';
 	}
 
 	function handleWindowKeydown(event: KeyboardEvent) {
-		if (!fieldGuideOpen) {
+		if (!fieldGuideOpen && !shareDialogOpen) {
 			return;
 		}
 
 		if (event.key === 'Escape') {
 			event.preventDefault();
+			if (shareDialogOpen) {
+				closeShareDialog();
+				return;
+			}
+
 			closeFieldGuide();
 		}
+	}
+
+	async function openShareDialog(anchorId: string, title: string) {
+		if (!browser) {
+			return;
+		}
+
+		const nextUrl = buildUrlFromState();
+		nextUrl.hash = anchorId;
+		shareUrl = nextUrl.toString();
+		shareTitle = title;
+		shareStatus = 'Link copied to your clipboard.';
+		lastFocusedElement =
+			document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+		try {
+			await navigator.clipboard.writeText(shareUrl);
+		} catch {
+			shareStatus = 'Clipboard copy did not work here. You can still copy the link below.';
+		}
+
+		shareDialogOpen = true;
+		updatePageScrollLock();
+		await tick();
+		shareDialog?.focus();
+	}
+
+	function closeShareDialog() {
+		shareDialogOpen = false;
+		updatePageScrollLock();
+		if (fieldGuideOpen) {
+			return;
+		}
+
+		lastFocusedElement?.focus();
+	}
+
+	async function copyShareUrlAgain() {
+		if (!browser || !shareUrl) {
+			return;
+		}
+
+		try {
+			await navigator.clipboard.writeText(shareUrl);
+			shareStatus = 'Link copied to your clipboard.';
+		} catch {
+			shareStatus = 'Clipboard copy is still blocked. Please copy the link manually.';
+		}
+	}
+
+	function handleShare(event: CustomEvent<{ anchorId: string; title: string }>) {
+		void openShareDialog(event.detail.anchorId, event.detail.title);
 	}
 
 	function normalizeFilterValue(value: string | null | undefined) {
@@ -194,6 +281,14 @@
 
 	function getImpactValue(result: UseCaseRecord) {
 		return normalizeFilterValue(result.high_impact_status ?? result.is_high_impact);
+	}
+
+	function getComplianceValue(result: UseCaseRecord) {
+		return getComplianceStatus(
+			result.stage_of_development,
+			result.high_impact_status,
+			parseComplianceScore(result.risk_management_compliance_score)
+		);
 	}
 
 	function parseYearInput(value: string) {
@@ -265,6 +360,221 @@
 		return params;
 	}
 
+	function uniqueValues(values: Array<string | null | undefined>) {
+		const seen = new Set<string>();
+		const normalizedValues: string[] = [];
+
+		for (const value of values) {
+			const normalizedValue = normalizeFilterValue(value);
+			if (!normalizedValue || seen.has(normalizedValue)) {
+				continue;
+			}
+
+			seen.add(normalizedValue);
+			normalizedValues.push(normalizedValue);
+		}
+
+		return normalizedValues;
+	}
+
+	function parseUrlSelection(url: URL, key: string, allowedValues?: string[]) {
+		const values = uniqueValues(url.searchParams.getAll(key));
+		if (!allowedValues) {
+			return values;
+		}
+
+		return values.filter((value) => allowedValues.includes(value));
+	}
+
+	function areStringArraysEqual(left: string[], right: string[]) {
+		return left.length === right.length && left.every((value, index) => value === right[index]);
+	}
+
+	function areFiltersEqual(left: MultiFilters, right: MultiFilters) {
+		return (
+			areStringArraysEqual(left.agency, right.agency) &&
+			areStringArraysEqual(left.bureau, right.bureau) &&
+			areStringArraysEqual(left.stage, right.stage) &&
+			areStringArraysEqual(left.impact, right.impact) &&
+			areStringArraysEqual(left.compliance, right.compliance) &&
+			areStringArraysEqual(left.topic, right.topic) &&
+			areStringArraysEqual(left.aiClassification, right.aiClassification)
+		);
+	}
+
+	function inferAgencySelections(bureauSelections: string[]) {
+		const inferredAgencies = Object.entries(bureauOptionsByAgency)
+			.filter(([, bureauOptions]) =>
+				bureauSelections.some((bureau) => bureauOptions.includes(bureau))
+			)
+			.map(([agency]) => agency);
+
+		return uniqueValues(inferredAgencies);
+	}
+
+	function parseUrlState(url: URL): {
+		query: string;
+		filters: MultiFilters;
+		yearFrom: string;
+		yearTo: string;
+		sortState: SortState;
+	} {
+		const agencySelections = parseUrlSelection(url, 'agency', agencyFilterOptions);
+		const bureauSelections = parseUrlSelection(
+			url,
+			'bureau',
+			Object.values(bureauOptionsByAgency).flat()
+		);
+		const nextAgencySelections =
+			agencySelections.length > 0 ? agencySelections : inferAgencySelections(bureauSelections);
+		const availableBureaus = nextAgencySelections.flatMap(
+			(agency) => bureauOptionsByAgency[agency as keyof typeof bureauOptionsByAgency] ?? []
+		);
+
+		const nextFilters: MultiFilters = {
+			agency: nextAgencySelections,
+			bureau: bureauSelections.filter((bureau) => availableBureaus.includes(bureau)),
+			stage: parseUrlSelection(url, 'stage', stageOptions),
+			impact: uniqueValues(
+				url.searchParams.getAll('impact').map((value) => (value === BLANK_URL_VALUE ? '' : value))
+			).filter((value) => impactSelectableOptions.includes(value)),
+			compliance: parseUrlSelection(url, 'compliance', complianceOptions),
+			topic: parseUrlSelection(url, 'topic', topicOptions),
+			aiClassification: parseUrlSelection(url, 'aiClassification', aiClassificationOptions)
+		};
+
+		const nextSortKey = url.searchParams.get('sort');
+		const nextSortDirection = url.searchParams.get('dir');
+
+		return {
+			query: normalizeFilterValue(url.searchParams.get('q')),
+			filters: nextFilters,
+			yearFrom: normalizeFilterValue(url.searchParams.get('from')),
+			yearTo: normalizeFilterValue(url.searchParams.get('to')),
+			sortState: {
+				key: sortColumns.some((column) => column.key === nextSortKey)
+					? (nextSortKey as SortKey)
+					: 'useCase',
+				direction: nextSortDirection === 'desc' ? 'desc' : 'asc'
+			}
+		};
+	}
+
+	function buildUrlFromState() {
+		const url = new URL(window.location.href);
+		const params = new URLSearchParams();
+
+		if (query.trim()) {
+			params.set('q', query.trim());
+		}
+
+		for (const agency of filters.agency) {
+			params.append('agency', agency);
+		}
+
+		for (const bureau of filters.bureau) {
+			params.append('bureau', bureau);
+		}
+
+		for (const stage of filters.stage) {
+			params.append('stage', stage);
+		}
+
+		for (const impact of filters.impact) {
+			params.append('impact', impact === '' ? BLANK_URL_VALUE : impact);
+		}
+
+		for (const topic of filters.topic) {
+			params.append('topic', topic);
+		}
+
+		for (const compliance of filters.compliance) {
+			params.append('compliance', compliance);
+		}
+
+		for (const aiClassification of filters.aiClassification) {
+			params.append('aiClassification', aiClassification);
+		}
+
+		if (yearFrom) {
+			params.set('from', yearFrom);
+		}
+
+		if (yearTo) {
+			params.set('to', yearTo);
+		}
+
+		if (sortState.key !== 'useCase') {
+			params.set('sort', sortState.key);
+		}
+
+		if (sortState.direction !== 'asc') {
+			params.set('dir', sortState.direction);
+		}
+
+		url.search = params.toString();
+		return url;
+	}
+
+	function syncUrlWithState() {
+		if (!browser) {
+			return;
+		}
+
+		const nextUrl = buildUrlFromState();
+		if (nextUrl.toString() === window.location.href) {
+			return;
+		}
+
+		history.replaceState(history.state, '', nextUrl);
+	}
+
+	function applyStateFromUrl(url: URL) {
+		const nextState = parseUrlState(url);
+		const nextQuery = nextState.query;
+		const nextFilters = nextState.filters;
+		const nextYearFrom = nextState.yearFrom;
+		const nextYearTo = nextState.yearTo;
+		const nextSortState = nextState.sortState;
+
+		const stateChanged =
+			query !== nextQuery ||
+			!areFiltersEqual(filters, nextFilters) ||
+			yearFrom !== nextYearFrom ||
+			yearTo !== nextYearTo ||
+			sortState.key !== nextSortState.key ||
+			sortState.direction !== nextSortState.direction;
+
+		query = nextQuery;
+		filters = nextFilters;
+		yearFrom = nextYearFrom;
+		yearTo = nextYearTo;
+		sortState = nextSortState;
+
+		if (stateChanged || latestSearchRequest === 0) {
+			clearPendingSearch();
+			void search();
+			return;
+		}
+
+		void scrollToHashTarget();
+	}
+
+	async function scrollToHashTarget() {
+		if (!browser || !window.location.hash) {
+			return;
+		}
+
+		await tick();
+		const targetId = decodeURIComponent(window.location.hash.slice(1));
+		const target = document.getElementById(targetId);
+		if (!target) {
+			return;
+		}
+
+		target.scrollIntoView({ block: 'start' });
+	}
+
 	function matchesAnySelection(selections: string[], value: string) {
 		if (selections.length === 0) {
 			return true;
@@ -287,6 +597,7 @@
 			matchesBureau &&
 			matchesAnySelection(activeFilters.stage, normalizeFilterValue(result.stage_of_development)) &&
 			matchesAnySelection(activeFilters.impact, getImpactValue(result)) &&
+			matchesAnySelection(activeFilters.compliance, getComplianceValue(result)) &&
 			matchesAnySelection(activeFilters.topic, normalizeFilterValue(result.use_case_topic_area)) &&
 			matchesAnySelection(
 				activeFilters.aiClassification,
@@ -343,13 +654,16 @@
 				return normalizeFilterValue(result.use_case_topic_area) === value;
 			}
 
+			if (key === 'compliance') {
+				return getComplianceValue(result) === value;
+			}
+
 			return normalizeFilterValue(result.ai_classification) === value;
 		}).length;
 	}
 
 	function countBlankImpact() {
-		return serverResults.filter((result) => getImpactValue(result) === '')
-			.length;
+		return serverResults.filter((result) => getImpactValue(result) === '').length;
 	}
 
 	function countAllForGroup(key: FilterKey, options: string[]) {
@@ -375,6 +689,10 @@
 
 			if (key === 'topic') {
 				return options.includes(normalizeFilterValue(result.use_case_topic_area));
+			}
+
+			if (key === 'compliance') {
+				return options.includes(getComplianceValue(result));
 			}
 
 			return options.includes(normalizeFilterValue(result.ai_classification));
@@ -459,12 +777,14 @@
 		clearPendingSearch();
 		searchDebounceTimer = setTimeout(() => {
 			searchDebounceTimer = null;
+			syncUrlWithState();
 			void search();
 		}, SEARCH_DEBOUNCE_MS);
 	}
 
 	function submitSearch() {
 		clearPendingSearch();
+		syncUrlWithState();
 		void search();
 	}
 
@@ -487,33 +807,12 @@
 			}
 
 			const nextResults: UseCaseRecord[] = await response.json();
-			const nextTopicOptions = [
-				...new Set(
-					nextResults
-						.map((result) => normalizeFilterValue(result.use_case_topic_area))
-						.filter(Boolean)
-				)
-			];
-			const nextAiClassificationOptions = [
-				...new Set(
-					nextResults
-						.map((result) => normalizeFilterValue(result.ai_classification))
-						.filter(Boolean)
-				)
-			];
-
 			if (requestId !== latestSearchRequest) {
 				return;
 			}
 
 			serverResults = nextResults;
-			filters = {
-				...filters,
-				topic: filters.topic.filter((value) => nextTopicOptions.includes(value)),
-				aiClassification: filters.aiClassification.filter((value) =>
-					nextAiClassificationOptions.includes(value)
-				)
-			};
+			void scrollToHashTarget();
 		} catch (searchError) {
 			if (searchError instanceof DOMException && searchError.name === 'AbortError') {
 				return;
@@ -583,6 +882,7 @@
 			sortState.key === key
 				? { key, direction: sortState.direction === 'asc' ? 'desc' : 'asc' }
 				: { key, direction: 'asc' };
+		syncUrlWithState();
 	}
 
 	function sortIndicator(key: SortKey) {
@@ -662,27 +962,27 @@
 					{#if expandedSections.year}
 						<div class="filter-section__body">
 							<div class="year-row">
-							<input
-								bind:value={yearFrom}
-								class="year-input"
-								type="text"
-								inputmode="numeric"
-								maxlength="4"
-								on:input={queueSearch}
-								placeholder="2024"
-								aria-label="Year from"
-							/>
+								<input
+									bind:value={yearFrom}
+									class="year-input"
+									type="text"
+									inputmode="numeric"
+									maxlength="4"
+									on:input={queueSearch}
+									placeholder="2024"
+									aria-label="Year from"
+								/>
 								<span class="year-dash">-</span>
-							<input
-								bind:value={yearTo}
-								class="year-input"
-								type="text"
-								inputmode="numeric"
-								maxlength="4"
-								on:input={queueSearch}
-								placeholder="2025"
-								aria-label="Year to"
-							/>
+								<input
+									bind:value={yearTo}
+									class="year-input"
+									type="text"
+									inputmode="numeric"
+									maxlength="4"
+									on:input={queueSearch}
+									placeholder="2025"
+									aria-label="Year to"
+								/>
 							</div>
 						</div>
 					{/if}
@@ -731,74 +1031,75 @@
 										<span class="checkbox-count">{countMatchingOption('agency', agency)}</span>
 									</button>
 								{/each}
-						</div>
-						{#if filters.agency.length > 0}
-							<button
-								type="button"
-								class="filter-clear"
-								on:click={() => clearFilterGroup('agency')}>Clear agency</button
-							>
-						{/if}
-					</div>
-				{/if}
-			</section>
-
-			{#if bureauFilterOptions.length > 0}
-				<section class="filter-section">
-					<button
-						type="button"
-						class="filter-section__toggle"
-						on:click={() => toggleSection('bureau')}
-						aria-expanded={expandedSections.bureau}
-					>
-						<span>Bureau / Component</span>
-						<span
-							class:expanded={expandedSections.bureau}
-							class="filter-section__icon"
-							aria-hidden="true"
-						></span>
-					</button>
-					{#if expandedSections.bureau}
-						<div class="filter-section__body">
-							<div class="checkbox-list">
-								<button
-									type="button"
-									class:checked={isAllSelected('bureau', bureauFilterOptions)}
-									class="checkbox-item"
-									on:click={() => toggleAllFilterValues('bureau', bureauFilterOptions)}
-								>
-									<span class="checkbox-mark"
-										>{isAllSelected('bureau', bureauFilterOptions) ? '✓' : ''}</span
-									>
-									<span class="checkbox-label">Select All</span>
-									<span class="checkbox-count"
-										>{countAllForGroup('bureau', bureauFilterOptions)}</span
-									>
-								</button>
-								{#each bureauFilterOptions as bureau (bureau)}
-									<button
-										type="button"
-										class:checked={filters.bureau.includes(bureau)}
-										class="checkbox-item"
-										on:click={() => toggleFilterValue('bureau', bureau)}
-									>
-										<span class="checkbox-mark">{filters.bureau.includes(bureau) ? '✓' : ''}</span>
-										<span class="checkbox-label">{bureau}</span>
-										<span class="checkbox-count">{countMatchingOption('bureau', bureau)}</span>
-									</button>
-								{/each}
 							</div>
-							{#if filters.bureau.length > 0}
+							{#if filters.agency.length > 0}
 								<button
 									type="button"
 									class="filter-clear"
-									on:click={() => clearFilterGroup('bureau')}>Clear bureau</button
+									on:click={() => clearFilterGroup('agency')}>Clear agency</button
 								>
 							{/if}
 						</div>
 					{/if}
 				</section>
-			{/if}
+
+				{#if bureauFilterOptions.length > 0}
+					<section class="filter-section">
+						<button
+							type="button"
+							class="filter-section__toggle"
+							on:click={() => toggleSection('bureau')}
+							aria-expanded={expandedSections.bureau}
+						>
+							<span>Bureau / Component</span>
+							<span
+								class:expanded={expandedSections.bureau}
+								class="filter-section__icon"
+								aria-hidden="true"
+							></span>
+						</button>
+						{#if expandedSections.bureau}
+							<div class="filter-section__body">
+								<div class="checkbox-list">
+									<button
+										type="button"
+										class:checked={isAllSelected('bureau', bureauFilterOptions)}
+										class="checkbox-item"
+										on:click={() => toggleAllFilterValues('bureau', bureauFilterOptions)}
+									>
+										<span class="checkbox-mark"
+											>{isAllSelected('bureau', bureauFilterOptions) ? '✓' : ''}</span
+										>
+										<span class="checkbox-label">Select All</span>
+										<span class="checkbox-count"
+											>{countAllForGroup('bureau', bureauFilterOptions)}</span
+										>
+									</button>
+									{#each bureauFilterOptions as bureau (bureau)}
+										<button
+											type="button"
+											class:checked={filters.bureau.includes(bureau)}
+											class="checkbox-item"
+											on:click={() => toggleFilterValue('bureau', bureau)}
+										>
+											<span class="checkbox-mark">{filters.bureau.includes(bureau) ? '✓' : ''}</span
+											>
+											<span class="checkbox-label">{bureau}</span>
+											<span class="checkbox-count">{countMatchingOption('bureau', bureau)}</span>
+										</button>
+									{/each}
+								</div>
+								{#if filters.bureau.length > 0}
+									<button
+										type="button"
+										class="filter-clear"
+										on:click={() => clearFilterGroup('bureau')}>Clear bureau</button
+									>
+								{/if}
+							</div>
+						{/if}
+					</section>
+				{/if}
 
 				<section class="filter-section">
 					<button
@@ -925,6 +1226,63 @@
 									type="button"
 									class="filter-clear"
 									on:click={() => clearFilterGroup('impact')}>Clear impact</button
+								>
+							{/if}
+						</div>
+					{/if}
+				</section>
+
+				<section class="filter-section">
+					<button
+						type="button"
+						class="filter-section__toggle"
+						on:click={() => toggleSection('compliance')}
+						aria-expanded={expandedSections.compliance}
+					>
+						<span>Compliance</span>
+						<span
+							class:expanded={expandedSections.compliance}
+							class="filter-section__icon"
+							aria-hidden="true"
+						></span>
+					</button>
+					{#if expandedSections.compliance}
+						<div class="filter-section__body">
+							<div class="checkbox-list">
+								<button
+									type="button"
+									class:checked={isAllSelected('compliance', complianceOptions)}
+									class="checkbox-item"
+									on:click={() => toggleAllFilterValues('compliance', complianceOptions)}
+								>
+									<span class="checkbox-mark"
+										>{isAllSelected('compliance', complianceOptions) ? '✓' : ''}</span
+									>
+									<span class="checkbox-label">All</span>
+									<span class="checkbox-count"
+										>{countAllForGroup('compliance', complianceOptions)}</span
+									>
+								</button>
+								{#each complianceOptions as option (option)}
+									<button
+										type="button"
+										class:checked={filters.compliance.includes(option)}
+										class="checkbox-item"
+										on:click={() => toggleFilterValue('compliance', option)}
+									>
+										<span class="checkbox-mark"
+											>{filters.compliance.includes(option) ? '✓' : ''}</span
+										>
+										<span class="checkbox-label">{option}</span>
+										<span class="checkbox-count">{countMatchingOption('compliance', option)}</span>
+									</button>
+								{/each}
+							</div>
+							{#if filters.compliance.length > 0}
+								<button
+									type="button"
+									class="filter-clear"
+									on:click={() => clearFilterGroup('compliance')}>Clear compliance</button
 								>
 							{/if}
 						</div>
@@ -1105,7 +1463,12 @@
 			{:else}
 				<div class="results-list">
 					{#each results as result, index (`${result.data_year}-${result.use_case_id}-${result.agency}-${result.use_case_name}-${result.validation_notes}`)}
-						<AiUseCaseRecord {result} index={index + 1} />
+						<AiUseCaseRecord
+							{result}
+							index={index + 1}
+							anchorId={useCaseAnchorId(result)}
+							on:share={handleShare}
+						/>
 					{/each}
 				</div>
 			{/if}
@@ -1146,6 +1509,53 @@
 
 			<div class="field-guide-modal__body">
 				<FieldGuideContent />
+			</div>
+		</div>
+	</div>
+{/if}
+
+{#if shareDialogOpen}
+	<div class="field-guide-modal">
+		<button
+			type="button"
+			class="field-guide-modal__backdrop"
+			aria-label="Close share dialog"
+			on:click={closeShareDialog}
+		></button>
+		<div
+			bind:this={shareDialog}
+			class="field-guide-modal__dialog field-guide-modal__dialog--share"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="share-dialog-title"
+			aria-describedby="share-dialog-description"
+			tabindex="-1"
+		>
+			<div class="share-dialog-orb" aria-hidden="true"></div>
+			<div class="field-guide-modal__body share-dialog-body">
+				<div class="share-dialog-heading">
+					<h2 id="share-dialog-title">Share this record</h2>
+					<p id="share-dialog-description" class="share-dialog-copy">
+						The link of {shareTitle} has been copied, share it now!
+					</p>
+					<p class="share-dialog-status">{shareStatus}</p>
+				</div>
+				<div class="share-dialog-actions">
+					<button
+						type="button"
+						class="share-dialog-button share-dialog-button--primary"
+						on:click={copyShareUrlAgain}
+					>
+						Copy again
+					</button>
+					<button
+						type="button"
+						class="share-dialog-button share-dialog-button--secondary"
+						on:click={closeShareDialog}
+					>
+						Close
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -1601,6 +2011,106 @@
 		overflow: auto;
 	}
 
+	.field-guide-modal__dialog--share {
+		position: relative;
+		width: min(620px, 100%);
+		background: #ffffff;
+		box-shadow: 0 28px 80px rgba(23, 41, 34, 0.18);
+	}
+
+	.share-dialog-body {
+		max-height: none;
+		position: relative;
+		gap: 26px;
+		padding: 40px 36px 34px;
+		z-index: 1;
+	}
+
+	.share-dialog-orb {
+		position: absolute;
+		top: -118px;
+		left: 50%;
+		width: 300px;
+		height: 300px;
+		border-radius: 999px;
+		background: radial-gradient(
+			circle at 30% 30%,
+			rgba(132, 184, 158, 0.78),
+			rgba(90, 140, 121, 0.96)
+		);
+		transform: translateX(-50%);
+		opacity: 0.14;
+		pointer-events: none;
+	}
+
+	.share-dialog-heading {
+		display: grid;
+		gap: 14px;
+		justify-items: start;
+	}
+
+	.share-dialog-heading h2 {
+		margin: 0;
+		font-family: var(--font-serif);
+		font-size: clamp(2.05rem, 4vw, 2.8rem);
+		font-weight: 500;
+		line-height: 1;
+		letter-spacing: -0.03em;
+		color: #24473a;
+	}
+
+	.share-dialog-copy {
+		margin: 0;
+		max-width: 30rem;
+		font-size: 1.04rem;
+		line-height: 1.65;
+		color: #4f675d;
+	}
+
+	.share-dialog-status {
+		margin: 0;
+		font-size: 0.94rem;
+		line-height: 1.5;
+		color: #6b847a;
+	}
+
+	.share-dialog-actions {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		padding-top: 4px;
+	}
+
+	.share-dialog-button {
+		min-width: 144px;
+		padding: 14px 22px;
+		border-radius: 999px;
+		font-size: 0.98rem;
+		font-weight: 600;
+		transition:
+			transform 0.16s ease,
+			background-color 0.16s ease,
+			border-color 0.16s ease,
+			color 0.16s ease,
+			box-shadow 0.16s ease;
+	}
+
+	.share-dialog-button:hover {
+		transform: translateY(-1px);
+	}
+
+	.share-dialog-button--primary {
+		background: linear-gradient(180deg, #72a78d, #5d947b);
+		color: #ffffff;
+		box-shadow: 0 12px 24px rgba(93, 148, 123, 0.24);
+	}
+
+	.share-dialog-button--secondary {
+		border: 1px solid rgba(115, 144, 130, 0.3);
+		background: #ffffff;
+		color: #4f675d;
+	}
+
 	.explorer-results {
 		display: grid;
 		gap: 12px;
@@ -1804,6 +2314,11 @@
 			padding: 20px 18px 16px;
 		}
 
+		.field-guide-modal__header--share {
+			padding: 24px 18px 18px;
+			align-items: center;
+		}
+
 		.field-guide-modal__close {
 			width: fit-content;
 		}
@@ -1811,6 +2326,24 @@
 		.field-guide-modal__body {
 			padding: 16px 18px 18px;
 			max-height: calc(92vh - 156px);
+		}
+
+		.share-dialog-body {
+			padding: 28px 20px 24px;
+		}
+
+		.share-dialog-actions {
+			flex-direction: column;
+		}
+
+		.share-dialog-button {
+			width: 100%;
+		}
+
+		.share-dialog-orb {
+			top: -96px;
+			width: 240px;
+			height: 240px;
 		}
 	}
 </style>
