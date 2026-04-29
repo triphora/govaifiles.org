@@ -53,16 +53,16 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     }
 
     /**
-     * Setter for <code>public.ai_use_cases.agency</code>.
+     * Setter for <code>public.ai_use_cases.agency_abbreviation</code>.
      */
-    public void setAgency(String value) {
+    public void setAgencyAbbreviation(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>public.ai_use_cases.agency</code>.
+     * Getter for <code>public.ai_use_cases.agency_abbreviation</code>.
      */
-    public String getAgency() {
+    public String getAgencyAbbreviation() {
         return (String) get(2);
     }
 
@@ -81,16 +81,16 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     }
 
     /**
-     * Setter for <code>public.ai_use_cases.canonical_agency</code>.
+     * Setter for <code>public.ai_use_cases.agency</code>.
      */
-    public void setCanonicalAgency(String value) {
+    public void setAgency(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>public.ai_use_cases.canonical_agency</code>.
+     * Getter for <code>public.ai_use_cases.agency</code>.
      */
-    public String getCanonicalAgency() {
+    public String getAgency() {
         return (String) get(4);
     }
 
@@ -734,14 +734,14 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     /**
      * Create a detached, initialised AiUseCasesRecord
      */
-    public AiUseCasesRecord(String useCaseId, String useCaseName, String agency, String bureauComponent, String canonicalAgency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, RightsSafetyImpactType rightsSafetyImpactType, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, Boolean preDeploymentTestingConducted, Boolean aiImpactAssessmentCompleted, String potentialImpactsIdentified, Boolean independentReviewConducted, Boolean ongoingMonitoringEstablished, Boolean operatorTrainingEstablished, Boolean failsafeInPlace, Boolean appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore) {
+    public AiUseCasesRecord(String useCaseId, String useCaseName, String agencyAbbreviation, String bureauComponent, String agency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, RightsSafetyImpactType rightsSafetyImpactType, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, Boolean preDeploymentTestingConducted, Boolean aiImpactAssessmentCompleted, String potentialImpactsIdentified, Boolean independentReviewConducted, Boolean ongoingMonitoringEstablished, Boolean operatorTrainingEstablished, Boolean failsafeInPlace, Boolean appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore) {
         super(AiUseCases.AI_USE_CASES);
 
         setUseCaseId(useCaseId);
         setUseCaseName(useCaseName);
-        setAgency(agency);
+        setAgencyAbbreviation(agencyAbbreviation);
         setBureauComponent(bureauComponent);
-        setCanonicalAgency(canonicalAgency);
+        setAgency(agency);
         setCanonicalAbbreviation(canonicalAbbreviation);
         setCanonicalSubAgency(canonicalSubAgency);
         setAgencyMatchConfidence(agencyMatchConfidence);

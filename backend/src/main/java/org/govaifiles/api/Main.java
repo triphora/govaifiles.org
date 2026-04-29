@@ -62,7 +62,7 @@ public class Main {
 		List<Field> fields = new ArrayList<>();
 		fields.add(new Field().name(".*").type(FieldTypes.AUTO));
 		fields.add(new Field().name("agency_importance").type(FieldTypes.INT32).sort(true));
-		fields.add(new Field().name("canonical_agency").type(FieldTypes.STRING).sort(true));
+		fields.add(new Field().name("agency").type(FieldTypes.STRING).sort(true));
 		fields.add(new Field().name("use_case_name").type(FieldTypes.STRING).sort(true));
 
 		CollectionSchema collectionSchema = new CollectionSchema();

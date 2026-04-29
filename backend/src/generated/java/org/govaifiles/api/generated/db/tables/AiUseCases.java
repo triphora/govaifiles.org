@@ -64,9 +64,9 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
     public final TableField<AiUseCasesRecord, String> USE_CASE_NAME = createField(DSL.name("use_case_name"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>public.ai_use_cases.agency</code>.
+     * The column <code>public.ai_use_cases.agency_abbreviation</code>.
      */
-    public final TableField<AiUseCasesRecord, String> AGENCY = createField(DSL.name("agency"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, String> AGENCY_ABBREVIATION = createField(DSL.name("agency_abbreviation"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.ai_use_cases.bureau_component</code>.
@@ -74,9 +74,9 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
     public final TableField<AiUseCasesRecord, String> BUREAU_COMPONENT = createField(DSL.name("bureau_component"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>public.ai_use_cases.canonical_agency</code>.
+     * The column <code>public.ai_use_cases.agency</code>.
      */
-    public final TableField<AiUseCasesRecord, String> CANONICAL_AGENCY = createField(DSL.name("canonical_agency"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, String> AGENCY = createField(DSL.name("agency"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.ai_use_cases.canonical_abbreviation</code>.
