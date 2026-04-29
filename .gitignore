@@ -7,7 +7,7 @@ typesense-data/
 *.iml
 */PROJECT.md
 *.class
-/bin/
+**/bin/
 .classpath
 .project
 .settings

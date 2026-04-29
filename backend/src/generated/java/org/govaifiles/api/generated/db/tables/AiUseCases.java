@@ -232,13 +232,13 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
      * The column
      * <code>public.ai_use_cases.pre_deployment_testing_conducted</code>.
      */
-    public final TableField<AiUseCasesRecord, String> PRE_DEPLOYMENT_TESTING_CONDUCTED = createField(DSL.name("pre_deployment_testing_conducted"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, Boolean> PRE_DEPLOYMENT_TESTING_CONDUCTED = createField(DSL.name("pre_deployment_testing_conducted"), SQLDataType.BOOLEAN, this, "");
 
     /**
      * The column
      * <code>public.ai_use_cases.ai_impact_assessment_completed</code>.
      */
-    public final TableField<AiUseCasesRecord, String> AI_IMPACT_ASSESSMENT_COMPLETED = createField(DSL.name("ai_impact_assessment_completed"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, Boolean> AI_IMPACT_ASSESSMENT_COMPLETED = createField(DSL.name("ai_impact_assessment_completed"), SQLDataType.BOOLEAN, this, "");
 
     /**
      * The column <code>public.ai_use_cases.potential_impacts_identified</code>.
@@ -248,29 +248,29 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
     /**
      * The column <code>public.ai_use_cases.independent_review_conducted</code>.
      */
-    public final TableField<AiUseCasesRecord, String> INDEPENDENT_REVIEW_CONDUCTED = createField(DSL.name("independent_review_conducted"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, Boolean> INDEPENDENT_REVIEW_CONDUCTED = createField(DSL.name("independent_review_conducted"), SQLDataType.BOOLEAN, this, "");
 
     /**
      * The column
      * <code>public.ai_use_cases.ongoing_monitoring_established</code>.
      */
-    public final TableField<AiUseCasesRecord, String> ONGOING_MONITORING_ESTABLISHED = createField(DSL.name("ongoing_monitoring_established"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, Boolean> ONGOING_MONITORING_ESTABLISHED = createField(DSL.name("ongoing_monitoring_established"), SQLDataType.BOOLEAN, this, "");
 
     /**
      * The column
      * <code>public.ai_use_cases.operator_training_established</code>.
      */
-    public final TableField<AiUseCasesRecord, String> OPERATOR_TRAINING_ESTABLISHED = createField(DSL.name("operator_training_established"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, Boolean> OPERATOR_TRAINING_ESTABLISHED = createField(DSL.name("operator_training_established"), SQLDataType.BOOLEAN, this, "");
 
     /**
      * The column <code>public.ai_use_cases.failsafe_in_place</code>.
      */
-    public final TableField<AiUseCasesRecord, String> FAILSAFE_IN_PLACE = createField(DSL.name("failsafe_in_place"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, Boolean> FAILSAFE_IN_PLACE = createField(DSL.name("failsafe_in_place"), SQLDataType.BOOLEAN, this, "");
 
     /**
      * The column <code>public.ai_use_cases.appeal_process_available</code>.
      */
-    public final TableField<AiUseCasesRecord, String> APPEAL_PROCESS_AVAILABLE = createField(DSL.name("appeal_process_available"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, Boolean> APPEAL_PROCESS_AVAILABLE = createField(DSL.name("appeal_process_available"), SQLDataType.BOOLEAN, this, "");
 
     /**
      * The column <code>public.ai_use_cases.user_feedback_steps</code>.
@@ -296,6 +296,12 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
      * The column <code>public.ai_use_cases.agency_importance</code>.
      */
     public final TableField<AiUseCasesRecord, Integer> AGENCY_IMPORTANCE = createField(DSL.name("agency_importance"), SQLDataType.INTEGER.defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
+
+    /**
+     * The column
+     * <code>public.ai_use_cases.risk_management_compliance_score</code>.
+     */
+    public final TableField<AiUseCasesRecord, Integer> RISK_MANAGEMENT_COMPLIANCE_SCORE = createField(DSL.name("risk_management_compliance_score"), SQLDataType.INTEGER.defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
 
     private AiUseCases(Name alias, Table<AiUseCasesRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

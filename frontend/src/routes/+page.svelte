@@ -324,7 +324,7 @@
 	function countMatchingOption(key: FilterKey, value: string) {
 		return serverResults.filter((result) => {
 			if (key === 'agency') {
-				return normalizeFilterValue(result.agency) === value;
+				return normalizeFilterValue(result.canonical_agency) === value;
 			}
 
 			if (key === 'bureau') {
@@ -642,6 +642,9 @@
 					<button type="button" class="filter-reset" on:click={clearAllFilters}>Reset all</button>
 				</div>
 
+				<!-- TODO(temporarily disabled): Multiyear dataset not currently in use. Re-enable me when
+				the 2024 data is fixed.
+
 				<section class="filter-section">
 					<button
 						type="button"
@@ -683,7 +686,7 @@
 							</div>
 						</div>
 					{/if}
-				</section>
+				</section>-->
 
 				<section class="filter-section">
 					<button

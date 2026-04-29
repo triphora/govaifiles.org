@@ -88,9 +88,7 @@ public class APIHandler implements CrudHandler {
 					"canonical_sub_agency,canonical_agency,contact_email,public_reporting_status,stage_of_development," +
 					"high_impact_status,use_case_topic_area,ai_classification,purpose_and_benefits," +
 					"expected_benefits,system_outputs,development_source_type,vendor_names,system_names," +
-					"training_data_description,demographic_variables_used,pre_deployment_testing_conducted," +
-					"ai_impact_assessment_completed,potential_impacts_identified,independent_review_conducted," +
-					"ongoing_monitoring_established,operator_training_established,failsafe_in_place,appeal_process_available," +
+					"training_data_description,demographic_variables_used,potential_impacts_identified," +
 					"user_feedback_steps")
 				.limit(250);
 

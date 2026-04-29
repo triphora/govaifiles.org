@@ -518,7 +518,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
      * Setter for
      * <code>public.ai_use_cases.pre_deployment_testing_conducted</code>.
      */
-    public void setPreDeploymentTestingConducted(String value) {
+    public void setPreDeploymentTestingConducted(Boolean value) {
         set(35, value);
     }
 
@@ -526,15 +526,15 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
      * Getter for
      * <code>public.ai_use_cases.pre_deployment_testing_conducted</code>.
      */
-    public String getPreDeploymentTestingConducted() {
-        return (String) get(35);
+    public Boolean getPreDeploymentTestingConducted() {
+        return (Boolean) get(35);
     }
 
     /**
      * Setter for
      * <code>public.ai_use_cases.ai_impact_assessment_completed</code>.
      */
-    public void setAiImpactAssessmentCompleted(String value) {
+    public void setAiImpactAssessmentCompleted(Boolean value) {
         set(36, value);
     }
 
@@ -542,8 +542,8 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
      * Getter for
      * <code>public.ai_use_cases.ai_impact_assessment_completed</code>.
      */
-    public String getAiImpactAssessmentCompleted() {
-        return (String) get(36);
+    public Boolean getAiImpactAssessmentCompleted() {
+        return (Boolean) get(36);
     }
 
     /**
@@ -563,22 +563,22 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     /**
      * Setter for <code>public.ai_use_cases.independent_review_conducted</code>.
      */
-    public void setIndependentReviewConducted(String value) {
+    public void setIndependentReviewConducted(Boolean value) {
         set(38, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.independent_review_conducted</code>.
      */
-    public String getIndependentReviewConducted() {
-        return (String) get(38);
+    public Boolean getIndependentReviewConducted() {
+        return (Boolean) get(38);
     }
 
     /**
      * Setter for
      * <code>public.ai_use_cases.ongoing_monitoring_established</code>.
      */
-    public void setOngoingMonitoringEstablished(String value) {
+    public void setOngoingMonitoringEstablished(Boolean value) {
         set(39, value);
     }
 
@@ -586,15 +586,15 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
      * Getter for
      * <code>public.ai_use_cases.ongoing_monitoring_established</code>.
      */
-    public String getOngoingMonitoringEstablished() {
-        return (String) get(39);
+    public Boolean getOngoingMonitoringEstablished() {
+        return (Boolean) get(39);
     }
 
     /**
      * Setter for
      * <code>public.ai_use_cases.operator_training_established</code>.
      */
-    public void setOperatorTrainingEstablished(String value) {
+    public void setOperatorTrainingEstablished(Boolean value) {
         set(40, value);
     }
 
@@ -602,36 +602,36 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
      * Getter for
      * <code>public.ai_use_cases.operator_training_established</code>.
      */
-    public String getOperatorTrainingEstablished() {
-        return (String) get(40);
+    public Boolean getOperatorTrainingEstablished() {
+        return (Boolean) get(40);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.failsafe_in_place</code>.
      */
-    public void setFailsafeInPlace(String value) {
+    public void setFailsafeInPlace(Boolean value) {
         set(41, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.failsafe_in_place</code>.
      */
-    public String getFailsafeInPlace() {
-        return (String) get(41);
+    public Boolean getFailsafeInPlace() {
+        return (Boolean) get(41);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.appeal_process_available</code>.
      */
-    public void setAppealProcessAvailable(String value) {
+    public void setAppealProcessAvailable(Boolean value) {
         set(42, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.appeal_process_available</code>.
      */
-    public String getAppealProcessAvailable() {
-        return (String) get(42);
+    public Boolean getAppealProcessAvailable() {
+        return (Boolean) get(42);
     }
 
     /**
@@ -704,6 +704,22 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
         return (Integer) get(47);
     }
 
+    /**
+     * Setter for
+     * <code>public.ai_use_cases.risk_management_compliance_score</code>.
+     */
+    public void setRiskManagementComplianceScore(Integer value) {
+        set(48, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.ai_use_cases.risk_management_compliance_score</code>.
+     */
+    public Integer getRiskManagementComplianceScore() {
+        return (Integer) get(48);
+    }
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -718,7 +734,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     /**
      * Create a detached, initialised AiUseCasesRecord
      */
-    public AiUseCasesRecord(String useCaseId, String useCaseName, String agency, String bureauComponent, String canonicalAgency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, RightsSafetyImpactType rightsSafetyImpactType, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, String preDeploymentTestingConducted, String aiImpactAssessmentCompleted, String potentialImpactsIdentified, String independentReviewConducted, String ongoingMonitoringEstablished, String operatorTrainingEstablished, String failsafeInPlace, String appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance) {
+    public AiUseCasesRecord(String useCaseId, String useCaseName, String agency, String bureauComponent, String canonicalAgency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, RightsSafetyImpactType rightsSafetyImpactType, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, Boolean preDeploymentTestingConducted, Boolean aiImpactAssessmentCompleted, String potentialImpactsIdentified, Boolean independentReviewConducted, Boolean ongoingMonitoringEstablished, Boolean operatorTrainingEstablished, Boolean failsafeInPlace, Boolean appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore) {
         super(AiUseCases.AI_USE_CASES);
 
         setUseCaseId(useCaseId);
@@ -769,6 +785,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
         setValidationNotes(validationNotes);
         setNeedsManualReview(needsManualReview);
         setAgencyImportance(agencyImportance);
+        setRiskManagementComplianceScore(riskManagementComplianceScore);
         resetTouchedOnNotNull();
     }
 }

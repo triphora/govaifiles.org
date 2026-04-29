@@ -41,14 +41,14 @@ CREATE TABLE ai_use_cases (
     demographic_variables_used TEXT,
     has_custom_code BOOL,
     open_source_code_link TEXT,
-    pre_deployment_testing_conducted TEXT,
-    ai_impact_assessment_completed TEXT,
+    pre_deployment_testing_conducted BOOL,
+    ai_impact_assessment_completed BOOL,
     potential_impacts_identified TEXT,
-    independent_review_conducted TEXT,
-    ongoing_monitoring_established TEXT,
-    operator_training_established TEXT,
-    failsafe_in_place TEXT,
-    appeal_process_available TEXT,
+    independent_review_conducted BOOL,
+    ongoing_monitoring_established BOOL,
+    operator_training_established BOOL,
+    failsafe_in_place BOOL,
+    appeal_process_available BOOL,
     user_feedback_steps TEXT,
     validation_status validation_status,
     validation_notes TEXT,
@@ -56,4 +56,4 @@ CREATE TABLE ai_use_cases (
 );
 
 COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_2025_20260413_101402.csv' DELIMITER ',' CSV HEADER;
-COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_multi_20260413_101408.csv' DELIMITER ',' CSV HEADER;
+--COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_multi_20260413_101408.csv' DELIMITER ',' CSV HEADER;
