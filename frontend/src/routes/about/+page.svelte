@@ -21,4 +21,6 @@
 	<p><strong>Emma Lurie</strong> is a postdoctoral researcher at the University of Pennsylvania and incoming assistant professor at Barnard College with a J.D. from Stanford Law School and Ph.D. in Information Science from UC Berkeley, specializing in public interest technology at the intersections of platforms, democracy, and law. She conducts audits of AI systems and combines legal analysis with algorithm auditing to address how technology platforms can better serve democratic societies while protecting civil liberties.</p>
 
 	<p><strong>Emma Fauser</strong> is an undergraduate student at Haverford College pursuing computer science and urban studies. Her interests broadly lie in the applied use of computing for social problems. She is also a founding employee at Modrinth, an indie startup supporting Minecraft content creators.</p>
+
+	<p><strong>Qing He</strong> is a graduate student at the University of Pennsylvania with a background in Computer Science, Finance, and Architecture. Her research sits at the intersection of human-AI interaction and cognitive augmentation, with a focus on designing tools that support complex decision-making and knowledge work.</p>
 </section>
