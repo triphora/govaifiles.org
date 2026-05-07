@@ -402,7 +402,24 @@
 
 			{#if riskFields.some((field) => field.show)}
 				<section class="record-section record-section--risk">
-					<p class="record-section__label">Risk Management</p>
+					<div class="record-section__header">
+						<p class="record-section__label">Risk Management</p>
+						{#if complianceScore >= 0}
+							<div class="record-section__meta-group">
+								<p class="record-section__meta">Number of True:</p>
+								<div
+									class={`compliance-gauge compliance-gauge--compact ${complianceStatus === 'In compliance' ? 'compliance-gauge--good' : 'compliance-gauge--warn'}`}
+									style={`--gauge-deg: ${complianceGaugeDegrees}deg;`}
+									aria-label={`Risk management compliance score ${complianceScore} out of 9`}
+								>
+									<div class="compliance-gauge__inner">
+										<strong>{complianceScore}</strong>
+										<span>/9</span>
+									</div>
+								</div>
+							</div>
+						{/if}
+					</div>
 					<div class="record-risk-grid">
 						{#each riskFields as field}
 							{#if field.show}
@@ -712,19 +729,58 @@
 		border-top: 1px solid rgba(167, 190, 180, 0.6);
 	}
 
-	.record-section__label {
+	.record-section__header {
 		display: flex;
-		align-items: flex-start;
-		margin: 0;
-		min-height: 34px;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
 		padding-bottom: 10px;
 		border-bottom: 1px solid rgba(167, 190, 180, 0.6);
+	}
+
+	.record-section__label {
+		display: flex;
+		align-items: center;
+		margin: 0;
 		font-family: var(--font-mono);
 		font-size: 0.72rem;
 		line-height: 1.1;
 		letter-spacing: 0.16em;
 		text-transform: uppercase;
 		color: var(--ink-muted);
+	}
+
+	.record-section__meta {
+		margin: 0;
+		display: flex;
+		align-items: center;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		line-height: 1.1;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--ink-muted);
+		text-align: right;
+	}
+
+	.record-section__meta-group {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 14px;
+	}
+
+	.compliance-gauge--compact {
+		width: 54px;
+		height: 54px;
+	}
+
+	.compliance-gauge--compact .compliance-gauge__inner strong {
+		font-size: 0.92rem;
+	}
+
+	.compliance-gauge--compact .compliance-gauge__inner span {
+		font-size: 0.56rem;
 	}
 
 	.record-field,

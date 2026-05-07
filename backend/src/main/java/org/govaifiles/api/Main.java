@@ -27,6 +27,49 @@ import static io.javalin.apibuilder.ApiBuilder.*;
 import static org.govaifiles.api.generated.db.Tables.*;
 
 public class Main {
+	private static final String BLANK_IMPACT_VALUE = "__blank__";
+
+	private static String impactFilterValue(JsonObject document) {
+		String value = getString(document, "high_impact_status");
+		if (value == null || value.isBlank()) {
+			value = getString(document, "is_high_impact");
+		}
+
+		return value == null || value.isBlank() ? BLANK_IMPACT_VALUE : value.trim();
+	}
+
+	private static String complianceStatus(JsonObject document) {
+		String stage = getString(document, "stage_of_development");
+		String impact = impactFilterValue(document);
+		int score = parseComplianceScore(getString(document, "risk_management_compliance_score"));
+
+		if (!"Deployed".equals(stage) || !"high_impact".equals(impact) || score < 0) {
+			return "Not required";
+		}
+
+		return score >= 9 ? "In compliance" : "Not in compliance";
+	}
+
+	private static String getString(JsonObject document, String key) {
+		if (!document.has(key) || document.get(key).isJsonNull()) {
+			return null;
+		}
+
+		return document.get(key).getAsString();
+	}
+
+	private static int parseComplianceScore(String value) {
+		if (value == null || value.isBlank()) {
+			return -1;
+		}
+
+		try {
+			return Integer.parseInt(value.trim());
+		} catch (NumberFormatException ignored) {
+			return -1;
+		}
+	}
+
 	public static void main(String[] args) throws Exception {
 		System.setProperty("org.jooq.no-logo", "true");
 		System.setProperty("org.jooq.no-tips", "true");
@@ -62,8 +105,14 @@ public class Main {
 		List<Field> fields = new ArrayList<>();
 		fields.add(new Field().name(".*").type(FieldTypes.AUTO));
 		fields.add(new Field().name("agency_importance").type(FieldTypes.INT32).sort(true));
-		fields.add(new Field().name("agency").type(FieldTypes.STRING).sort(true));
+		fields.add(new Field().name("agency").type(FieldTypes.STRING).sort(true).facet(true));
 		fields.add(new Field().name("use_case_name").type(FieldTypes.STRING).sort(true));
+		fields.add(new Field().name("bureau_component").type(FieldTypes.STRING).facet(true));
+		fields.add(new Field().name("stage_of_development").type(FieldTypes.STRING).facet(true));
+		fields.add(new Field().name("impact_filter").type(FieldTypes.STRING).facet(true));
+		fields.add(new Field().name("use_case_topic_area").type(FieldTypes.STRING).facet(true));
+		fields.add(new Field().name("ai_classification").type(FieldTypes.STRING).facet(true));
+		fields.add(new Field().name("compliance_status").type(FieldTypes.STRING).facet(true));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
 		collectionSchema.name("AIUseCases").fields(fields);
@@ -95,7 +144,10 @@ public class Main {
 			StringBuilder sb = new StringBuilder();
 
 			for (JsonElement element : recordsArray) {
-				sb.append(element.toString()).append("\n");
+				JsonObject document = element.getAsJsonObject();
+				document.addProperty("impact_filter", impactFilterValue(document));
+				document.addProperty("compliance_status", complianceStatus(document));
+				sb.append(document).append("\n");
 			}
 
 			ImportDocumentsParameters queryParameters = new ImportDocumentsParameters();

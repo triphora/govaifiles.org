@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { PUBLIC_BACKEND_URL } from '$env/static/public';
+	import { env } from '$env/dynamic/public';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import AiUseCaseRecord from '../components/AIUseCaseRecord.svelte';
 	import FieldGuideContent from '../components/FieldGuideContent.svelte';
@@ -29,6 +29,12 @@
 	type SortKey = 'useCase' | 'agency' | 'stage' | 'impact' | 'topic' | 'aiClassification';
 	type EmptyStateMap = Record<string, string>;
 	type MultiFilters = Record<FilterKey, string[]>;
+	type FacetCounts = Record<FilterKey, Record<string, number>>;
+	type SearchResponse = {
+		hits: UseCaseRecord[];
+		facets?: Partial<Record<FilterKey, Record<string, number>>>;
+		found?: number;
+	};
 	type SectionKey = FilterKey | 'year';
 	type ExpandedSections = Record<SectionKey, boolean>;
 	type SortState = { key: SortKey; direction: 'asc' | 'desc' };
@@ -71,8 +77,24 @@
 		'Department of Homeland Security': [...dhsComponents]
 	};
 	const SEARCH_DEBOUNCE_MS = 250;
-	const BACKEND_URL = PUBLIC_BACKEND_URL;
+	const BACKEND_URL = env.PUBLIC_BACKEND_URL ?? '';
 	const BLANK_URL_VALUE = '__blank__';
+	const facetKeys: FilterKey[] = [
+		'agency',
+		'bureau',
+		'stage',
+		'impact',
+		'compliance',
+		'topic',
+		'aiClassification'
+	];
+	const agencyFacetAliases: Record<string, string> = {
+		'Board of Governors of the Federal Reserve System': 'Federal Reserve Board of Governors',
+		'U.S. Agency for Global Media': 'United States Agency for Global Media',
+		'U.S. Agency for International Development': 'United States Agency for International Development',
+		'U.S. Commission on Civil Rights': 'United States Commission on Civil Rights',
+		'U.S. Election Assistance Commission': 'Election Assistance Commission'
+	};
 
 	let query = '';
 	let loading = false;
@@ -87,6 +109,8 @@
 	let shareTitle = '';
 	let shareStatus = '';
 	let serverResults: UseCaseRecord[] = [];
+	let serverFacetCounts: FacetCounts = emptyFacetCounts();
+	let totalMatches = 0;
 	let filters: MultiFilters = { ...defaultFilters };
 	let expandedSections: ExpandedSections = { ...defaultExpandedSections };
 	let sortState: SortState = { key: 'useCase', direction: 'asc' };
@@ -117,15 +141,29 @@
 			'The United States Commission on Civil Rights has not yet published its AI Use Case Inventory (as of 2/13/26).'
 	};
 
-	$: topicOptions = configuredTopicOptions;
-	$: aiClassificationOptions = configuredAiClassificationOptions;
-	$: agencyFilterOptions = topLevelAgencyOptions;
+	$: topicOptions = filterOptionsByRetrieval('topic', configuredTopicOptions);
+	$: aiClassificationOptions = filterOptionsByRetrieval(
+		'aiClassification',
+		configuredAiClassificationOptions
+	);
+	$: agencyFilterOptions = filterOptionsByRetrieval('agency', topLevelAgencyOptions);
+	$: stageFilterOptions = filterOptionsByRetrieval('stage', stageOptions);
 	$: bureauFilterOptions = filters.agency.flatMap(
 		(agency) => bureauOptionsByAgency[agency as keyof typeof bureauOptionsByAgency] ?? []
 	);
-	$: filteredResults = serverResults.filter((result) => matchesFilters(result, filters));
-	$: yearFilteredResults = filteredResults.filter(matchesYearRange);
-	$: results = [...yearFilteredResults].sort((left, right) =>
+	$: visibleAgencyFilterOptions = getVisibleFilterOptions('agency', agencyFilterOptions, serverFacetCounts);
+	$: visibleBureauFilterOptions = getVisibleFilterOptions('bureau', bureauFilterOptions, serverFacetCounts);
+	$: visibleStageFilterOptions = getVisibleFilterOptions('stage', stageFilterOptions, serverFacetCounts);
+	$: visibleImpactFilterOptions = getVisibleFilterOptions('impact', impactSelectableOptions, serverFacetCounts);
+	$: visibleComplianceOptions = getVisibleFilterOptions('compliance', complianceOptions, serverFacetCounts);
+	$: visibleTopicOptions = getVisibleFilterOptions('topic', topicOptions, serverFacetCounts);
+	$: visibleAiClassificationOptions = getVisibleFilterOptions(
+		'aiClassification',
+		aiClassificationOptions,
+		serverFacetCounts
+	);
+	$: filteredResults = serverResults.filter(matchesClientSideFilters);
+	$: results = [...filteredResults].sort((left, right) =>
 		compareRecords(left, right, sortState)
 	);
 	$: activeFilterCount =
@@ -300,66 +338,6 @@
 		return Number.parseInt(normalizedValue, 10);
 	}
 
-	function encodeFilterValue(value: string) {
-		return `\`${normalizeFilterValue(value).replace(/`/g, '\\`')}\``;
-	}
-
-	function encodeFilterSelection(values: string[]) {
-		const normalizedValues = values.map(normalizeFilterValue).filter(Boolean);
-		if (normalizedValues.length === 0) {
-			return null;
-		}
-
-		if (normalizedValues.length === 1) {
-			return encodeFilterValue(normalizedValues[0]);
-		}
-
-		return `[${normalizedValues.map(encodeFilterValue).join(',')}]`;
-	}
-
-	function buildSearchParams() {
-		const params = new URLSearchParams();
-		const agencyFilter = encodeFilterSelection(filters.agency);
-		if (agencyFilter) {
-			params.set('agency', agencyFilter);
-		}
-
-		const bureauFilter = encodeFilterSelection(filters.bureau);
-		if (bureauFilter) {
-			params.set('bureau_component', bureauFilter);
-		}
-
-		const stageFilter = encodeFilterSelection(filters.stage);
-		if (stageFilter) {
-			params.set('stage_of_development', stageFilter);
-		}
-
-		const impactFilter = encodeFilterSelection(
-			filters.impact.filter((value) => normalizeFilterValue(value) !== '')
-		);
-		if (impactFilter) {
-			params.set('high_impact_status', impactFilter);
-		}
-
-		const topicFilter = encodeFilterSelection(filters.topic);
-		if (topicFilter) {
-			params.set('use_case_topic_area', topicFilter);
-		}
-
-		const aiClassificationFilter = encodeFilterSelection(filters.aiClassification);
-		if (aiClassificationFilter) {
-			params.set('ai_classification', aiClassificationFilter);
-		}
-
-		const fromYear = parseYearInput(yearFrom);
-		const toYear = parseYearInput(yearTo);
-		if (fromYear !== null && toYear !== null && fromYear === toYear) {
-			params.set('data_year', String(fromYear));
-		}
-
-		return params;
-	}
-
 	function uniqueValues(values: Array<string | null | undefined>) {
 		const seen = new Set<string>();
 		const normalizedValues: string[] = [];
@@ -386,22 +364,6 @@
 		return values.filter((value) => allowedValues.includes(value));
 	}
 
-	function areStringArraysEqual(left: string[], right: string[]) {
-		return left.length === right.length && left.every((value, index) => value === right[index]);
-	}
-
-	function areFiltersEqual(left: MultiFilters, right: MultiFilters) {
-		return (
-			areStringArraysEqual(left.agency, right.agency) &&
-			areStringArraysEqual(left.bureau, right.bureau) &&
-			areStringArraysEqual(left.stage, right.stage) &&
-			areStringArraysEqual(left.impact, right.impact) &&
-			areStringArraysEqual(left.compliance, right.compliance) &&
-			areStringArraysEqual(left.topic, right.topic) &&
-			areStringArraysEqual(left.aiClassification, right.aiClassification)
-		);
-	}
-
 	function inferAgencySelections(bureauSelections: string[]) {
 		const inferredAgencies = Object.entries(bureauOptionsByAgency)
 			.filter(([, bureauOptions]) =>
@@ -412,6 +374,18 @@
 		return uniqueValues(inferredAgencies);
 	}
 
+	function emptyFacetCounts(): FacetCounts {
+		return {
+			agency: {},
+			bureau: {},
+			stage: {},
+			impact: {},
+			compliance: {},
+			topic: {},
+			aiClassification: {}
+		};
+	}
+
 	function parseUrlState(url: URL): {
 		query: string;
 		filters: MultiFilters;
@@ -419,7 +393,7 @@
 		yearTo: string;
 		sortState: SortState;
 	} {
-		const agencySelections = parseUrlSelection(url, 'agency', agencyFilterOptions);
+		const agencySelections = parseUrlSelection(url, 'agency', topLevelAgencyOptions);
 		const bureauSelections = parseUrlSelection(
 			url,
 			'bureau',
@@ -439,8 +413,12 @@
 				url.searchParams.getAll('impact').map((value) => (value === BLANK_URL_VALUE ? '' : value))
 			).filter((value) => impactSelectableOptions.includes(value)),
 			compliance: parseUrlSelection(url, 'compliance', complianceOptions),
-			topic: parseUrlSelection(url, 'topic', topicOptions),
-			aiClassification: parseUrlSelection(url, 'aiClassification', aiClassificationOptions)
+			topic: parseUrlSelection(url, 'topic', configuredTopicOptions),
+			aiClassification: parseUrlSelection(
+				url,
+				'aiClassification',
+				configuredAiClassificationOptions
+			)
 		};
 
 		const nextSortKey = url.searchParams.get('sort');
@@ -449,8 +427,8 @@
 		return {
 			query: normalizeFilterValue(url.searchParams.get('q')),
 			filters: nextFilters,
-			yearFrom: normalizeFilterValue(url.searchParams.get('from')),
-			yearTo: normalizeFilterValue(url.searchParams.get('to')),
+			yearFrom: '',
+			yearTo: '',
 			sortState: {
 				key: sortColumns.some((column) => column.key === nextSortKey)
 					? (nextSortKey as SortKey)
@@ -496,14 +474,6 @@
 			params.append('aiClassification', aiClassification);
 		}
 
-		if (yearFrom) {
-			params.set('from', yearFrom);
-		}
-
-		if (yearTo) {
-			params.set('to', yearTo);
-		}
-
 		if (sortState.key !== 'useCase') {
 			params.set('sort', sortState.key);
 		}
@@ -536,28 +506,14 @@
 		const nextYearFrom = nextState.yearFrom;
 		const nextYearTo = nextState.yearTo;
 		const nextSortState = nextState.sortState;
-
-		const stateChanged =
-			query !== nextQuery ||
-			!areFiltersEqual(filters, nextFilters) ||
-			yearFrom !== nextYearFrom ||
-			yearTo !== nextYearTo ||
-			sortState.key !== nextSortState.key ||
-			sortState.direction !== nextSortState.direction;
-
 		query = nextQuery;
 		filters = nextFilters;
 		yearFrom = nextYearFrom;
 		yearTo = nextYearTo;
 		sortState = nextSortState;
 
-		if (stateChanged || latestSearchRequest === 0) {
-			clearPendingSearch();
-			void search();
-			return;
-		}
-
-		void scrollToHashTarget();
+		clearPendingSearch();
+		void search();
 	}
 
 	async function scrollToHashTarget() {
@@ -584,26 +540,12 @@
 		return selections.some((selection) => normalizeComparisonValue(selection) === normalizedValue);
 	}
 
-	function matchesFilters(result: UseCaseRecord, activeFilters: MultiFilters) {
-		const matchesAgency =
-			activeFilters.agency.length === 0 ||
-			matchesAnySelection(activeFilters.agency, normalizeFilterValue(result.agency));
-		const matchesBureau =
-			activeFilters.bureau.length === 0 ||
-			matchesAnySelection(activeFilters.bureau, normalizeFilterValue(result.bureau_component));
+	function matchesFilterSelection(key: FilterKey, result: UseCaseRecord) {
+		return matchesAnySelection(filters[key], getFacetValue(result, key));
+	}
 
-		return (
-			matchesAgency &&
-			matchesBureau &&
-			matchesAnySelection(activeFilters.stage, normalizeFilterValue(result.stage_of_development)) &&
-			matchesAnySelection(activeFilters.impact, getImpactValue(result)) &&
-			matchesAnySelection(activeFilters.compliance, getComplianceValue(result)) &&
-			matchesAnySelection(activeFilters.topic, normalizeFilterValue(result.use_case_topic_area)) &&
-			matchesAnySelection(
-				activeFilters.aiClassification,
-				normalizeFilterValue(result.ai_classification)
-			)
-		);
+	function matchesClientSideFilters(result: UseCaseRecord) {
+		return matchesYearRange(result);
 	}
 
 	function matchesYearRange(result: UseCaseRecord) {
@@ -632,71 +574,129 @@
 		return true;
 	}
 
-	function countMatchingOption(key: FilterKey, value: string) {
-		return serverResults.filter((result) => {
-			if (key === 'agency') {
-				return normalizeFilterValue(result.canonical_agency) === value;
-			}
-
-			if (key === 'bureau') {
-				return normalizeFilterValue(result.bureau_component) === value;
-			}
-
-			if (key === 'stage') {
-				return normalizeFilterValue(result.stage_of_development) === value;
-			}
-
-			if (key === 'impact') {
-				return getImpactValue(result) === value;
-			}
-
-			if (key === 'topic') {
-				return normalizeFilterValue(result.use_case_topic_area) === value;
-			}
-
-			if (key === 'compliance') {
-				return getComplianceValue(result) === value;
-			}
-
-			return normalizeFilterValue(result.ai_classification) === value;
-		}).length;
+	function getFacetValue(result: UseCaseRecord, key: FilterKey) {
+		switch (key) {
+			case 'agency':
+				return normalizeFacetValue(
+					key,
+					normalizeFilterValue(result.canonical_agency ?? result.agency)
+				);
+			case 'bureau':
+				return normalizeFacetValue(key, normalizeFilterValue(result.bureau_component));
+			case 'stage':
+				return normalizeFacetValue(key, normalizeFilterValue(result.stage_of_development));
+			case 'impact':
+				return normalizeFacetValue(key, getImpactValue(result));
+			case 'compliance':
+				return normalizeFacetValue(key, getComplianceValue(result));
+			case 'topic':
+				return normalizeFacetValue(key, normalizeFilterValue(result.use_case_topic_area));
+			case 'aiClassification':
+				return normalizeFacetValue(key, normalizeFilterValue(result.ai_classification));
+		}
 	}
 
-	function countBlankImpact() {
-		return serverResults.filter((result) => getImpactValue(result) === '').length;
-	}
-
-	function countAllForGroup(key: FilterKey, options: string[]) {
-		if (key === 'impact') {
-			return serverResults.filter((result) => {
-				const value = getImpactValue(result);
-				return options.includes(value) || value === '';
-			}).length;
+	function normalizeFacetValue(key: FilterKey, value: string) {
+		const normalizedValue = normalizeFilterValue(value);
+		if (!normalizedValue) {
+			return '';
 		}
 
-		return serverResults.filter((result) => {
-			if (key === 'agency') {
-				return options.includes(normalizeFilterValue(result.agency));
+		switch (key) {
+			case 'agency':
+				return agencyFacetAliases[normalizedValue] ?? normalizedValue;
+			case 'stage':
+				return normalizedValue.replace(/_/g, '-');
+			case 'topic': {
+				const simplified = normalizedValue.toLowerCase();
+				if (simplified === 'law enforcement') {
+					return 'Law & Justice';
+				}
+				if (simplified === 'service delivery') {
+					return 'Government Services (includes Benefits and Service Delivery)';
+				}
+				return normalizedValue;
+			}
+			case 'aiClassification': {
+				if (/^agentic ai/i.test(normalizedValue) || /^agentic-ai/i.test(normalizedValue)) {
+					return 'Agentic AI';
+				}
+				if (/^classical\/predictive machine learning/i.test(normalizedValue)) {
+					return 'Classical/Predictive Machine Learning';
+				}
+				if (/^computer vision/i.test(normalizedValue)) {
+					return 'Computer Vision';
+				}
+				if (/^generative ai/i.test(normalizedValue)) {
+					return 'Generative AI';
+				}
+				if (/^(natural language processing|nlp)/i.test(normalizedValue)) {
+					return 'Natural Language Processing';
+				}
+				if (/^reinforcement learning/i.test(normalizedValue)) {
+					return 'Reinforcement Learning';
+				}
+				if (/^other/i.test(normalizedValue)) {
+					return 'Other';
+				}
+				return normalizedValue;
+			}
+			default:
+				return normalizedValue;
+		}
+	}
+
+	function normalizeBackendFacetCounts(facets?: Partial<Record<FilterKey, Record<string, number>>>) {
+		const counts = emptyFacetCounts();
+
+		for (const key of facetKeys) {
+			const entries = facets?.[key];
+			if (!entries) {
+				continue;
 			}
 
-			if (key === 'bureau') {
-				return options.includes(normalizeFilterValue(result.bureau_component));
+			for (const [value, count] of Object.entries(entries)) {
+				const normalizedValue = normalizeFacetValue(
+					key,
+					key === 'impact' && value === BLANK_URL_VALUE ? '' : value
+				);
+				counts[key][normalizedValue] = (counts[key][normalizedValue] ?? 0) + count;
 			}
+		}
 
-			if (key === 'stage') {
-				return options.includes(normalizeFilterValue(result.stage_of_development));
-			}
+		return counts;
+	}
 
-			if (key === 'topic') {
-				return options.includes(normalizeFilterValue(result.use_case_topic_area));
-			}
+	function expandFilterRequestValues(key: FilterKey, value: string) {
+		if (key === 'impact') {
+			return [value === '' ? BLANK_URL_VALUE : value];
+		}
 
-			if (key === 'compliance') {
-				return options.includes(getComplianceValue(result));
-			}
+		if (key === 'bureau' || key === 'compliance') {
+			return [value];
+		}
 
-			return options.includes(normalizeFilterValue(result.ai_classification));
-		}).length;
+		return [normalizeFacetValue(key, value)];
+	}
+
+	function filterOptionsByRetrieval(key: FilterKey, options: string[]) {
+		return options;
+	}
+
+	function getFacetCount(key: FilterKey, value: string) {
+		return serverFacetCounts[key][normalizeFacetValue(key, value)] ?? 0;
+	}
+
+	function getVisibleFilterOptions(
+		key: FilterKey,
+		options: string[],
+		counts: FacetCounts
+	) {
+		return options.filter((option) => filters[key].includes(option) || getFacetCount(key, option) > 0);
+	}
+
+	function visibleFilterCountTotal(key: FilterKey, options: string[]) {
+		return options.reduce((total, option) => total + getFacetCount(key, option), 0);
 	}
 
 	function isAllSelected(key: FilterKey, options: string[]) {
@@ -715,7 +715,7 @@
 				agency: nextValues,
 				bureau: filters.bureau.filter((bureau) => nextBureauOptions.includes(bureau))
 			};
-			submitSearch();
+			applyFilters();
 			return;
 		}
 
@@ -723,7 +723,7 @@
 			...filters,
 			[key]: nextValues
 		};
-		submitSearch();
+		applyFilters();
 	}
 
 	function getSortableValue(result: UseCaseRecord, key: SortKey) {
@@ -782,6 +782,12 @@
 		}, SEARCH_DEBOUNCE_MS);
 	}
 
+	function applyFilters() {
+		clearPendingSearch();
+		syncUrlWithState();
+		void search();
+	}
+
 	function submitSearch() {
 		clearPendingSearch();
 		syncUrlWithState();
@@ -797,8 +803,51 @@
 		loading = true;
 		error = '';
 
-		const searchParams = buildSearchParams();
-		const queryString = `${BACKEND_URL}/ai-use-cases/${encodeURIComponent(query.trim() || '*')}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+		const searchParams = new URLSearchParams();
+
+		for (const agency of filters.agency) {
+			for (const value of expandFilterRequestValues('agency', agency)) {
+				searchParams.append('agency', value);
+			}
+		}
+
+		for (const bureau of filters.bureau) {
+			for (const value of expandFilterRequestValues('bureau', bureau)) {
+				searchParams.append('bureau', value);
+			}
+		}
+
+		for (const stage of filters.stage) {
+			for (const value of expandFilterRequestValues('stage', stage)) {
+				searchParams.append('stage', value);
+			}
+		}
+
+		for (const impact of filters.impact) {
+			for (const value of expandFilterRequestValues('impact', impact)) {
+				searchParams.append('impact', value);
+			}
+		}
+
+		for (const compliance of filters.compliance) {
+			for (const value of expandFilterRequestValues('compliance', compliance)) {
+				searchParams.append('compliance', value);
+			}
+		}
+
+		for (const topic of filters.topic) {
+			for (const value of expandFilterRequestValues('topic', topic)) {
+				searchParams.append('topic', value);
+			}
+		}
+
+		for (const aiClassification of filters.aiClassification) {
+			for (const value of expandFilterRequestValues('aiClassification', aiClassification)) {
+				searchParams.append('aiClassification', value);
+			}
+		}
+
+		const queryString = `${BACKEND_URL}/ai-use-cases/${encodeURIComponent(query.trim() || '*')}${searchParams.size > 0 ? `?${searchParams.toString()}` : ''}`;
 
 		try {
 			const response = await fetch(queryString, { signal: controller.signal });
@@ -806,12 +855,15 @@
 				throw new Error(`HTTP ${response.status}`);
 			}
 
-			const nextResults: UseCaseRecord[] = await response.json();
+			const payload: SearchResponse = await response.json();
 			if (requestId !== latestSearchRequest) {
 				return;
 			}
 
-			serverResults = nextResults;
+			serverResults = payload.hits ?? [];
+			serverFacetCounts = normalizeBackendFacetCounts(payload.facets);
+			totalMatches = payload.found ?? payload.hits?.length ?? 0;
+
 			void scrollToHashTarget();
 		} catch (searchError) {
 			if (searchError instanceof DOMException && searchError.name === 'AbortError') {
@@ -820,6 +872,8 @@
 
 			error = searchError instanceof Error ? searchError.message : 'Unknown error';
 			serverResults = [];
+			serverFacetCounts = emptyFacetCounts();
+			totalMatches = 0;
 		} finally {
 			if (requestId === latestSearchRequest) {
 				loading = false;
@@ -843,23 +897,23 @@
 				agency: nextValues,
 				bureau: filters.bureau.filter((bureau) => nextBureauOptions.includes(bureau))
 			};
-			submitSearch();
+			applyFilters();
 			return;
 		}
 
 		filters = { ...filters, [key]: nextValues };
-		submitSearch();
+		applyFilters();
 	}
 
 	function clearFilterGroup(key: FilterKey) {
 		if (key === 'agency') {
 			filters = { ...filters, agency: [], bureau: [] };
-			submitSearch();
+			applyFilters();
 			return;
 		}
 
 		filters = { ...filters, [key]: [] };
-		submitSearch();
+		applyFilters();
 	}
 
 	function clearAllFilters() {
@@ -945,6 +999,10 @@
 				<!-- TODO(temporarily disabled): Multiyear dataset not currently in use. Re-enable me when
 				the 2024 data is fixed.
 
+				{#if visibleAgencyFilterOptions.length > 0}
+				{#if visibleAgencyFilterOptions.length > 0}
+				{#if visibleAgencyFilterOptions.length > 0}
+				{#if visibleAgencyFilterOptions.length > 0}
 				<section class="filter-section">
 					<button
 						type="button"
@@ -988,6 +1046,7 @@
 					{/if}
 				</section>-->
 
+				{#if visibleAgencyFilterOptions.length > 0}
 				<section class="filter-section">
 					<button
 						type="button"
@@ -1007,19 +1066,17 @@
 							<div class="checkbox-list checkbox-list--scrollable">
 								<button
 									type="button"
-									class:checked={isAllSelected('agency', agencyFilterOptions)}
+									class:checked={isAllSelected('agency', visibleAgencyFilterOptions)}
 									class="checkbox-item"
-									on:click={() => toggleAllFilterValues('agency', agencyFilterOptions)}
+									on:click={() => toggleAllFilterValues('agency', visibleAgencyFilterOptions)}
 								>
 									<span class="checkbox-mark"
-										>{isAllSelected('agency', agencyFilterOptions) ? '✓' : ''}</span
+										>{isAllSelected('agency', visibleAgencyFilterOptions) ? '✓' : ''}</span
 									>
-									<span class="checkbox-label">Select All</span>
-									<span class="checkbox-count"
-										>{countAllForGroup('agency', agencyFilterOptions)}</span
-									>
-								</button>
-								{#each agencyFilterOptions as agency (agency)}
+								<span class="checkbox-label">Select All</span>
+								<span class="checkbox-count">{visibleFilterCountTotal('agency', visibleAgencyFilterOptions)}</span>
+							</button>
+								{#each visibleAgencyFilterOptions as agency (agency)}
 									<button
 										type="button"
 										class:checked={filters.agency.includes(agency)}
@@ -1028,8 +1085,8 @@
 									>
 										<span class="checkbox-mark">{filters.agency.includes(agency) ? '✓' : ''}</span>
 										<span class="checkbox-label">{agency}</span>
-										<span class="checkbox-count">{countMatchingOption('agency', agency)}</span>
-									</button>
+									<span class="checkbox-count">{getFacetCount('agency', agency)}</span>
+								</button>
 								{/each}
 							</div>
 							{#if filters.agency.length > 0}
@@ -1042,8 +1099,9 @@
 						</div>
 					{/if}
 				</section>
+				{/if}
 
-				{#if bureauFilterOptions.length > 0}
+				{#if visibleBureauFilterOptions.length > 0}
 					<section class="filter-section">
 						<button
 							type="button"
@@ -1063,19 +1121,17 @@
 								<div class="checkbox-list">
 									<button
 										type="button"
-										class:checked={isAllSelected('bureau', bureauFilterOptions)}
+										class:checked={isAllSelected('bureau', visibleBureauFilterOptions)}
 										class="checkbox-item"
-										on:click={() => toggleAllFilterValues('bureau', bureauFilterOptions)}
+										on:click={() => toggleAllFilterValues('bureau', visibleBureauFilterOptions)}
 									>
 										<span class="checkbox-mark"
-											>{isAllSelected('bureau', bureauFilterOptions) ? '✓' : ''}</span
+											>{isAllSelected('bureau', visibleBureauFilterOptions) ? '✓' : ''}</span
 										>
-										<span class="checkbox-label">Select All</span>
-										<span class="checkbox-count"
-											>{countAllForGroup('bureau', bureauFilterOptions)}</span
-										>
-									</button>
-									{#each bureauFilterOptions as bureau (bureau)}
+									<span class="checkbox-label">Select All</span>
+									<span class="checkbox-count">{visibleFilterCountTotal('bureau', visibleBureauFilterOptions)}</span>
+								</button>
+									{#each visibleBureauFilterOptions as bureau (bureau)}
 										<button
 											type="button"
 											class:checked={filters.bureau.includes(bureau)}
@@ -1085,8 +1141,8 @@
 											<span class="checkbox-mark">{filters.bureau.includes(bureau) ? '✓' : ''}</span
 											>
 											<span class="checkbox-label">{bureau}</span>
-											<span class="checkbox-count">{countMatchingOption('bureau', bureau)}</span>
-										</button>
+										<span class="checkbox-count">{getFacetCount('bureau', bureau)}</span>
+									</button>
 									{/each}
 								</div>
 								{#if filters.bureau.length > 0}
@@ -1101,6 +1157,7 @@
 					</section>
 				{/if}
 
+				{#if visibleStageFilterOptions.length > 0}
 				<section class="filter-section">
 					<button
 						type="button"
@@ -1120,17 +1177,17 @@
 							<div class="checkbox-list">
 								<button
 									type="button"
-									class:checked={isAllSelected('stage', stageOptions)}
-									class="checkbox-item"
-									on:click={() => toggleAllFilterValues('stage', stageOptions)}
+								class:checked={isAllSelected('stage', visibleStageFilterOptions)}
+								class="checkbox-item"
+								on:click={() => toggleAllFilterValues('stage', visibleStageFilterOptions)}
+							>
+								<span class="checkbox-mark"
+									>{isAllSelected('stage', visibleStageFilterOptions) ? '✓' : ''}</span
 								>
-									<span class="checkbox-mark"
-										>{isAllSelected('stage', stageOptions) ? '✓' : ''}</span
-									>
-									<span class="checkbox-label">All</span>
-									<span class="checkbox-count">{countAllForGroup('stage', stageOptions)}</span>
-								</button>
-								{#each stageOptions as stage (stage)}
+								<span class="checkbox-label">All</span>
+								<span class="checkbox-count">{visibleFilterCountTotal('stage', visibleStageFilterOptions)}</span>
+							</button>
+							{#each visibleStageFilterOptions as stage (stage)}
 									<button
 										type="button"
 										class:checked={filters.stage.includes(stage)}
@@ -1143,7 +1200,7 @@
 												class={`checkbox-dot checkbox-dot--${stage.toLowerCase().replace(/[^a-z]+/g, '-')}`}
 											></span>{stage}</span
 										>
-										<span class="checkbox-count">{countMatchingOption('stage', stage)}</span>
+										<span class="checkbox-count">{getFacetCount('stage', stage)}</span>
 									</button>
 								{/each}
 							</div>
@@ -1157,7 +1214,9 @@
 						</div>
 					{/if}
 				</section>
+				{/if}
 
+				{#if visibleImpactFilterOptions.length > 0}
 				<section class="filter-section">
 					<button
 						type="button"
@@ -1177,19 +1236,17 @@
 							<div class="checkbox-list">
 								<button
 									type="button"
-									class:checked={isAllSelected('impact', impactSelectableOptions)}
+									class:checked={isAllSelected('impact', visibleImpactFilterOptions)}
 									class="checkbox-item"
-									on:click={() => toggleAllFilterValues('impact', impactSelectableOptions)}
+									on:click={() => toggleAllFilterValues('impact', visibleImpactFilterOptions)}
 								>
 									<span class="checkbox-mark"
-										>{isAllSelected('impact', impactSelectableOptions) ? '✓' : ''}</span
+										>{isAllSelected('impact', visibleImpactFilterOptions) ? '✓' : ''}</span
 									>
 									<span class="checkbox-label">All</span>
-									<span class="checkbox-count"
-										>{countAllForGroup('impact', impactValueOptions) + countBlankImpact()}</span
-									>
+									<span class="checkbox-count">{visibleFilterCountTotal('impact', visibleImpactFilterOptions)}</span>
 								</button>
-								{#each impactOptions.filter((option) => option.value) as option (option.value)}
+								{#each impactOptions.filter((option) => visibleImpactFilterOptions.includes(option.value)) as option (option.value)}
 									<button
 										type="button"
 										class:checked={filters.impact.includes(option.value)}
@@ -1204,10 +1261,10 @@
 												class={`checkbox-dot checkbox-dot--${option.value === 'High-impact' ? 'impact-high' : 'impact-low'}`}
 											></span>{option.label}</span
 										>
-										<span class="checkbox-count">{countMatchingOption('impact', option.value)}</span
-										>
+										<span class="checkbox-count">{getFacetCount('impact', option.value)}</span>
 									</button>
 								{/each}
+								{#if visibleImpactFilterOptions.includes('')}
 								<button
 									type="button"
 									class:checked={filters.impact.includes('')}
@@ -1218,8 +1275,9 @@
 									<span class="checkbox-label checkbox-label--with-dot"
 										><span class="checkbox-dot checkbox-dot--blank"></span>(Blanks)</span
 									>
-									<span class="checkbox-count">{countBlankImpact()}</span>
+									<span class="checkbox-count">{getFacetCount('impact', '')}</span>
 								</button>
+								{/if}
 							</div>
 							{#if filters.impact.length > 0}
 								<button
@@ -1231,7 +1289,9 @@
 						</div>
 					{/if}
 				</section>
+				{/if}
 
+				{#if visibleComplianceOptions.length > 0}
 				<section class="filter-section">
 					<button
 						type="button"
@@ -1251,19 +1311,17 @@
 							<div class="checkbox-list">
 								<button
 									type="button"
-									class:checked={isAllSelected('compliance', complianceOptions)}
+									class:checked={isAllSelected('compliance', visibleComplianceOptions)}
 									class="checkbox-item"
-									on:click={() => toggleAllFilterValues('compliance', complianceOptions)}
+									on:click={() => toggleAllFilterValues('compliance', visibleComplianceOptions)}
 								>
 									<span class="checkbox-mark"
-										>{isAllSelected('compliance', complianceOptions) ? '✓' : ''}</span
+										>{isAllSelected('compliance', visibleComplianceOptions) ? '✓' : ''}</span
 									>
 									<span class="checkbox-label">All</span>
-									<span class="checkbox-count"
-										>{countAllForGroup('compliance', complianceOptions)}</span
-									>
+									<span class="checkbox-count">{visibleFilterCountTotal('compliance', visibleComplianceOptions)}</span>
 								</button>
-								{#each complianceOptions as option (option)}
+								{#each visibleComplianceOptions as option (option)}
 									<button
 										type="button"
 										class:checked={filters.compliance.includes(option)}
@@ -1274,7 +1332,7 @@
 											>{filters.compliance.includes(option) ? '✓' : ''}</span
 										>
 										<span class="checkbox-label">{option}</span>
-										<span class="checkbox-count">{countMatchingOption('compliance', option)}</span>
+										<span class="checkbox-count">{getFacetCount('compliance', option)}</span>
 									</button>
 								{/each}
 							</div>
@@ -1288,7 +1346,9 @@
 						</div>
 					{/if}
 				</section>
+				{/if}
 
+				{#if visibleTopicOptions.length > 0}
 				<section class="filter-section">
 					<button
 						type="button"
@@ -1308,17 +1368,17 @@
 							<div class="checkbox-list checkbox-list--scrollable">
 								<button
 									type="button"
-									class:checked={isAllSelected('topic', topicOptions)}
+									class:checked={isAllSelected('topic', visibleTopicOptions)}
 									class="checkbox-item"
-									on:click={() => toggleAllFilterValues('topic', topicOptions)}
+									on:click={() => toggleAllFilterValues('topic', visibleTopicOptions)}
 								>
 									<span class="checkbox-mark"
-										>{isAllSelected('topic', topicOptions) ? '✓' : ''}</span
+										>{isAllSelected('topic', visibleTopicOptions) ? '✓' : ''}</span
 									>
 									<span class="checkbox-label">Select All</span>
-									<span class="checkbox-count">{countAllForGroup('topic', topicOptions)}</span>
+									<span class="checkbox-count">{visibleFilterCountTotal('topic', visibleTopicOptions)}</span>
 								</button>
-								{#each topicOptions as topic (topic)}
+								{#each visibleTopicOptions as topic (topic)}
 									<button
 										type="button"
 										class:checked={filters.topic.includes(topic)}
@@ -1327,7 +1387,7 @@
 									>
 										<span class="checkbox-mark">{filters.topic.includes(topic) ? '✓' : ''}</span>
 										<span class="checkbox-label">{topic}</span>
-										<span class="checkbox-count">{countMatchingOption('topic', topic)}</span>
+										<span class="checkbox-count">{getFacetCount('topic', topic)}</span>
 									</button>
 								{/each}
 							</div>
@@ -1341,7 +1401,9 @@
 						</div>
 					{/if}
 				</section>
+				{/if}
 
+				{#if visibleAiClassificationOptions.length > 0}
 				<section class="filter-section">
 					<button
 						type="button"
@@ -1361,20 +1423,18 @@
 							<div class="checkbox-list checkbox-list--scrollable">
 								<button
 									type="button"
-									class:checked={isAllSelected('aiClassification', aiClassificationOptions)}
+									class:checked={isAllSelected('aiClassification', visibleAiClassificationOptions)}
 									class="checkbox-item"
 									on:click={() =>
-										toggleAllFilterValues('aiClassification', aiClassificationOptions)}
+										toggleAllFilterValues('aiClassification', visibleAiClassificationOptions)}
 								>
 									<span class="checkbox-mark"
-										>{isAllSelected('aiClassification', aiClassificationOptions) ? '✓' : ''}</span
+										>{isAllSelected('aiClassification', visibleAiClassificationOptions) ? '✓' : ''}</span
 									>
 									<span class="checkbox-label">Select All</span>
-									<span class="checkbox-count"
-										>{countAllForGroup('aiClassification', aiClassificationOptions)}</span
-									>
+									<span class="checkbox-count">{visibleFilterCountTotal('aiClassification', visibleAiClassificationOptions)}</span>
 								</button>
-								{#each aiClassificationOptions as option (option)}
+								{#each visibleAiClassificationOptions as option (option)}
 									<button
 										type="button"
 										class:checked={filters.aiClassification.includes(option)}
@@ -1385,9 +1445,7 @@
 											>{filters.aiClassification.includes(option) ? '✓' : ''}</span
 										>
 										<span class="checkbox-label">{option}</span>
-										<span class="checkbox-count"
-											>{countMatchingOption('aiClassification', option)}</span
-										>
+										<span class="checkbox-count">{getFacetCount('aiClassification', option)}</span>
 									</button>
 								{/each}
 							</div>
@@ -1402,6 +1460,7 @@
 						</div>
 					{/if}
 				</section>
+				{/if}
 
 				<div class="filter-note">
 					<p>
@@ -1420,7 +1479,7 @@
 				<div>
 					<p class="results-toolbar__eyebrow">Explorer</p>
 					<div class="results-count">
-						<strong>{results.length}{results.length === 250 ? '+' : ''}</strong>
+						<strong>{results.length}{totalMatches > results.length ? '+' : ''}</strong>
 						<span>{results.length === 1 ? 'case' : 'cases'}</span>
 					</div>
 				</div>

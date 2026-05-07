@@ -255,6 +255,12 @@ export const fieldGuideGroups = [
 		title: 'Risk Management',
 		items: [
 			{
+				label: 'Compliance Score',
+				source: 'risk_management_compliance_score',
+				description:
+					'The total count of Risk Management values that are not false or Not reported.'
+			},
+			{
 				label: 'Pre-deploy Test',
 				source: 'pre_deployment_testing_status',
 				description: 'Simplified label for the reported pre-deployment testing status.'
