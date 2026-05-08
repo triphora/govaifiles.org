@@ -998,11 +998,6 @@
 
 				<!-- TODO(temporarily disabled): Multiyear dataset not currently in use. Re-enable me when
 				the 2024 data is fixed.
-
-				{#if visibleAgencyFilterOptions.length > 0}
-				{#if visibleAgencyFilterOptions.length > 0}
-				{#if visibleAgencyFilterOptions.length > 0}
-				{#if visibleAgencyFilterOptions.length > 0}
 				<section class="filter-section">
 					<button
 						type="button"

@@ -6,8 +6,12 @@ package org.govaifiles.api.generated.db.tables.records;
 
 import java.time.LocalDate;
 
+import org.govaifiles.api.generated.db.enums.AppealProcessAvailable;
 import org.govaifiles.api.generated.db.enums.DevelopmentSourceType;
+import org.govaifiles.api.generated.db.enums.HighImpactField;
 import org.govaifiles.api.generated.db.enums.HighImpactStatus;
+import org.govaifiles.api.generated.db.enums.IndependentReviewConducted;
+import org.govaifiles.api.generated.db.enums.OngoingMonitoringEstablished;
 import org.govaifiles.api.generated.db.enums.PublicReportingStatus;
 import org.govaifiles.api.generated.db.enums.RightsSafetyImpactType;
 import org.govaifiles.api.generated.db.enums.StageOfDeployment;
@@ -249,459 +253,487 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     }
 
     /**
+     * Setter for <code>public.ai_use_cases.hi_impact_justification</code>.
+     */
+    public void setHiImpactJustification(String value) {
+        set(16, value);
+    }
+
+    /**
+     * Getter for <code>public.ai_use_cases.hi_impact_justification</code>.
+     */
+    public String getHiImpactJustification() {
+        return (String) get(16);
+    }
+
+    /**
      * Setter for <code>public.ai_use_cases.rights_safety_impact_type</code>.
      */
     public void setRightsSafetyImpactType(RightsSafetyImpactType value) {
-        set(16, value);
+        set(17, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.rights_safety_impact_type</code>.
      */
     public RightsSafetyImpactType getRightsSafetyImpactType() {
-        return (RightsSafetyImpactType) get(16);
+        return (RightsSafetyImpactType) get(17);
+    }
+
+    /**
+     * Setter for <code>public.ai_use_cases.agency_name</code>.
+     */
+    public void setAgencyName(String value) {
+        set(18, value);
+    }
+
+    /**
+     * Getter for <code>public.ai_use_cases.agency_name</code>.
+     */
+    public String getAgencyName() {
+        return (String) get(18);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.use_case_topic_area</code>.
      */
     public void setUseCaseTopicArea(String value) {
-        set(17, value);
+        set(19, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.use_case_topic_area</code>.
      */
     public String getUseCaseTopicArea() {
-        return (String) get(17);
+        return (String) get(19);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.ai_classification</code>.
      */
     public void setAiClassification(String value) {
-        set(18, value);
+        set(20, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.ai_classification</code>.
      */
     public String getAiClassification() {
-        return (String) get(18);
+        return (String) get(20);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.purpose_and_benefits</code>.
      */
     public void setPurposeAndBenefits(String value) {
-        set(19, value);
+        set(21, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.purpose_and_benefits</code>.
      */
     public String getPurposeAndBenefits() {
-        return (String) get(19);
+        return (String) get(21);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.expected_benefits</code>.
      */
     public void setExpectedBenefits(String value) {
-        set(20, value);
+        set(22, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.expected_benefits</code>.
      */
     public String getExpectedBenefits() {
-        return (String) get(20);
+        return (String) get(22);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.system_outputs</code>.
      */
     public void setSystemOutputs(String value) {
-        set(21, value);
+        set(23, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.system_outputs</code>.
      */
     public String getSystemOutputs() {
-        return (String) get(21);
+        return (String) get(23);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.operational_start_date</code>.
      */
     public void setOperationalStartDate(LocalDate value) {
-        set(22, value);
+        set(24, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.operational_start_date</code>.
      */
     public LocalDate getOperationalStartDate() {
-        return (LocalDate) get(22);
+        return (LocalDate) get(24);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.development_source_type</code>.
      */
     public void setDevelopmentSourceType(DevelopmentSourceType value) {
-        set(23, value);
+        set(25, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.development_source_type</code>.
      */
     public DevelopmentSourceType getDevelopmentSourceType() {
-        return (DevelopmentSourceType) get(23);
+        return (DevelopmentSourceType) get(25);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.vendor_names</code>.
      */
     public void setVendorNames(String value) {
-        set(24, value);
+        set(26, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.vendor_names</code>.
      */
     public String getVendorNames() {
-        return (String) get(24);
+        return (String) get(26);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.piids</code>.
      */
     public void setPiids(String value) {
-        set(25, value);
+        set(27, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.piids</code>.
      */
     public String getPiids() {
-        return (String) get(25);
+        return (String) get(27);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.has_ato</code>.
      */
     public void setHasAto(Boolean value) {
-        set(26, value);
+        set(28, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.has_ato</code>.
      */
     public Boolean getHasAto() {
-        return (Boolean) get(26);
+        return (Boolean) get(28);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.system_names</code>.
      */
     public void setSystemNames(String value) {
-        set(27, value);
+        set(29, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.system_names</code>.
      */
     public String getSystemNames() {
-        return (String) get(27);
+        return (String) get(29);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.training_data_description</code>.
      */
     public void setTrainingDataDescription(String value) {
-        set(28, value);
+        set(30, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.training_data_description</code>.
      */
     public String getTrainingDataDescription() {
-        return (String) get(28);
+        return (String) get(30);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.federal_data_catalog_link</code>.
      */
     public void setFederalDataCatalogLink(String value) {
-        set(29, value);
+        set(31, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.federal_data_catalog_link</code>.
      */
     public String getFederalDataCatalogLink() {
-        return (String) get(29);
+        return (String) get(31);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.uses_pii</code>.
      */
     public void setUsesPii(Boolean value) {
-        set(30, value);
+        set(32, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.uses_pii</code>.
      */
     public Boolean getUsesPii() {
-        return (Boolean) get(30);
+        return (Boolean) get(32);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.pia_link</code>.
      */
     public void setPiaLink(String value) {
-        set(31, value);
+        set(33, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.pia_link</code>.
      */
     public String getPiaLink() {
-        return (String) get(31);
+        return (String) get(33);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.demographic_variables_used</code>.
      */
     public void setDemographicVariablesUsed(String value) {
-        set(32, value);
+        set(34, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.demographic_variables_used</code>.
      */
     public String getDemographicVariablesUsed() {
-        return (String) get(32);
+        return (String) get(34);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.has_custom_code</code>.
      */
     public void setHasCustomCode(Boolean value) {
-        set(33, value);
+        set(35, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.has_custom_code</code>.
      */
     public Boolean getHasCustomCode() {
-        return (Boolean) get(33);
+        return (Boolean) get(35);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.open_source_code_link</code>.
      */
     public void setOpenSourceCodeLink(String value) {
-        set(34, value);
+        set(36, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.open_source_code_link</code>.
      */
     public String getOpenSourceCodeLink() {
-        return (String) get(34);
+        return (String) get(36);
     }
 
     /**
      * Setter for
      * <code>public.ai_use_cases.pre_deployment_testing_conducted</code>.
      */
-    public void setPreDeploymentTestingConducted(Boolean value) {
-        set(35, value);
+    public void setPreDeploymentTestingConducted(HighImpactField value) {
+        set(37, value);
     }
 
     /**
      * Getter for
      * <code>public.ai_use_cases.pre_deployment_testing_conducted</code>.
      */
-    public Boolean getPreDeploymentTestingConducted() {
-        return (Boolean) get(35);
+    public HighImpactField getPreDeploymentTestingConducted() {
+        return (HighImpactField) get(37);
     }
 
     /**
      * Setter for
      * <code>public.ai_use_cases.ai_impact_assessment_completed</code>.
      */
-    public void setAiImpactAssessmentCompleted(Boolean value) {
-        set(36, value);
+    public void setAiImpactAssessmentCompleted(HighImpactField value) {
+        set(38, value);
     }
 
     /**
      * Getter for
      * <code>public.ai_use_cases.ai_impact_assessment_completed</code>.
      */
-    public Boolean getAiImpactAssessmentCompleted() {
-        return (Boolean) get(36);
+    public HighImpactField getAiImpactAssessmentCompleted() {
+        return (HighImpactField) get(38);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.potential_impacts_identified</code>.
      */
     public void setPotentialImpactsIdentified(String value) {
-        set(37, value);
+        set(39, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.potential_impacts_identified</code>.
      */
     public String getPotentialImpactsIdentified() {
-        return (String) get(37);
+        return (String) get(39);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.independent_review_conducted</code>.
      */
-    public void setIndependentReviewConducted(Boolean value) {
-        set(38, value);
+    public void setIndependentReviewConducted(IndependentReviewConducted value) {
+        set(40, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.independent_review_conducted</code>.
      */
-    public Boolean getIndependentReviewConducted() {
-        return (Boolean) get(38);
+    public IndependentReviewConducted getIndependentReviewConducted() {
+        return (IndependentReviewConducted) get(40);
     }
 
     /**
      * Setter for
      * <code>public.ai_use_cases.ongoing_monitoring_established</code>.
      */
-    public void setOngoingMonitoringEstablished(Boolean value) {
-        set(39, value);
+    public void setOngoingMonitoringEstablished(OngoingMonitoringEstablished value) {
+        set(41, value);
     }
 
     /**
      * Getter for
      * <code>public.ai_use_cases.ongoing_monitoring_established</code>.
      */
-    public Boolean getOngoingMonitoringEstablished() {
-        return (Boolean) get(39);
+    public OngoingMonitoringEstablished getOngoingMonitoringEstablished() {
+        return (OngoingMonitoringEstablished) get(41);
     }
 
     /**
      * Setter for
      * <code>public.ai_use_cases.operator_training_established</code>.
      */
-    public void setOperatorTrainingEstablished(Boolean value) {
-        set(40, value);
+    public void setOperatorTrainingEstablished(HighImpactField value) {
+        set(42, value);
     }
 
     /**
      * Getter for
      * <code>public.ai_use_cases.operator_training_established</code>.
      */
-    public Boolean getOperatorTrainingEstablished() {
-        return (Boolean) get(40);
+    public HighImpactField getOperatorTrainingEstablished() {
+        return (HighImpactField) get(42);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.failsafe_in_place</code>.
      */
-    public void setFailsafeInPlace(Boolean value) {
-        set(41, value);
+    public void setFailsafeInPlace(HighImpactField value) {
+        set(43, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.failsafe_in_place</code>.
      */
-    public Boolean getFailsafeInPlace() {
-        return (Boolean) get(41);
+    public HighImpactField getFailsafeInPlace() {
+        return (HighImpactField) get(43);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.appeal_process_available</code>.
      */
-    public void setAppealProcessAvailable(Boolean value) {
-        set(42, value);
+    public void setAppealProcessAvailable(AppealProcessAvailable value) {
+        set(44, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.appeal_process_available</code>.
      */
-    public Boolean getAppealProcessAvailable() {
-        return (Boolean) get(42);
+    public AppealProcessAvailable getAppealProcessAvailable() {
+        return (AppealProcessAvailable) get(44);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.user_feedback_steps</code>.
      */
     public void setUserFeedbackSteps(String value) {
-        set(43, value);
+        set(45, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.user_feedback_steps</code>.
      */
     public String getUserFeedbackSteps() {
-        return (String) get(43);
+        return (String) get(45);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.validation_status</code>.
      */
     public void setValidationStatus(ValidationStatus value) {
-        set(44, value);
+        set(46, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.validation_status</code>.
      */
     public ValidationStatus getValidationStatus() {
-        return (ValidationStatus) get(44);
+        return (ValidationStatus) get(46);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.validation_notes</code>.
      */
     public void setValidationNotes(String value) {
-        set(45, value);
+        set(47, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.validation_notes</code>.
      */
     public String getValidationNotes() {
-        return (String) get(45);
+        return (String) get(47);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.needs_manual_review</code>.
      */
     public void setNeedsManualReview(Boolean value) {
-        set(46, value);
+        set(48, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.needs_manual_review</code>.
      */
     public Boolean getNeedsManualReview() {
-        return (Boolean) get(46);
+        return (Boolean) get(48);
     }
 
     /**
      * Setter for <code>public.ai_use_cases.agency_importance</code>.
      */
     public void setAgencyImportance(Integer value) {
-        set(47, value);
+        set(49, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.agency_importance</code>.
      */
     public Integer getAgencyImportance() {
-        return (Integer) get(47);
+        return (Integer) get(49);
     }
 
     /**
@@ -709,7 +741,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
      * <code>public.ai_use_cases.risk_management_compliance_score</code>.
      */
     public void setRiskManagementComplianceScore(Integer value) {
-        set(48, value);
+        set(50, value);
     }
 
     /**
@@ -717,7 +749,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
      * <code>public.ai_use_cases.risk_management_compliance_score</code>.
      */
     public Integer getRiskManagementComplianceScore() {
-        return (Integer) get(48);
+        return (Integer) get(50);
     }
 
     // -------------------------------------------------------------------------
@@ -734,7 +766,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     /**
      * Create a detached, initialised AiUseCasesRecord
      */
-    public AiUseCasesRecord(String useCaseId, String useCaseName, String agencyAbbreviation, String bureauComponent, String agency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, RightsSafetyImpactType rightsSafetyImpactType, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, Boolean preDeploymentTestingConducted, Boolean aiImpactAssessmentCompleted, String potentialImpactsIdentified, Boolean independentReviewConducted, Boolean ongoingMonitoringEstablished, Boolean operatorTrainingEstablished, Boolean failsafeInPlace, Boolean appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore) {
+    public AiUseCasesRecord(String useCaseId, String useCaseName, String agencyAbbreviation, String bureauComponent, String agency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, String hiImpactJustification, RightsSafetyImpactType rightsSafetyImpactType, String agencyName, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, HighImpactField preDeploymentTestingConducted, HighImpactField aiImpactAssessmentCompleted, String potentialImpactsIdentified, IndependentReviewConducted independentReviewConducted, OngoingMonitoringEstablished ongoingMonitoringEstablished, HighImpactField operatorTrainingEstablished, HighImpactField failsafeInPlace, AppealProcessAvailable appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore) {
         super(AiUseCases.AI_USE_CASES);
 
         setUseCaseId(useCaseId);
@@ -753,7 +785,9 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
         setPublicReportingStatus(publicReportingStatus);
         setStageOfDevelopment(stageOfDevelopment);
         setHighImpactStatus(highImpactStatus);
+        setHiImpactJustification(hiImpactJustification);
         setRightsSafetyImpactType(rightsSafetyImpactType);
+        setAgencyName(agencyName);
         setUseCaseTopicArea(useCaseTopicArea);
         setAiClassification(aiClassification);
         setPurposeAndBenefits(purposeAndBenefits);

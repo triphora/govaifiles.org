@@ -8,8 +8,12 @@ import java.time.LocalDate;
 import java.util.Collection;
 
 import org.govaifiles.api.generated.db.Public;
+import org.govaifiles.api.generated.db.enums.AppealProcessAvailable;
 import org.govaifiles.api.generated.db.enums.DevelopmentSourceType;
+import org.govaifiles.api.generated.db.enums.HighImpactField;
 import org.govaifiles.api.generated.db.enums.HighImpactStatus;
+import org.govaifiles.api.generated.db.enums.IndependentReviewConducted;
+import org.govaifiles.api.generated.db.enums.OngoingMonitoringEstablished;
 import org.govaifiles.api.generated.db.enums.PublicReportingStatus;
 import org.govaifiles.api.generated.db.enums.RightsSafetyImpactType;
 import org.govaifiles.api.generated.db.enums.StageOfDeployment;
@@ -134,9 +138,19 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
     public final TableField<AiUseCasesRecord, HighImpactStatus> HIGH_IMPACT_STATUS = createField(DSL.name("high_impact_status"), SQLDataType.VARCHAR.asEnumDataType(HighImpactStatus.class), this, "");
 
     /**
+     * The column <code>public.ai_use_cases.hi_impact_justification</code>.
+     */
+    public final TableField<AiUseCasesRecord, String> HI_IMPACT_JUSTIFICATION = createField(DSL.name("hi_impact_justification"), SQLDataType.CLOB, this, "");
+
+    /**
      * The column <code>public.ai_use_cases.rights_safety_impact_type</code>.
      */
     public final TableField<AiUseCasesRecord, RightsSafetyImpactType> RIGHTS_SAFETY_IMPACT_TYPE = createField(DSL.name("rights_safety_impact_type"), SQLDataType.VARCHAR.asEnumDataType(RightsSafetyImpactType.class), this, "");
+
+    /**
+     * The column <code>public.ai_use_cases.agency_name</code>.
+     */
+    public final TableField<AiUseCasesRecord, String> AGENCY_NAME = createField(DSL.name("agency_name"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.ai_use_cases.use_case_topic_area</code>.
@@ -232,13 +246,13 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
      * The column
      * <code>public.ai_use_cases.pre_deployment_testing_conducted</code>.
      */
-    public final TableField<AiUseCasesRecord, Boolean> PRE_DEPLOYMENT_TESTING_CONDUCTED = createField(DSL.name("pre_deployment_testing_conducted"), SQLDataType.BOOLEAN, this, "");
+    public final TableField<AiUseCasesRecord, HighImpactField> PRE_DEPLOYMENT_TESTING_CONDUCTED = createField(DSL.name("pre_deployment_testing_conducted"), SQLDataType.VARCHAR.asEnumDataType(HighImpactField.class), this, "");
 
     /**
      * The column
      * <code>public.ai_use_cases.ai_impact_assessment_completed</code>.
      */
-    public final TableField<AiUseCasesRecord, Boolean> AI_IMPACT_ASSESSMENT_COMPLETED = createField(DSL.name("ai_impact_assessment_completed"), SQLDataType.BOOLEAN, this, "");
+    public final TableField<AiUseCasesRecord, HighImpactField> AI_IMPACT_ASSESSMENT_COMPLETED = createField(DSL.name("ai_impact_assessment_completed"), SQLDataType.VARCHAR.asEnumDataType(HighImpactField.class), this, "");
 
     /**
      * The column <code>public.ai_use_cases.potential_impacts_identified</code>.
@@ -248,29 +262,29 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
     /**
      * The column <code>public.ai_use_cases.independent_review_conducted</code>.
      */
-    public final TableField<AiUseCasesRecord, Boolean> INDEPENDENT_REVIEW_CONDUCTED = createField(DSL.name("independent_review_conducted"), SQLDataType.BOOLEAN, this, "");
+    public final TableField<AiUseCasesRecord, IndependentReviewConducted> INDEPENDENT_REVIEW_CONDUCTED = createField(DSL.name("independent_review_conducted"), SQLDataType.VARCHAR.asEnumDataType(IndependentReviewConducted.class), this, "");
 
     /**
      * The column
      * <code>public.ai_use_cases.ongoing_monitoring_established</code>.
      */
-    public final TableField<AiUseCasesRecord, Boolean> ONGOING_MONITORING_ESTABLISHED = createField(DSL.name("ongoing_monitoring_established"), SQLDataType.BOOLEAN, this, "");
+    public final TableField<AiUseCasesRecord, OngoingMonitoringEstablished> ONGOING_MONITORING_ESTABLISHED = createField(DSL.name("ongoing_monitoring_established"), SQLDataType.VARCHAR.asEnumDataType(OngoingMonitoringEstablished.class), this, "");
 
     /**
      * The column
      * <code>public.ai_use_cases.operator_training_established</code>.
      */
-    public final TableField<AiUseCasesRecord, Boolean> OPERATOR_TRAINING_ESTABLISHED = createField(DSL.name("operator_training_established"), SQLDataType.BOOLEAN, this, "");
+    public final TableField<AiUseCasesRecord, HighImpactField> OPERATOR_TRAINING_ESTABLISHED = createField(DSL.name("operator_training_established"), SQLDataType.VARCHAR.asEnumDataType(HighImpactField.class), this, "");
 
     /**
      * The column <code>public.ai_use_cases.failsafe_in_place</code>.
      */
-    public final TableField<AiUseCasesRecord, Boolean> FAILSAFE_IN_PLACE = createField(DSL.name("failsafe_in_place"), SQLDataType.BOOLEAN, this, "");
+    public final TableField<AiUseCasesRecord, HighImpactField> FAILSAFE_IN_PLACE = createField(DSL.name("failsafe_in_place"), SQLDataType.VARCHAR.asEnumDataType(HighImpactField.class), this, "");
 
     /**
      * The column <code>public.ai_use_cases.appeal_process_available</code>.
      */
-    public final TableField<AiUseCasesRecord, Boolean> APPEAL_PROCESS_AVAILABLE = createField(DSL.name("appeal_process_available"), SQLDataType.BOOLEAN, this, "");
+    public final TableField<AiUseCasesRecord, AppealProcessAvailable> APPEAL_PROCESS_AVAILABLE = createField(DSL.name("appeal_process_available"), SQLDataType.VARCHAR.asEnumDataType(AppealProcessAvailable.class), this, "");
 
     /**
      * The column <code>public.ai_use_cases.user_feedback_steps</code>.

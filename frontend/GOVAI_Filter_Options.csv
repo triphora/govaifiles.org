@@ -1,39 +1,38 @@
 use_case_topic_area,ai_classification,high_impact_status,stage_of_development,canonical_agency
-AI used in Transportation Operations,Agentic AI,high_impact,Deployed,Board of Governors of the Federal Reserve System
-AIML Platform/Environment,Agentic AI: AI systems that perform tasks or make decisions autonomously with minimal human intervention.,not_high_impact,Retired,Commodity Futures Trading Commission
-"Administration of AI Governance, Processes, and Procedures",Agentic-AI,presumed_high_impact_not_high_impact,Pre-deployment,Consumer Financial Protection Bureau
-Administrative Functions,Classical/Predictive Machine Learning,,Pilot,Department of Agriculture
-Administrative functions,Classical/Predictive Machine Learning: Models trained on data to make predictions or classifications based on identified patterns or relationships.,,,Department of Commerce
-Classification,Computer Vision,,,Department of Education
-Cybersecurity,"Computer Vision: AI that processes and interprets visual data (e.g., images and videos).",,,Department of Energy
-DOT Sponsored External Research,Generative AI,,,Department of Health and Human Services
-Deep Learning,"Generative AI Automation, Content Creation",,,Department of Homeland Security
-Department-Level AI Capabilities and Capacity,"Generative AI Automation, Content Generation",,,Department of Housing and Urban Development
-Diplomacy & Trade,"Generative AI Automation, Data Analysis",,,Department of Justice
-Diplomacy & Trade; Mission-Enabling (internal agency support),"Generative AI Automation, Research, Data Analysis",,,Department of Labor
-Education & Workforce,Generative AI Coding,,,Department of State
-Emergency Management,Generative AI Content Creation,,,Department of Transportation
-Energy & the Environment,Generative AI Content Generation,,,Department of Veterans Affairs
-Government Benefits Processing,"Generative AI Research, Automation, Content Generation",,,Department of the Interior
-Government Services (includes Benefits and Service Delivery),"Generative AI Research, Content Generation",,,Department of the Treasury
-Health & Medical,"Generative AI Research, Data Analysis",,,Environmental Protection Agency
-Human Resources,"Generative AI Research, Data Analysis, Content Creation",,,Federal Deposit Insurance Corporation
-Information Technology,"Generative AI: AI that generates new or synthetic content (e.g., images, videos, audio, text, code).",,,Federal Housing Finance Agency
-Internal DOT Research Project,Generative AI; Natural Language Processing (NLP),,,Federal Trade Commission
-International Affairs,Natural Language Processing,,,General Services Administration
-Law & Justice,Natural Language Processing (NLP),,,National Aeronautics and Space Administration
-Law Enforcement,"Natural Language Processing: AI that processes, interprets, and shares information in human language.",,,National Credit Union Administration
-Mission-Enabling,Other,,,National Science Foundation
-Mission-Enabling (internal agency support),Reinforcement Learning,,,National Transportation Safety Board
-NLP,Reinforcement Learning: AI trained through trial and error using rewards and penalties to optimize decision-making policies.,,,Nuclear Regulatory Commission
-Natural Language Processing,,,,Office of Personnel Management
-Other,,,,Pension Benefit Guaranty Corporation
-Other - Applied Mathematical Sciences,,,,Presidio Trust
-Other ?€? Economic & Financial,,,,Securities and Exchange Commission
-Other; Mission-Enabling (internal agency support),,,,Social Security Administration
-Procurement & Financial Management,,,,Tennessee Valley Authority
-Science,,,,U.S. Agency for Global Media
-Science & Space,,,,U.S. Agency for International Development
-Service Delivery,,,,U.S. Commission on Civil Rights
-Statistical Methods,,,,U.S. Election Assistance Commission
-Transportation,,,,
+Administrative Functions,Agentic AI,high_impact,Deployed,Board of Governors of the Federal Reserve System
+Cybersecurity,Classical/Predictive Machine Learning,not_high_impact,Retired,Commodity Futures Trading Commission
+Emergency Management,Computer Vision,presumed_high_impact_not_high_impact,Pre-deployment,Consumer Financial Protection Bureau
+Energy & the Environment,Generative AI,,Pilot,Department of Agriculture
+Government Benefits Processing,Natural Language Processing,,,Department of Commerce
+Health & Medical,Other,,,Department of Education
+Human Resources,Reinforcement Learning,,,Department of Energy
+Information Technology,,,,Department of Health and Human Services
+International Affairs,,,,Department of Homeland Security
+Law Enforcement,,,,Department of Housing and Urban Development
+Other,,,,Department of Justice
+Other - Applied Mathematical Sciences,,,,Department of Labor
+Other â€“ Economic & Financial,,,,Department of State
+Procurement & Financial Management,,,,Department of Transportation
+Science,,,,Department of Veterans Affairs
+Service Delivery,,,,Department of the Interior
+Transportation,,,,Department of the Treasury
+,,,,Environmental Protection Agency
+,,,,Federal Deposit Insurance Corporation
+,,,,Federal Housing Finance Agency
+,,,,Federal Trade Commission
+,,,,General Services Administration
+,,,,National Aeronautics and Space Administration
+,,,,National Credit Union Administration
+,,,,National Science Foundation
+,,,,National Transportation Safety Board
+,,,,Nuclear Regulatory Commission
+,,,,Office of Personnel Management
+,,,,Pension Benefit Guaranty Corporation
+,,,,Presidio Trust
+,,,,Securities and Exchange Commission
+,,,,Social Security Administration
+,,,,Tennessee Valley Authority
+,,,,U.S. Agency for Global Media
+,,,,U.S. Agency for International Development
+,,,,U.S. Commission on Civil Rights
+,,,,U.S. Election Assistance Commission
