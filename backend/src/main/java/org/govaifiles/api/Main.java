@@ -28,6 +28,7 @@ import static org.govaifiles.api.generated.db.Tables.*;
 
 public class Main {
 	private static final String BLANK_IMPACT_VALUE = "__blank__";
+	private static final String DATA_YEAR_FILTER_FIELD = "data_year_filter";
 
 	private static String impactFilterValue(JsonObject document) {
 		String value = getString(document, "high_impact_status");
@@ -67,6 +68,23 @@ public class Main {
 			return Integer.parseInt(value.trim());
 		} catch (NumberFormatException ignored) {
 			return -1;
+		}
+	}
+
+	private static Integer parseYearValue(String value) {
+		if (value == null) {
+			return null;
+		}
+
+		String normalizedValue = value.trim();
+		if (!normalizedValue.matches("\\d{4}")) {
+			return null;
+		}
+
+		try {
+			return Integer.parseInt(normalizedValue);
+		} catch (NumberFormatException ignored) {
+			return null;
 		}
 	}
 
@@ -113,6 +131,7 @@ public class Main {
 		fields.add(new Field().name("use_case_topic_area").type(FieldTypes.STRING).facet(true));
 		fields.add(new Field().name("ai_classification").type(FieldTypes.STRING).facet(true));
 		fields.add(new Field().name("compliance_status").type(FieldTypes.STRING).facet(true));
+		fields.add(new Field().name(DATA_YEAR_FILTER_FIELD).type(FieldTypes.INT32));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
 		collectionSchema.name("AIUseCases").fields(fields);
@@ -147,6 +166,10 @@ public class Main {
 				JsonObject document = element.getAsJsonObject();
 				document.addProperty("impact_filter", impactFilterValue(document));
 				document.addProperty("compliance_status", complianceStatus(document));
+				Integer dataYearFilter = parseYearValue(getString(document, "data_year"));
+				if (dataYearFilter != null) {
+					document.addProperty(DATA_YEAR_FILTER_FIELD, dataYearFilter);
+				}
 				sb.append(document).append("\n");
 			}
 

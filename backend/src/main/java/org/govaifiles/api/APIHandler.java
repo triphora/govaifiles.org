@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 public class APIHandler implements CrudHandler {
 	private static final String BLANK_IMPACT_VALUE = "__blank__";
+	private static final String DATA_YEAR_FILTER_FIELD = "data_year_filter";
 	private static final Gson GSON = new Gson();
 	private static final Map<String, String> FILTER_FIELDS = Map.of(
 		"agency", "agency",
@@ -347,6 +348,23 @@ public class APIHandler implements CrudHandler {
 		}
 	}
 
+	private static Integer parseYearValue(String value) {
+		if (value == null) {
+			return null;
+		}
+
+		String normalizedValue = value.trim();
+		if (!normalizedValue.matches("\\d{4}")) {
+			return null;
+		}
+
+		try {
+			return Integer.parseInt(normalizedValue);
+		} catch (NumberFormatException ignored) {
+			return null;
+		}
+	}
+
 	private static void sanitizeDocument(JsonObject document) {
 		if (!document.has("use_case_id") || document.get("use_case_id").isJsonNull()) {
 			return;
@@ -415,6 +433,17 @@ public class APIHandler implements CrudHandler {
 
 			List<String> deduplicatedValues = values.stream().distinct().toList();
 			filters.add(fieldName + ":=[" + String.join(",", deduplicatedValues.stream().map(APIHandler::quoteFilterValue).toList()) + "]");
+		}
+
+		Integer yearFrom = parseYearValue(queryParams.getOrDefault("yearFrom", List.of()).stream().findFirst().orElse(null));
+		Integer yearTo = parseYearValue(queryParams.getOrDefault("yearTo", List.of()).stream().findFirst().orElse(null));
+
+		if (yearFrom != null) {
+			filters.add(DATA_YEAR_FILTER_FIELD + ":>=" + yearFrom);
+		}
+
+		if (yearTo != null) {
+			filters.add(DATA_YEAR_FILTER_FIELD + ":<=" + yearTo);
 		}
 
 		return String.join(" && ", filters);

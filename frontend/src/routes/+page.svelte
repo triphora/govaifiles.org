@@ -9,9 +9,7 @@
 		aiClassificationOptions as configuredAiClassificationOptions,
 		complianceOptions,
 		dhsComponents,
-		getComplianceStatus,
 		impactOptions,
-		parseComplianceScore,
 		stageOptions,
 		topicOptions as configuredTopicOptions,
 		useCaseAnchorId
@@ -29,10 +27,8 @@
 	type SortKey = 'useCase' | 'agency' | 'stage' | 'impact' | 'topic' | 'aiClassification';
 	type EmptyStateMap = Record<string, string>;
 	type MultiFilters = Record<FilterKey, string[]>;
-	type FacetCounts = Record<FilterKey, Record<string, number>>;
 	type SearchResponse = {
 		hits: UseCaseRecord[];
-		facets?: Partial<Record<FilterKey, Record<string, number>>>;
 		found?: number;
 	};
 	type SectionKey = FilterKey | 'year';
@@ -79,15 +75,6 @@
 	const SEARCH_DEBOUNCE_MS = 250;
 	const BACKEND_URL = env.PUBLIC_BACKEND_URL ?? '';
 	const BLANK_URL_VALUE = '__blank__';
-	const facetKeys: FilterKey[] = [
-		'agency',
-		'bureau',
-		'stage',
-		'impact',
-		'compliance',
-		'topic',
-		'aiClassification'
-	];
 	const agencyFacetAliases: Record<string, string> = {
 		'Board of Governors of the Federal Reserve System': 'Federal Reserve Board of Governors',
 		'U.S. Agency for Global Media': 'United States Agency for Global Media',
@@ -109,7 +96,6 @@
 	let shareTitle = '';
 	let shareStatus = '';
 	let serverResults: UseCaseRecord[] = [];
-	let serverFacetCounts: FacetCounts = emptyFacetCounts();
 	let totalMatches = 0;
 	let filters: MultiFilters = { ...defaultFilters };
 	let expandedSections: ExpandedSections = { ...defaultExpandedSections };
@@ -151,19 +137,14 @@
 	$: bureauFilterOptions = filters.agency.flatMap(
 		(agency) => bureauOptionsByAgency[agency as keyof typeof bureauOptionsByAgency] ?? []
 	);
-	$: visibleAgencyFilterOptions = getVisibleFilterOptions('agency', agencyFilterOptions, serverFacetCounts);
-	$: visibleBureauFilterOptions = getVisibleFilterOptions('bureau', bureauFilterOptions, serverFacetCounts);
-	$: visibleStageFilterOptions = getVisibleFilterOptions('stage', stageFilterOptions, serverFacetCounts);
-	$: visibleImpactFilterOptions = getVisibleFilterOptions('impact', impactSelectableOptions, serverFacetCounts);
-	$: visibleComplianceOptions = getVisibleFilterOptions('compliance', complianceOptions, serverFacetCounts);
-	$: visibleTopicOptions = getVisibleFilterOptions('topic', topicOptions, serverFacetCounts);
-	$: visibleAiClassificationOptions = getVisibleFilterOptions(
-		'aiClassification',
-		aiClassificationOptions,
-		serverFacetCounts
-	);
-	$: filteredResults = serverResults.filter(matchesClientSideFilters);
-	$: results = [...filteredResults].sort((left, right) =>
+	$: visibleAgencyFilterOptions = agencyFilterOptions;
+	$: visibleBureauFilterOptions = bureauFilterOptions;
+	$: visibleStageFilterOptions = stageFilterOptions;
+	$: visibleImpactFilterOptions = impactSelectableOptions;
+	$: visibleComplianceOptions = complianceOptions;
+	$: visibleTopicOptions = topicOptions;
+	$: visibleAiClassificationOptions = aiClassificationOptions;
+	$: results = [...serverResults].sort((left, right) =>
 		compareRecords(left, right, sortState)
 	);
 	$: activeFilterCount =
@@ -307,10 +288,6 @@
 		return (value || '').trim();
 	}
 
-	function normalizeComparisonValue(value: string | null | undefined) {
-		return normalizeFilterValue(value).toLowerCase();
-	}
-
 	function agencyLabel(result: UseCaseRecord) {
 		return [normalizeFilterValue(result.bureau_component), normalizeFilterValue(result.agency)]
 			.filter(Boolean)
@@ -319,14 +296,6 @@
 
 	function getImpactValue(result: UseCaseRecord) {
 		return normalizeFilterValue(result.high_impact_status ?? result.is_high_impact);
-	}
-
-	function getComplianceValue(result: UseCaseRecord) {
-		return getComplianceStatus(
-			result.stage_of_development,
-			result.high_impact_status,
-			parseComplianceScore(result.risk_management_compliance_score)
-		);
 	}
 
 	function parseYearInput(value: string) {
@@ -374,18 +343,6 @@
 		return uniqueValues(inferredAgencies);
 	}
 
-	function emptyFacetCounts(): FacetCounts {
-		return {
-			agency: {},
-			bureau: {},
-			stage: {},
-			impact: {},
-			compliance: {},
-			topic: {},
-			aiClassification: {}
-		};
-	}
-
 	function parseUrlState(url: URL): {
 		query: string;
 		filters: MultiFilters;
@@ -427,8 +384,8 @@
 		return {
 			query: normalizeFilterValue(url.searchParams.get('q')),
 			filters: nextFilters,
-			yearFrom: '',
-			yearTo: '',
+			yearFrom: normalizeFilterValue(url.searchParams.get('yearFrom')),
+			yearTo: normalizeFilterValue(url.searchParams.get('yearTo')),
 			sortState: {
 				key: sortColumns.some((column) => column.key === nextSortKey)
 					? (nextSortKey as SortKey)
@@ -472,6 +429,14 @@
 
 		for (const aiClassification of filters.aiClassification) {
 			params.append('aiClassification', aiClassification);
+		}
+
+		if (yearFrom.trim()) {
+			params.set('yearFrom', yearFrom.trim());
+		}
+
+		if (yearTo.trim()) {
+			params.set('yearTo', yearTo.trim());
 		}
 
 		if (sortState.key !== 'useCase') {
@@ -531,71 +496,6 @@
 		target.scrollIntoView({ block: 'start' });
 	}
 
-	function matchesAnySelection(selections: string[], value: string) {
-		if (selections.length === 0) {
-			return true;
-		}
-
-		const normalizedValue = normalizeComparisonValue(value);
-		return selections.some((selection) => normalizeComparisonValue(selection) === normalizedValue);
-	}
-
-	function matchesFilterSelection(key: FilterKey, result: UseCaseRecord) {
-		return matchesAnySelection(filters[key], getFacetValue(result, key));
-	}
-
-	function matchesClientSideFilters(result: UseCaseRecord) {
-		return matchesYearRange(result);
-	}
-
-	function matchesYearRange(result: UseCaseRecord) {
-		const from = parseYearInput(yearFrom);
-		const to = parseYearInput(yearTo);
-		if (from === null && to === null) {
-			return true;
-		}
-
-		const year = parseYearInput(String(result.data_year ?? ''));
-		if (year === null) {
-			return false;
-		}
-
-		const lowerBound = from === null ? to : to === null ? from : Math.min(from, to);
-		const upperBound = from === null ? to : to === null ? from : Math.max(from, to);
-
-		if (lowerBound !== null && year < lowerBound) {
-			return false;
-		}
-
-		if (upperBound !== null && year > upperBound) {
-			return false;
-		}
-
-		return true;
-	}
-
-	function getFacetValue(result: UseCaseRecord, key: FilterKey) {
-		switch (key) {
-			case 'agency':
-				return normalizeFacetValue(
-					key,
-					normalizeFilterValue(result.canonical_agency ?? result.agency)
-				);
-			case 'bureau':
-				return normalizeFacetValue(key, normalizeFilterValue(result.bureau_component));
-			case 'stage':
-				return normalizeFacetValue(key, normalizeFilterValue(result.stage_of_development));
-			case 'impact':
-				return normalizeFacetValue(key, getImpactValue(result));
-			case 'compliance':
-				return normalizeFacetValue(key, getComplianceValue(result));
-			case 'topic':
-				return normalizeFacetValue(key, normalizeFilterValue(result.use_case_topic_area));
-			case 'aiClassification':
-				return normalizeFacetValue(key, normalizeFilterValue(result.ai_classification));
-		}
-	}
-
 	function normalizeFacetValue(key: FilterKey, value: string) {
 		const normalizedValue = normalizeFilterValue(value);
 		if (!normalizedValue) {
@@ -646,27 +546,6 @@
 		}
 	}
 
-	function normalizeBackendFacetCounts(facets?: Partial<Record<FilterKey, Record<string, number>>>) {
-		const counts = emptyFacetCounts();
-
-		for (const key of facetKeys) {
-			const entries = facets?.[key];
-			if (!entries) {
-				continue;
-			}
-
-			for (const [value, count] of Object.entries(entries)) {
-				const normalizedValue = normalizeFacetValue(
-					key,
-					key === 'impact' && value === BLANK_URL_VALUE ? '' : value
-				);
-				counts[key][normalizedValue] = (counts[key][normalizedValue] ?? 0) + count;
-			}
-		}
-
-		return counts;
-	}
-
 	function expandFilterRequestValues(key: FilterKey, value: string) {
 		if (key === 'impact') {
 			return [value === '' ? BLANK_URL_VALUE : value];
@@ -681,22 +560,6 @@
 
 	function filterOptionsByRetrieval(key: FilterKey, options: string[]) {
 		return options;
-	}
-
-	function getFacetCount(key: FilterKey, value: string) {
-		return serverFacetCounts[key][normalizeFacetValue(key, value)] ?? 0;
-	}
-
-	function getVisibleFilterOptions(
-		key: FilterKey,
-		options: string[],
-		counts: FacetCounts
-	) {
-		return options.filter((option) => filters[key].includes(option) || getFacetCount(key, option) > 0);
-	}
-
-	function visibleFilterCountTotal(key: FilterKey, options: string[]) {
-		return options.reduce((total, option) => total + getFacetCount(key, option), 0);
 	}
 
 	function isAllSelected(key: FilterKey, options: string[]) {
@@ -847,6 +710,16 @@
 			}
 		}
 
+		const parsedYearFrom = parseYearInput(yearFrom);
+		if (parsedYearFrom !== null) {
+			searchParams.set('yearFrom', String(parsedYearFrom));
+		}
+
+		const parsedYearTo = parseYearInput(yearTo);
+		if (parsedYearTo !== null) {
+			searchParams.set('yearTo', String(parsedYearTo));
+		}
+
 		const queryString = `${BACKEND_URL}/ai-use-cases/${encodeURIComponent(query.trim() || '*')}${searchParams.size > 0 ? `?${searchParams.toString()}` : ''}`;
 
 		try {
@@ -861,7 +734,6 @@
 			}
 
 			serverResults = payload.hits ?? [];
-			serverFacetCounts = normalizeBackendFacetCounts(payload.facets);
 			totalMatches = payload.found ?? payload.hits?.length ?? 0;
 
 			void scrollToHashTarget();
@@ -872,7 +744,6 @@
 
 			error = searchError instanceof Error ? searchError.message : 'Unknown error';
 			serverResults = [];
-			serverFacetCounts = emptyFacetCounts();
 			totalMatches = 0;
 		} finally {
 			if (requestId === latestSearchRequest) {
@@ -996,8 +867,7 @@
 					<button type="button" class="filter-reset" on:click={clearAllFilters}>Reset all</button>
 				</div>
 
-				<!-- TODO(temporarily disabled): Multiyear dataset not currently in use. Re-enable me when
-				the 2024 data is fixed.
+				<!-- THE FILTER CONDITION FOR YEAR
 				<section class="filter-section">
 					<button
 						type="button"
@@ -1039,7 +909,8 @@
 							</div>
 						</div>
 					{/if}
-				</section>-->
+				</section>
+				-->
 
 				{#if visibleAgencyFilterOptions.length > 0}
 				<section class="filter-section">
@@ -1069,7 +940,6 @@
 										>{isAllSelected('agency', visibleAgencyFilterOptions) ? '✓' : ''}</span
 									>
 								<span class="checkbox-label">Select All</span>
-								<span class="checkbox-count">{visibleFilterCountTotal('agency', visibleAgencyFilterOptions)}</span>
 							</button>
 								{#each visibleAgencyFilterOptions as agency (agency)}
 									<button
@@ -1080,7 +950,6 @@
 									>
 										<span class="checkbox-mark">{filters.agency.includes(agency) ? '✓' : ''}</span>
 										<span class="checkbox-label">{agency}</span>
-									<span class="checkbox-count">{getFacetCount('agency', agency)}</span>
 								</button>
 								{/each}
 							</div>
@@ -1121,11 +990,10 @@
 										on:click={() => toggleAllFilterValues('bureau', visibleBureauFilterOptions)}
 									>
 										<span class="checkbox-mark"
-											>{isAllSelected('bureau', visibleBureauFilterOptions) ? '✓' : ''}</span
-										>
-									<span class="checkbox-label">Select All</span>
-									<span class="checkbox-count">{visibleFilterCountTotal('bureau', visibleBureauFilterOptions)}</span>
-								</button>
+										>{isAllSelected('bureau', visibleBureauFilterOptions) ? '✓' : ''}</span
+									>
+								<span class="checkbox-label">Select All</span>
+							</button>
 									{#each visibleBureauFilterOptions as bureau (bureau)}
 										<button
 											type="button"
@@ -1133,12 +1001,11 @@
 											class="checkbox-item"
 											on:click={() => toggleFilterValue('bureau', bureau)}
 										>
-											<span class="checkbox-mark">{filters.bureau.includes(bureau) ? '✓' : ''}</span
-											>
-											<span class="checkbox-label">{bureau}</span>
-										<span class="checkbox-count">{getFacetCount('bureau', bureau)}</span>
-									</button>
-									{/each}
+										<span class="checkbox-mark">{filters.bureau.includes(bureau) ? '✓' : ''}</span
+										>
+										<span class="checkbox-label">{bureau}</span>
+								</button>
+								{/each}
 								</div>
 								{#if filters.bureau.length > 0}
 									<button
@@ -1180,7 +1047,6 @@
 									>{isAllSelected('stage', visibleStageFilterOptions) ? '✓' : ''}</span
 								>
 								<span class="checkbox-label">All</span>
-								<span class="checkbox-count">{visibleFilterCountTotal('stage', visibleStageFilterOptions)}</span>
 							</button>
 							{#each visibleStageFilterOptions as stage (stage)}
 									<button
@@ -1195,7 +1061,6 @@
 												class={`checkbox-dot checkbox-dot--${stage.toLowerCase().replace(/[^a-z]+/g, '-')}`}
 											></span>{stage}</span
 										>
-										<span class="checkbox-count">{getFacetCount('stage', stage)}</span>
 									</button>
 								{/each}
 							</div>
@@ -1236,10 +1101,9 @@
 									on:click={() => toggleAllFilterValues('impact', visibleImpactFilterOptions)}
 								>
 									<span class="checkbox-mark"
-										>{isAllSelected('impact', visibleImpactFilterOptions) ? '✓' : ''}</span
+									>{isAllSelected('impact', visibleImpactFilterOptions) ? '✓' : ''}</span
 									>
 									<span class="checkbox-label">All</span>
-									<span class="checkbox-count">{visibleFilterCountTotal('impact', visibleImpactFilterOptions)}</span>
 								</button>
 								{#each impactOptions.filter((option) => visibleImpactFilterOptions.includes(option.value)) as option (option.value)}
 									<button
@@ -1256,7 +1120,6 @@
 												class={`checkbox-dot checkbox-dot--${option.value === 'High-impact' ? 'impact-high' : 'impact-low'}`}
 											></span>{option.label}</span
 										>
-										<span class="checkbox-count">{getFacetCount('impact', option.value)}</span>
 									</button>
 								{/each}
 								{#if visibleImpactFilterOptions.includes('')}
@@ -1270,7 +1133,6 @@
 									<span class="checkbox-label checkbox-label--with-dot"
 										><span class="checkbox-dot checkbox-dot--blank"></span>(Blanks)</span
 									>
-									<span class="checkbox-count">{getFacetCount('impact', '')}</span>
 								</button>
 								{/if}
 							</div>
@@ -1311,10 +1173,9 @@
 									on:click={() => toggleAllFilterValues('compliance', visibleComplianceOptions)}
 								>
 									<span class="checkbox-mark"
-										>{isAllSelected('compliance', visibleComplianceOptions) ? '✓' : ''}</span
+									>{isAllSelected('compliance', visibleComplianceOptions) ? '✓' : ''}</span
 									>
 									<span class="checkbox-label">All</span>
-									<span class="checkbox-count">{visibleFilterCountTotal('compliance', visibleComplianceOptions)}</span>
 								</button>
 								{#each visibleComplianceOptions as option (option)}
 									<button
@@ -1324,10 +1185,9 @@
 										on:click={() => toggleFilterValue('compliance', option)}
 									>
 										<span class="checkbox-mark"
-											>{filters.compliance.includes(option) ? '✓' : ''}</span
+										>{filters.compliance.includes(option) ? '✓' : ''}</span
 										>
 										<span class="checkbox-label">{option}</span>
-										<span class="checkbox-count">{getFacetCount('compliance', option)}</span>
 									</button>
 								{/each}
 							</div>
@@ -1371,7 +1231,6 @@
 										>{isAllSelected('topic', visibleTopicOptions) ? '✓' : ''}</span
 									>
 									<span class="checkbox-label">Select All</span>
-									<span class="checkbox-count">{visibleFilterCountTotal('topic', visibleTopicOptions)}</span>
 								</button>
 								{#each visibleTopicOptions as topic (topic)}
 									<button
@@ -1382,7 +1241,6 @@
 									>
 										<span class="checkbox-mark">{filters.topic.includes(topic) ? '✓' : ''}</span>
 										<span class="checkbox-label">{topic}</span>
-										<span class="checkbox-count">{getFacetCount('topic', topic)}</span>
 									</button>
 								{/each}
 							</div>
@@ -1427,7 +1285,6 @@
 										>{isAllSelected('aiClassification', visibleAiClassificationOptions) ? '✓' : ''}</span
 									>
 									<span class="checkbox-label">Select All</span>
-									<span class="checkbox-count">{visibleFilterCountTotal('aiClassification', visibleAiClassificationOptions)}</span>
 								</button>
 								{#each visibleAiClassificationOptions as option (option)}
 									<button
@@ -1437,10 +1294,9 @@
 										on:click={() => toggleFilterValue('aiClassification', option)}
 									>
 										<span class="checkbox-mark"
-											>{filters.aiClassification.includes(option) ? '✓' : ''}</span
+										>{filters.aiClassification.includes(option) ? '✓' : ''}</span
 										>
 										<span class="checkbox-label">{option}</span>
-										<span class="checkbox-count">{getFacetCount('aiClassification', option)}</span>
 									</button>
 								{/each}
 							</div>
