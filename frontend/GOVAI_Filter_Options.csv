@@ -4,18 +4,19 @@ Cybersecurity,Classical/Predictive Machine Learning,not_high_impact,Retired,Comm
 Emergency Management,Computer Vision,presumed_high_impact_not_high_impact,Pre-deployment,Consumer Financial Protection Bureau
 Energy & the Environment,Generative AI,,Pilot,Department of Agriculture
 Government Benefits Processing,Natural Language Processing,,,Department of Commerce
-Health & Medical,Other,,,Department of Education
-Human Resources,Reinforcement Learning,,,Department of Energy
-Information Technology,,,,Department of Health and Human Services
-International Affairs,,,,Department of Homeland Security
-Law Enforcement,,,,Department of Housing and Urban Development
-Other,,,,Department of Justice
-Other - Applied Mathematical Sciences,,,,Department of Labor
-Other – Economic & Financial,,,,Department of State
-Procurement & Financial Management,,,,Department of Transportation
-Science,,,,Department of Veterans Affairs
-Service Delivery,,,,Department of the Interior
-Transportation,,,,Department of the Treasury
+Health & Medical,Other,,,Department of Defense
+Human Resources,Reinforcement Learning,,,Department of Education
+Information Technology,,,,Department of Energy
+International Affairs,,,,Department of Health and Human Services
+Law Enforcement,,,,Department of Homeland Security
+Other,,,,Department of Housing and Urban Development
+Other - Applied Mathematical Sciences,,,,Department of Justice
+Other – Economic & Financial,,,,Department of Labor
+Procurement & Financial Management,,,,Department of State
+Science,,,,Department of Transportation
+Service Delivery,,,,Department of Veterans Affairs
+Transportation,,,,Department of the Interior
+,,,,Department of the Treasury
 ,,,,Environmental Protection Agency
 ,,,,Federal Deposit Insurance Corporation
 ,,,,Federal Housing Finance Agency

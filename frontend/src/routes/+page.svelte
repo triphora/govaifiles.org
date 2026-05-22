@@ -109,22 +109,24 @@
 	const emptyStateMessages: EmptyStateMap = {
 		'Department of Defense':
 			'The Department of Defense is exempt from submitting an AI Use Case Inventory for intelligence reasons.',
+		'Department of Education':
+			'We are currently working on adding the Department of Education entries to our dataset.',
+		'Department of Housing and Urban Development':
+			'We are currently working on adding the Department of Housing and Urban Development entries to our dataset.',
 		'Consumer Financial Protection Bureau':
 			'The Consumer Financial Protection Bureau has no reported AI use cases in 2025.',
 		'National Transportation Safety Board':
-			'The National Transportation Safety Board has no reported AI use cases in 2025.',
+			'We are currently working on adding the National Transportation Safety Board entries to our dataset.',
 		'Social Security Administration':
-			'The Social Security Administration has not yet published its AI Use Case Inventory (as of 2/13/26).',
+			'We are currently working on adding the Social Security Administration entries to our dataset.',
 		'United States Agency for International Development':
-			'The United States Agency for International Development has not yet published its AI Use Case Inventory (as of 2/13/26). The agency is defunct as of February 2025.',
-		'Postal Regulatory Commission':
-			'The Postal Regulatory Commission has not yet published its AI Use Case Inventory (as of 2/13/26).',
+			'The United States Agency for International Development has not published a 2025 AI Use Case Inventory. The agency is defunct as of February 2025.',
 		'Presidio Trust':
-			'The Presidio Trust has not yet published its AI Use Case Inventory (as of 2/13/26).',
+			'The Presidio Trust has not published a 2025 AI Use Case Inventory.',
 		'United States Agency for Global Media':
-			'The United States Agency for Global Media has not yet published its AI Use Case Inventory (as of 2/13/26).',
+			'The United States Agency for Global Media has not published a 2025 AI Use Case Inventory.',
 		'United States Commission on Civil Rights':
-			'The United States Commission on Civil Rights has not yet published its AI Use Case Inventory (as of 2/13/26).'
+			'The United States Commission on Civil Rights has not published a 2025 AI Use Case Inventory.'
 	};
 
 	$: topicOptions = filterOptionsByRetrieval('topic', configuredTopicOptions);
@@ -867,7 +869,6 @@
 					<button type="button" class="filter-reset" on:click={clearAllFilters}>Reset all</button>
 				</div>
 
-				<!-- THE FILTER CONDITION FOR YEAR
 				<section class="filter-section">
 					<button
 						type="button"
@@ -910,7 +911,6 @@
 						</div>
 					{/if}
 				</section>
-				-->
 
 				{#if visibleAgencyFilterOptions.length > 0}
 				<section class="filter-section">

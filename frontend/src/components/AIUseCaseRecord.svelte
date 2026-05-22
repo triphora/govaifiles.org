@@ -193,7 +193,7 @@
 		complianceScore
 	);
 	$: complianceStatusClass = getComplianceStatusClass(complianceStatus);
-	$: showComplianceGauge = complianceScore >= 0 && complianceStatus !== 'Not required';
+	$: showComplianceGauge = result.data_year >= 2025 && complianceScore >= 0 && complianceStatus !== 'Not required';
 	$: complianceGaugeDegrees = (Math.max(0, Math.min(complianceScore, 9)) / 9) * 360;
 
 	function impactLabel(value: string | undefined | null) {

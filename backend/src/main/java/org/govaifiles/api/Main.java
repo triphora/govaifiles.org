@@ -128,8 +128,8 @@ public class Main {
 		fields.add(new Field().name("bureau_component").type(FieldTypes.STRING).facet(true));
 		fields.add(new Field().name("stage_of_development").type(FieldTypes.STRING).facet(true));
 		fields.add(new Field().name("impact_filter").type(FieldTypes.STRING).facet(true));
-		fields.add(new Field().name("use_case_topic_area").type(FieldTypes.STRING).facet(true));
-		fields.add(new Field().name("ai_classification").type(FieldTypes.STRING).facet(true));
+		fields.add(new Field().name("use_case_topic_area").type(FieldTypes.STRING).facet(true).optional(true));
+		fields.add(new Field().name("ai_classification").type(FieldTypes.STRING).facet(true).optional(true));
 		fields.add(new Field().name("compliance_status").type(FieldTypes.STRING).facet(true));
 		fields.add(new Field().name(DATA_YEAR_FILTER_FIELD).type(FieldTypes.INT32));
 
