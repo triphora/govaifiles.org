@@ -108,7 +108,7 @@ public class Main {
 		});
 		app.before(ctx -> {
 			ctx.header("Access-Control-Allow-Origin", "*");
-		}).start(7070);
+		}).start(Integer.parseInt(env.get("BACKEND_PORT", "7070")));
 	}
 
 	static void searchSetup(String apiKey, String url, String user, String password) throws Exception {
