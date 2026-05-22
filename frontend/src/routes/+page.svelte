@@ -826,7 +826,7 @@
 <section class="explorer-page">
 	<div class="explorer-hero">
 		<div>
-			<p class="explorer-kicker">2025 Federal Inventory</p>
+			<p class="explorer-kicker">2024 and 2025 Federal Inventory</p>
 			<h1>AI Use Case Inventory</h1>
 			<p class="explorer-intro">
 				Browse the consolidated federal AI use case inventory with a calmer layout, simplified field
