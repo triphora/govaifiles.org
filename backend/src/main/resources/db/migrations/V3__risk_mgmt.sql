@@ -23,10 +23,10 @@ UPDATE ai_use_cases
     WHERE appeal_process_available in ('yes', 'not_applicable', 'precluded_by_law', 'caio_waived');
 UPDATE ai_use_cases
     SET risk_management_compliance_score = risk_management_compliance_score + 1
-    WHERE potential_impacts_identified IS NOT NULL;
+    WHERE potential_impacts_identified !~ '[Pp]rogress';
 UPDATE ai_use_cases
     SET risk_management_compliance_score = risk_management_compliance_score + 1
-    WHERE user_feedback_steps IS NOT NULL;
+    WHERE user_feedback_steps !~ 'progress';
 
 UPDATE ai_use_cases SET risk_management_compliance_score = -1
 WHERE stage_of_development != 'Deployed' OR high_impact_status != 'high_impact' OR data_year = '2024';
