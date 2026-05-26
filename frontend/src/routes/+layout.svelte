@@ -8,7 +8,6 @@
 	const navItems = [
 		{ href: '/', label: 'Explorer' },
 		{ href: '/graphs', label: 'Data' },
-		{ href: '/findings', label: 'Findings' },
 		{ href: '/about', label: 'About' }
 	];
 
