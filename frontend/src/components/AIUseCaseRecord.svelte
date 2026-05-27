@@ -135,53 +135,49 @@
 
 	$: riskFields = [
 		{
-			label: 'Pre-deploy Test',
+			label: 'Pre-deploy Testing Conducted?',
 			value: result.pre_deployment_testing_conducted,
 			show: sectionFiveRequirements || hasValue(result.pre_deployment_testing_status)
 		},
 		{
-			label: 'Impact Assessment',
+			label: 'AI Impact Assessment Completed?',
 			value: result.ai_impact_assessment_completed,
 			show: sectionFiveRequirements || hasValue(result.ai_impact_assessment_status)
 		},
 		{
-			label: 'Independent Review',
+			label: 'Independent Review Conducted?',
 			value: result.independent_review_conducted,
 			show: sectionFiveRequirements || hasValue(result.independent_review_status)
 		},
 		{
-			label: 'Fail-safe',
+			label: 'Failsafe in Place?',
 			value: result.failsafe_in_place,
 			show: sectionFiveRequirements || hasValue(result.fail_safe_status)
 		},
 		{
-			label: 'Potential Impact',
-			value: result.potential_impacts_identified,
-			show: sectionFiveRequirements || hasValue(result.potential_impacts_description),
-			wide: true
-		},
-		{
-			label: 'Ongoing Monitoring',
+			label: 'Ongoing Monitoring Established?',
 			value: result.ongoing_monitoring_established,
-			show: sectionFiveRequirements || hasValue(result.ongoing_monitoring_process),
-			wide: true
+			show: sectionFiveRequirements || hasValue(result.ongoing_monitoring_process)
 		},
 		{
-			label: 'Operator Training',
+			label: 'Operator Training Established?',
 			value: result.operator_training_established,
-			show: sectionFiveRequirements || hasValue(result.operator_training_status),
-			wide: true
+			show: sectionFiveRequirements || hasValue(result.operator_training_status)
 		},
 		{
-			label: 'Appeal Process',
+			label: 'Appeal Process Available?',
 			value: result.appeal_process_available,
-			show: sectionFiveRequirements || hasValue(result.appeal_process_status),
-			wide: true
+			show: sectionFiveRequirements || hasValue(result.appeal_process_status)
 		},
 		{
 			label: 'Public Feedback',
 			value: result.user_feedback_steps,
-			show: sectionFiveRequirements || hasValue(result.public_and_user_feedback),
+			show: sectionFiveRequirements || hasValue(result.public_and_user_feedback)
+		},
+		{
+			label: 'Potential Impacts Identified',
+			value: result.potential_impacts_identified,
+			show: sectionFiveRequirements || hasValue(result.potential_impacts_description),
 			wide: true
 		}
 	];
@@ -214,7 +210,10 @@
 	}
 
 	function agencyLabel() {
-		return [result.bureau_component, result.canonical_agency].filter(Boolean).join(' · ');
+		let bureau = result.bureau_component;
+		bureau = bureau.replace("Department of Justice /", "")
+
+		return [result.agency, bureau].filter(Boolean).join(' · ');
 	}
 
 	function renderValue(value: string | undefined | null) {
@@ -242,7 +241,7 @@
 				<div>
 					<h3>{result.use_case_name}</h3>
 					<p class="record-meta">
-						{displayUseCaseId(result.use_case_id, 'No ID reported')}
+						{displayUseCaseId(result.use_case_id, 'No ID reported')} ({result.data_year})
 						{#if hasValue(result.problem_statement)}
 							<span
 								>{displayValue(result.problem_statement).slice(0, 150)}{displayValue(
@@ -828,7 +827,7 @@
 
 	.blank,
 	.is-empty {
-		color: var(--ink-muted);
+		color: var(--ink-muted) !important;
 		font-style: italic;
 	}
 
