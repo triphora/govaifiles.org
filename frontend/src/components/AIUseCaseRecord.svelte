@@ -431,6 +431,29 @@
 					</div>
 				</section>
 			{/if}
+
+			{#if result.data_links && result.data_links.length > 0}
+				<section class="record-section record-section--risk">
+					<div class="record-section__header">
+						<p class="record-section__label">Related Disclosures</p>
+					</div>
+					<div class="record-data-list">
+						<ul>
+							{#each result.data_links.sort() as link}
+								{#if link.startsWith('pra')}
+									<li class="record-key-value">
+										<a href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${link.substring(4)}`}>{link}</a>
+									</li>
+								{:else if link.startsWith('sorn')}
+									<li class="record-key-value">
+										<a href={`https://www.federalregister.gov/d/${link.substring(5)}`}>{link}</a>
+									</li>
+								{/if}
+							{/each}
+						</ul>
+					</div>
+				</section>
+			{/if}
 		</div>
 	{/if}
 </article>
