@@ -7,8 +7,9 @@
 
 	const navItems = [
 		{ href: '/', label: 'Explorer' },
+		{ href: '/about', label: 'About' },
 		{ href: '/graphs', label: 'Data' },
-		{ href: '/about', label: 'About' }
+		{ href: '/ats-subgraph', label: 'ATS Subgraph' }
 	];
 
 	const currentPath = $derived(String(page.url.pathname));
