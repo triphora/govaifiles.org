@@ -521,7 +521,9 @@ public class APIHandler implements CrudHandler {
 		try {
 			List<Node> nodes = new ArrayList<>();
 
-			nodes.add(new Node("http", "localhost", "8108"));
+			nodes.add(new Node(env.get("TYPESENSE_PROTOCOL", "http"),
+					env.get("TYPESENSE_HOST", "localhost"),
+					env.get("TYPESENSE_PORT", "8108")));
 
 			Configuration configuration = new Configuration(nodes, Duration.ofSeconds(2), env.get("TYPESENSE_API_KEY"));
 

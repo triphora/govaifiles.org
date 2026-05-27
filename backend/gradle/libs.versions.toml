@@ -10,6 +10,7 @@ typesense-java = '1.3.0'
 slf4j = '2.0.17'
 dotenv-java = '3.2.0'
 postgresql = '42.7.2'
+opencsv = '5.12.0'
 
 [libraries]
 typesense-java = { module = 'org.typesense:typesense-java', version.ref = 'typesense-java' }
@@ -22,6 +23,7 @@ jooq-meta = { module = 'org.jooq:jooq-meta', version.ref = 'jooq' }
 jooq-codegen = { module = 'org.jooq:jooq-codegen', version.ref = 'jooq' }
 postgresql = { module = 'org.postgresql:postgresql', version.ref = 'postgresql' }
 flyway-postgresql = { module = 'org.flywaydb:flyway-database-postgresql', version.ref = 'flyway' }
+opencsv = { module = 'com.opencsv:opencsv', version.ref = 'opencsv' }
 
 [bundles]
 implementation = [
@@ -29,6 +31,7 @@ implementation = [
 	'gson', 'javalin',
 	'jooq', 'jooq-meta', 'jooq-codegen', 'postgresql',
 	'flyway-postgresql',
+	'opencsv',
 ]
 generatedImplementation = [
 	'jooq', 'jooq-meta', 'jooq-codegen', 'postgresql',

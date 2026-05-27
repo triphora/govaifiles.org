@@ -317,6 +317,11 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
      */
     public final TableField<AiUseCasesRecord, Integer> RISK_MANAGEMENT_COMPLIANCE_SCORE = createField(DSL.name("risk_management_compliance_score"), SQLDataType.INTEGER.defaultValue(DSL.field(DSL.raw("0"), SQLDataType.INTEGER)), this, "");
 
+    /**
+     * The column <code>public.ai_use_cases.data_links</code>.
+     */
+    public final TableField<AiUseCasesRecord, String[]> DATA_LINKS = createField(DSL.name("data_links"), SQLDataType.CLOB.array().defaultValue(DSL.field(DSL.raw("ARRAY[]::text[]"), SQLDataType.CLOB.array())), this, "");
+
     private AiUseCases(Name alias, Table<AiUseCasesRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

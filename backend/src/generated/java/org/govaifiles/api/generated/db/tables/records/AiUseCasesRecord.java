@@ -752,6 +752,20 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
         return (Integer) get(50);
     }
 
+    /**
+     * Setter for <code>public.ai_use_cases.data_links</code>.
+     */
+    public void setDataLinks(String[] value) {
+        set(51, value);
+    }
+
+    /**
+     * Getter for <code>public.ai_use_cases.data_links</code>.
+     */
+    public String[] getDataLinks() {
+        return (String[]) get(51);
+    }
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -766,7 +780,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     /**
      * Create a detached, initialised AiUseCasesRecord
      */
-    public AiUseCasesRecord(String useCaseId, String useCaseName, String agencyAbbreviation, String bureauComponent, String agency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, String hiImpactJustification, RightsSafetyImpactType rightsSafetyImpactType, String agencyName, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, HighImpactField preDeploymentTestingConducted, HighImpactField aiImpactAssessmentCompleted, String potentialImpactsIdentified, IndependentReviewConducted independentReviewConducted, OngoingMonitoringEstablished ongoingMonitoringEstablished, HighImpactField operatorTrainingEstablished, HighImpactField failsafeInPlace, AppealProcessAvailable appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore) {
+    public AiUseCasesRecord(String useCaseId, String useCaseName, String agencyAbbreviation, String bureauComponent, String agency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, String hiImpactJustification, RightsSafetyImpactType rightsSafetyImpactType, String agencyName, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, HighImpactField preDeploymentTestingConducted, HighImpactField aiImpactAssessmentCompleted, String potentialImpactsIdentified, IndependentReviewConducted independentReviewConducted, OngoingMonitoringEstablished ongoingMonitoringEstablished, HighImpactField operatorTrainingEstablished, HighImpactField failsafeInPlace, AppealProcessAvailable appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore, String[] dataLinks) {
         super(AiUseCases.AI_USE_CASES);
 
         setUseCaseId(useCaseId);
@@ -820,6 +834,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
         setNeedsManualReview(needsManualReview);
         setAgencyImportance(agencyImportance);
         setRiskManagementComplianceScore(riskManagementComplianceScore);
+        setDataLinks(dataLinks);
         resetTouchedOnNotNull();
     }
 }
