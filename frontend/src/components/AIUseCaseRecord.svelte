@@ -129,7 +129,8 @@
 		{
 			label: 'Training and Evaluation Data',
 			value: result.training_data_description,
-			show: sectionThreeRequirements || hasValue(result.training_and_evaluation_data)
+			show: sectionThreeRequirements || hasValue(result.training_and_evaluation_data),
+			wide: true
 		}
 	];
 
@@ -383,7 +384,7 @@
 					<div class="record-data-list">
 						{#each dataFields as field}
 							{#if field.show}
-								<div class="record-key-value">
+								<div class:wide={field.wide} class="record-key-value">
 									<h4>{field.label}</h4>
 									{#if isUrl(field.value)}
 										<a href={displayValue(field.value)} target="_blank" rel="noreferrer"
@@ -877,7 +878,7 @@
 		gap: 16px 20px;
 	}
 
-	.record-risk-grid .wide {
+	.wide {
 		grid-column: 1 / -1;
 	}
 
