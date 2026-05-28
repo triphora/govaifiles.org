@@ -12,7 +12,7 @@
 		stageClass
 	} from '$lib/explorer';
 
-	type UseCaseRecord = Record<string, string | undefined | null>;
+	type UseCaseRecord = Record<string, string | string[] | undefined | null>;
 
 	export let result: UseCaseRecord;
 	export let index: number;
@@ -437,20 +437,35 @@
 					<div class="record-section__header">
 						<p class="record-section__label">Related Disclosures</p>
 					</div>
-					<div class="record-data-list">
-						<ul>
-							{#each result.data_links.sort() as link}
-								{#if link.startsWith('pra')}
-									<li class="record-key-value">
-										<a href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${link.substring(4)}`}>{link}</a>
-									</li>
-								{:else if link.startsWith('sorn')}
-									<li class="record-key-value">
-										<a href={`https://www.federalregister.gov/d/${link.substring(5)}`}>{link}</a>
-									</li>
-								{/if}
-							{/each}
-						</ul>
+					<div class="record-doc-grid">
+						<div class="record-data-list">
+							<div class="record-key-value">
+								<h4>Systems of Records Notices</h4>
+								<ul>
+									{#each result.data_links.sort() as link}
+										{#if link.startsWith('sorn')}
+											<li>
+												<a href={`https://www.federalregister.gov/d/${link.substring(5)}`}>{link}</a>
+											</li>
+										{/if}
+									{/each}
+								</ul>
+							</div>
+						</div>
+						<div class="record-data-list">
+							<div class="record-key-value">
+									<h4>Paperwork Reduction Act Information Collection Requests</h4>
+									<ul>
+										{#each result.data_links.sort() as link}
+											{#if link.startsWith('pra')}
+												<li>
+													<a href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${link.substring(4)}`}>{link}</a>
+												</li>
+											{/if}
+										{/each}
+									</ul>
+								</div>
+						</div>
 					</div>
 				</section>
 			{/if}
