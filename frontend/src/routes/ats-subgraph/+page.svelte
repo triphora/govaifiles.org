@@ -25,5 +25,5 @@
         that document the same system under different disclosure obligations.
     </p>
 
-	<iframe title="Interactive Graph" src="/ats-subgraph.html" width="100%" height="625"></iframe>
+	<iframe title="Interactive Graph" src="/ats-subgraph-generated.html" width="100%" height="625"></iframe>
 </section>
