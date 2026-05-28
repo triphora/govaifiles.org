@@ -438,34 +438,38 @@
 						<p class="record-section__label">Related Disclosures</p>
 					</div>
 					<div class="record-doc-grid">
-						<div class="record-data-list">
+						{#if result.data_links.filter((str) => str.startsWith('sorn')).length > 0}
 							<div class="record-key-value">
 								<h4>Systems of Records Notices</h4>
-								<ul>
-									{#each result.data_links.sort() as link}
-										{#if link.startsWith('sorn')}
+								<ul class="columned-bullet-list">
+									{#each result.data_links.sort() as id}
+										{#if id.startsWith('sorn')}
 											<li>
-												<a href={`https://www.federalregister.gov/d/${link.substring(5)}`}>{link}</a>
+												<a href={`https://www.federalregister.gov/d/${id.substring(5)}`}>
+													{id.substring(5)}
+												</a>
 											</li>
 										{/if}
 									{/each}
 								</ul>
 							</div>
-						</div>
-						<div class="record-data-list">
+						{/if}
+						{#if result.data_links.filter((str) => str.startsWith('pra')).length > 0}
 							<div class="record-key-value">
-									<h4>Paperwork Reduction Act Information Collection Requests</h4>
-									<ul>
-										{#each result.data_links.sort() as link}
-											{#if link.startsWith('pra')}
-												<li>
-													<a href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${link.substring(4)}`}>{link}</a>
-												</li>
-											{/if}
-										{/each}
-									</ul>
-								</div>
-						</div>
+								<h4>Paperwork Reduction Act Information Collection Requests</h4>
+								<ul class="columned-bullet-list">
+									{#each result.data_links.sort() as id}
+										{#if id.startsWith('pra')}
+											<li>
+												<a href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
+													{id.substring(4)}
+												</a>
+											</li>
+										{/if}
+									{/each}
+								</ul>
+							</div>
+						{/if}
 					</div>
 				</section>
 			{/if}
@@ -823,11 +827,25 @@
 	.record-field,
 	.record-key-value {
 		display: grid;
+		grid-template-rows: auto 1fr;
 		gap: 6px;
 	}
 
 	.record-field--spaced {
 		padding-top: 4px;
+	}
+
+	.columned-bullet-list {
+		column-gap: 20px;
+		@media screen and (min-width: 410px) {
+			column-count: 2;
+		}
+		@media screen and (min-width: 610px) and (max-width: 1100px) {
+			column-count: 3;
+		}
+		@media screen and (min-width: 1400px) {
+			column-count: 3;
+		}
 	}
 
 	h4 {
