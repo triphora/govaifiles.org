@@ -121,7 +121,7 @@ export const fieldGuideGroups = [
 				label: 'Use Case',
 				source: 'use_case_name',
 				description:
-					'The reported name of the AI system or workflow. This stays unchanged in the explorer.'
+					'The reported name of the AI system or workflow.'
 			},
 			{
 				label: 'Agency',
@@ -133,12 +133,12 @@ export const fieldGuideGroups = [
 				label: 'Stage',
 				source: 'stage_of_development',
 				description:
-					'A shortened display label for the reported lifecycle stage such as Deployed, Pilot, or Retired.'
+					'The reported lifecycle stage such as Deployed, Pilot, Pre-Deployment, or Retired.'
 			},
 			{
 				label: 'Impact',
 				source: 'high_impact_status',
-				description: 'A shorter version of the agency-reported high-impact status.'
+				description: 'The status of whether the use case is high-impact or not.'
 			},
 			{
 				label: 'Topic Area',
@@ -149,7 +149,7 @@ export const fieldGuideGroups = [
 				label: 'AI Classification',
 				source: 'ai_classification',
 				description:
-					'The reported technical category of AI, shown with a shorter interface label but the same underlying value.'
+					'The reported technical category of AI, such as generative AI, natural language processing, or classical/predictive machine learning.'
 			}
 		]
 	},
@@ -160,23 +160,24 @@ export const fieldGuideGroups = [
 				label: 'Problem Statement',
 				source: 'problem_statement',
 				description:
-					'Simplified label for the original question asking what problem the AI is intended to solve.'
+					'What problem is the AI intended to solve?'
 			},
 			{
 				label: 'Expected Benefits',
 				source: 'expected_benefits',
-				description: 'Shorter label for the reported mission or public benefits.'
+				description:
+					'What are the expected benefits and positive outcomes from the AI for an agency’s mission and/or the general public?'
 			},
 			{
 				label: 'AI System Outputs',
 				source: 'system_outputs',
-				description: 'Simplified label for the reported outputs of the system.'
+				description: 'Describe the AI system’s outputs.'
 			},
 			{
 				label: 'Impact Justification',
 				source: 'justification',
 				description:
-					'Shown when a use case is marked not high-impact, preserving the agency justification text.'
+					'If the entry is presumed high-impact but determined not high-impact, the agency provides a justification as to why it is not high-impact.'
 			}
 		]
 	},
@@ -187,13 +188,13 @@ export const fieldGuideGroups = [
 				label: 'Operational Date',
 				source: 'operational_start_date',
 				description:
-					'Shorter label for the date when the AI became operational or the pilot started.'
+					'Date when AI use case became operational or the pilot’s start date'
 			},
 			{
 				label: 'Development Method',
 				source: 'development_source',
 				description:
-					'Simplified label for whether the system came from a vendor, contract, or in-house development.'
+					'Was the system involved in this use case purchased from a vendor or developed under contract(s) or in-house?'
 			},
 			{
 				label: 'Vendor Name',
@@ -203,51 +204,55 @@ export const fieldGuideGroups = [
 			{
 				label: 'Authorization (ATO)',
 				source: 'has_ato',
-				description: 'Shortened display label for Authorization to Operate.'
+				description: 'Does this AI use case have an associated Authorization to Operate (ATO)?'
 			},
 			{
 				label: 'System Name',
 				source: 'systems_name',
-				description: 'The reported system name associated with the use case.'
+				description:
+					'The reported system name associated with the use case.'
 			},
 			{
 				label: 'Training and Evaluation Data',
 				source: 'training_and_evaluation_data',
 				description:
-					'Shortened display label for the narrative description of training, fine-tuning, and evaluation data.'
+					'Describe any data used to train, fine-tune, and/or evaluate performance of the model(s) used in this use case.'
 			},
 			{
 				label: 'Federal Data Catalog',
 				source: 'federal_data_catalog_link',
-				description: 'A direct, simplified label for the reported Federal Data Catalog entry.'
+				description:
+					'If the data is required to be publicly disclosed as an open government data asset, provide a link to the entry on the Federal Data Catalog.'
 			},
 			{
 				label: 'PII',
 				source: 'involves_pii',
 				description:
-					'Short label for whether the use case involves agency-maintained personally identifiable information.'
+					'Does this AI use case involve personally identifiable information (PII) that is maintained by the agency?'
 			},
 			{
 				label: 'Privacy Impact Assessment',
 				source: 'pia_link',
 				description:
-					'Short label for the publicly available Privacy Impact Assessment link, when reported.'
+					'If publicly available, provide the link to the AI use case’s associated Privacy Impact Assessment (PIA).'
 			},
 			{
-				label: 'Model Features',
+				label: 'Demographic Variables',
 				source: 'demographic_variables_used',
 				description:
-					'A simplified label for demographic variables explicitly used as model features.'
+					'Which, if any, demographic variables does the AI use case explicitly use as model features?'
 			},
 			{
 				label: 'Custom Code',
 				source: 'includes_custom_code',
-				description: 'Shortened label for whether the project includes custom-developed code.'
+				description:
+					'Does this project include custom-developed code?'
 			},
 			{
 				label: 'Open Source Code',
 				source: 'open_source_code_link',
-				description: 'Short label for the public source code link, if one is reported.'
+				description:
+					'If the code is open source, provide the link for the publicly available source code.'
 			}
 		]
 	},
@@ -258,55 +263,86 @@ export const fieldGuideGroups = [
 				label: 'Compliance Score',
 				source: 'risk_management_compliance_score',
 				description:
-					'The total count of Risk Management values that are not false or Not reported.'
+					'The total count of Risk Management values that are not fully completed. For instance, entries that are "in progress" or not reported are not considered to be complete.'
 			},
 			{
 				label: 'Pre-deploy Test',
 				source: 'pre_deployment_testing_status',
-				description: 'Simplified label for the reported pre-deployment testing status.'
+				description:
+					'Has pre-deployment testing been conducted for this AI use case?' +
+					'<br/><br/><i>Practice: Complete AI Impact Assessment</i>'
 			},
 			{
 				label: 'Impact Assessment',
 				source: 'ai_impact_assessment_status',
-				description: 'Short label for whether an AI impact assessment was completed.'
+				description:
+					'Has an AI impact assessment been completed for this AI use case?' +
+					'<br/><br/><i>Practice: Complete AI Impact Assessment</i>'
 			},
 			{
 				label: 'Potential Impact',
 				source: 'potential_impacts_description',
 				description:
-					'The agency narrative describing possible impacts and how they were identified.'
+					'What are the potential impacts of using the AI for this particular use case and how were they identified?' +
+					'<br/><br/><i>Subpractice: Complete AI Impact Assessment</i>'
 			},
 			{
 				label: 'Independent Review',
 				source: 'independent_review_status',
-				description: 'Short label for the reported independent review status.'
+				description:
+					'Has as independent review of the AI use case been conducted?' +
+					'<br/><br/><i>Subpractice: Complete AI Impact Assessment</i>'
 			},
 			{
 				label: 'Ongoing Monitoring',
 				source: 'ongoing_monitoring_process',
 				description:
-					'Simplified label for the reported monitoring process covering performance, security, privacy, civil rights, and civil liberties.'
+					'Is there a process to conduct ongoing monitoring to identify any adverse impacts to the performance and security of the AI functionality, as well as to privacy, civil rights, and civil liberties?' +
+					'<br/><br/><i>Practice: Conduct Ongoing Monitoring for Performance and Potential Adverse Impacts</i>'
 			},
 			{
 				label: 'Operator Training',
 				source: 'operator_training_status',
-				description: 'Short label for periodic training for operators.'
+				description: 'Has the agency established sufficient and periodic training for operators of the AI to interpret and act on the its output and managed associated risks?' +
+					'<br/><br/><i>Practice: Ensure Adequate Human Training and Assessment</i>'
 			},
 			{
 				label: 'Fail-safe',
 				source: 'fail_safe_status',
-				description: 'Short label for whether a fail-safe exists to reduce significant harm.'
+				description:
+					'Does this AI use case have an appropriate fail-safe that minimizes the risk of significant harm?' +
+					'<br/><br/><i>Practice: Provide Additional Human Oversight, Intervention, and Accountability</i>'
 			},
 			{
 				label: 'Appeal Process',
 				source: 'appeal_process_status',
-				description: 'Short label for whether impacted individuals can appeal the system outcome.'
+				description:
+					'Is there an established appeal process in the event that an impacted individual would like to appeal or contest the AI system’s outcome?' +
+					'<br/><br/><i>Practice: Offer Consistent Remedies or Appeals</i>'
 			},
 			{
 				label: 'Public Feedback',
 				source: 'public_and_user_feedback',
 				description:
-					'Short label for the narrative about consultation and feedback from users or the public.'
+					'What steps has the agency taken to consult and incorporate feedback from end users of this AI use case and the public?' +
+					'<br/><br/><i>Practice: Consult and Incorporate Feedback from End Users and the Public</i>'
+			}
+		]
+	},
+	{
+		title: 'Related Disclosures',
+		items: [
+			{
+				label: 'Related Systems of Notice Records',
+				source: 'data_links:sorn',
+				description:
+					'Links to Systems of Notice Records that either disclose the same record under a different scheme or that use the inventory record as a data-dependency.'
+			},
+			{
+				label: 'Related Information Collection Requests',
+				source: 'data_links:pra',
+				description:
+					'Links to Information Collection Requests under the Paperwork Reduction Act that either disclose the same record under a different scheme or that use the inventory record as a data-dependency.'
 			}
 		]
 	}

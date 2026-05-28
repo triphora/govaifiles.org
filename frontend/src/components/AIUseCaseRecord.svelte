@@ -435,43 +435,50 @@
 
 			{#if result.data_links && result.data_links.length > 0}
 				<section class="record-section record-section--risk">
-					<div class="record-section__header">
-						<p class="record-section__label">Related Disclosures</p>
-					</div>
-					<div class="record-doc-grid">
-						{#if result.data_links.filter((str) => str.startsWith('sorn')).length > 0}
-							<div class="record-key-value">
-								<h4>Systems of Records Notices</h4>
-								<ul class="columned-bullet-list">
-									{#each result.data_links.sort() as id}
-										{#if id.startsWith('sorn')}
-											<li>
-												<a href={`https://www.federalregister.gov/d/${id.substring(5)}`}>
-													{id.substring(5)}
-												</a>
-											</li>
-										{/if}
-									{/each}
-								</ul>
-							</div>
-						{/if}
-						{#if result.data_links.filter((str) => str.startsWith('pra')).length > 0}
-							<div class="record-key-value">
-								<h4>Paperwork Reduction Act Information Collection Requests</h4>
-								<ul class="columned-bullet-list">
-									{#each result.data_links.sort() as id}
-										{#if id.startsWith('pra')}
-											<li>
-												<a href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
-													{id.substring(4)}
-												</a>
-											</li>
-										{/if}
-									{/each}
-								</ul>
-							</div>
-						{/if}
-					</div>
+					{#if result.data_links.filter((str) => str.startsWith('sorn')).length > 0}
+					<details>
+						<summary>
+							<span class="details-label">Related Systems of Records Notices</span>
+							<span class="details-label not-bold">({result.data_links.filter((str) => str.startsWith('sorn')).length} records)</span>
+						</summary>
+						<div class="record-key-value">
+							<h4>Links open in a new tab to the Federal Register website</h4>
+							<ul class="columned-bullet-list cw65">
+								{#each result.data_links.sort() as id}
+									{#if id.startsWith('sorn')}
+										<li>
+											<a target="_blank" href={`https://www.federalregister.gov/d/${id.substring(5)}`}>
+												{id.substring(5)}
+											</a>
+										</li>
+									{/if}
+								{/each}
+							</ul>
+						</div>
+					</details>
+					{/if}
+					{#if result.data_links.filter((str) => str.startsWith('pra')).length > 0}
+					<details>
+						<summary>
+							<span class="details-label">Related Information Collection Requests</span>
+							<span class="details-label not-bold">({result.data_links.filter((str) => str.startsWith('pra')).length} records)</span>
+						</summary>
+						<div class="record-key-value">
+							<h4>Links open in a new tab to the Office of Information and Regulatory Affairs website</h4>
+							<ul class="columned-bullet-list cw9">
+								{#each result.data_links.sort() as id}
+									{#if id.startsWith('pra')}
+										<li>
+											<a target="_blank" href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
+												{id.substring(4)}
+											</a>
+										</li>
+									{/if}
+								{/each}
+							</ul>
+						</div>
+					</details>
+					{/if}
 				</section>
 			{/if}
 		</div>
@@ -780,16 +787,57 @@
 		border-bottom: 1px solid rgba(167, 190, 180, 0.6);
 	}
 
-	.record-section__label {
-		display: flex;
+	details {
+		border: 1px solid var(--line-strong);
+		border-radius: var(--radius-md);
+		padding: 0.5em 0.5em 0;
+	}
+
+	summary {
+		background-color: rgb(230, 240, 230);
+		margin: -0.5em -0.5em 0;
+		border-radius: var(--radius-md);
+		padding: 0.5em;
+	}
+
+	details[open] {
+		padding: 0.5em;
+	}
+
+	details[open] summary {
+		border-bottom: 1px solid var(--line-strong);
+		margin-bottom: 0.5em;
+		border-radius: var(--radius-md) var(--radius-md) 0 0;
+	}
+
+	details summary::marker {
+		content: "+ ";
+	}
+
+	details[open] summary::marker {
+		content: "− ";
+	}
+
+	.details-label, details summary::marker, .record-section__label {
 		align-items: center;
+		text-transform: none;
+		letter-spacing: 0.0em;
 		margin: 0;
 		font-family: var(--font-mono);
-		font-size: 0.72rem;
+		font-size: 1rem;
 		line-height: 1.1;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--ink-muted);
+		color: var(--ink);
+		font-weight: bold;
+	}
+
+	.details-label.not-bold {
+		text-transform: none;
+		letter-spacing: -0.05em;
+		font-weight: normal;
+	}
+
+	.record-section__label {
+		display: flex;
 	}
 
 	.record-section__meta {
@@ -837,16 +885,13 @@
 	}
 
 	.columned-bullet-list {
-		column-gap: 20px;
-		@media screen and (min-width: 410px) {
-			column-count: 2;
-		}
-		@media screen and (min-width: 610px) and (max-width: 1100px) {
-			column-count: 3;
-		}
-		@media screen and (min-width: 1400px) {
-			column-count: 3;
-		}
+		column-gap: 40px;
+		column-width: 9rem;
+		column-count: auto;
+	}
+
+	.columned-bullet-list.cw65 {
+		column-width: 6.5rem
 	}
 
 	h4 {

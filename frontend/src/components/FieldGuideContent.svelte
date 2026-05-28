@@ -31,7 +31,7 @@
 							<h2>{item.label}</h2>
 							<code>{item.source}</code>
 						</div>
-						<p>{item.description}</p>
+						<p>{@html item.description.replaceAll('\n', '<br>')}</p>
 					</div>
 				{/each}
 			</div>
