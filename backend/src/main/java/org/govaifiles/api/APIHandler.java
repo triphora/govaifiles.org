@@ -9,6 +9,7 @@ import io.javalin.http.NotImplementedResponse;
 import org.jetbrains.annotations.NotNull;
 import org.typesense.api.Client;
 import org.typesense.api.Configuration;
+import org.typesense.api.exceptions.RequestMalformed;
 import org.typesense.model.SearchParameters;
 import org.typesense.model.SearchResult;
 import org.typesense.resources.Node;
@@ -19,7 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 
 public class APIHandler implements CrudHandler {
 	private static final String BLANK_IMPACT_VALUE = "__blank__";
-	private static final String DATA_YEAR_FILTER_FIELD = "data_year_filter";
 	private static final Gson GSON = new Gson();
 	private static final Map<String, String> FILTER_FIELDS = Map.of(
 		"agency", "agency",
@@ -63,30 +62,15 @@ public class APIHandler implements CrudHandler {
 	private static final Pattern OTHER_PATTERN = Pattern.compile("^other", Pattern.CASE_INSENSITIVE);
 	private static final FilterOptionConfig FILTER_OPTION_CONFIG = loadFilterOptionConfig();
 
-	private static class FilterOptionConfig {
-		private final Map<String, LinkedHashMap<String, Integer>> facetTemplates;
-		private final Map<String, Map<String, List<String>>> requestValueMappings;
-
-		private FilterOptionConfig(
-			Map<String, LinkedHashMap<String, Integer>> facetTemplates,
-			Map<String, Map<String, List<String>>> requestValueMappings
-		) {
-			this.facetTemplates = facetTemplates;
-			this.requestValueMappings = requestValueMappings;
-		}
+	private record FilterOptionConfig(Map<String, LinkedHashMap<String, Integer>> facetTemplates,
+	                                  Map<String, Map<String, List<String>>> requestValueMappings) {
 	}
 
-	private static class SearchResponse {
-		private final List<JsonObject> hits;
-		private final Map<String, Map<String, Integer>> facets;
-		private final Integer found;
-
-		private SearchResponse(List<JsonObject> hits, Map<String, Map<String, Integer>> facets, Integer found) {
-			this.hits = hits;
-			this.facets = facets;
-			this.found = found;
-		}
+	private record SearchResponse (List<JsonObject> hits, Map<String, Map<String, Integer>> facets,
+								   Integer found) {
 	}
+
+	private record Error (String error, String description) {}
 
 	private static Path resolveFilterOptionsPath() {
 		List<Path> candidates = List.of(
@@ -146,7 +130,7 @@ public class APIHandler implements CrudHandler {
 				return List.of();
 			}
 
-			String headerLine = lines.get(0);
+			String headerLine = lines.getFirst();
 			if (!headerLine.isEmpty() && headerLine.charAt(0) == '\ufeff') {
 				headerLine = headerLine.substring(1);
 			}
@@ -178,6 +162,7 @@ public class APIHandler implements CrudHandler {
 		return value == null ? "" : value.trim();
 	}
 
+	// TODO clean me
 	private static String normalizeFacetValue(String key, String value) {
 		String normalizedValue = normalizeFilterValue(value);
 		if (normalizedValue.isEmpty()) {
@@ -348,23 +333,6 @@ public class APIHandler implements CrudHandler {
 		}
 	}
 
-	private static Integer parseYearValue(String value) {
-		if (value == null) {
-			return null;
-		}
-
-		String normalizedValue = value.trim();
-		if (!normalizedValue.matches("\\d{4}")) {
-			return null;
-		}
-
-		try {
-			return Integer.parseInt(normalizedValue);
-		} catch (NumberFormatException ignored) {
-			return null;
-		}
-	}
-
 	private static void sanitizeDocument(JsonObject document) {
 		if (!document.has("use_case_id") || document.get("use_case_id").isJsonNull()) {
 			return;
@@ -399,59 +367,6 @@ public class APIHandler implements CrudHandler {
 		}
 
 		return value.trim();
-	}
-
-	private static String buildFilterBy(Map<String, List<String>> queryParams) {
-		List<String> filters = new ArrayList<>();
-
-		for (Map.Entry<String, List<String>> entry : queryParams.entrySet()) {
-			String fieldName = FILTER_FIELDS.get(entry.getKey());
-			if (fieldName == null) {
-				continue;
-			}
-
-			List<String> values = new ArrayList<>();
-			for (String rawValue : entry.getValue()) {
-				if (rawValue == null) {
-					continue;
-				}
-
-				String value = rawValue.trim();
-				if (value.isEmpty() && !"impact".equals(entry.getKey())) {
-					continue;
-				}
-
-				List<String> mappedValues = FILTER_OPTION_CONFIG.requestValueMappings
-					.getOrDefault(entry.getKey(), Collections.emptyMap())
-					.getOrDefault(value, List.of(value));
-				values.addAll(mappedValues);
-			}
-
-			if (values.isEmpty()) {
-				continue;
-			}
-
-			List<String> deduplicatedValues = values.stream().distinct().toList();
-			filters.add(fieldName + ":=[" + String.join(",", deduplicatedValues.stream().map(APIHandler::quoteFilterValue).toList()) + "]");
-		}
-
-		Integer yearFrom = parseYearValue(queryParams.getOrDefault("yearFrom", List.of()).stream().findFirst().orElse(null));
-		Integer yearTo = parseYearValue(queryParams.getOrDefault("yearTo", List.of()).stream().findFirst().orElse(null));
-
-		if (yearFrom != null) {
-			filters.add(DATA_YEAR_FILTER_FIELD + ":>=" + yearFrom);
-		}
-
-		if (yearTo != null) {
-			filters.add(DATA_YEAR_FILTER_FIELD + ":<=" + yearTo);
-		}
-
-		return String.join(" && ", filters);
-	}
-
-	private static String quoteFilterValue(String value) {
-		String normalizedValue = BLANK_IMPACT_VALUE.equals(value) ? BLANK_IMPACT_VALUE : value;
-		return "`" + normalizedValue.replace("\\", "\\\\").replace("`", "\\`") + "`";
 	}
 
 	private static Map<String, Map<String, Integer>> newFacetMap() {
@@ -540,10 +455,21 @@ public class APIHandler implements CrudHandler {
 					"user_feedback_steps")
 				.limit(250);
 
-			String filterBy = buildFilterBy(queryParams);
-			if (!filterBy.isEmpty()) {
-				searchParameters.filterBy(filterBy);
+			List<String> filters = new ArrayList<>();
+
+			for (Map.Entry<String, List<String>> entry : queryParams.entrySet()) {
+				for (String entryValue : entry.getValue()) {
+					if (!entry.getKey().isBlank() && !entryValue.isBlank()) {
+						// TODO get rid of this special handling by having different displays on frontend
+						if (entry.getKey().equals("compliance_status")) {
+							entryValue = entryValue.replace(' ', '_');
+						}
+						filters.add(entry.getKey() + ":" + entryValue);
+					}
+				}
 			}
+
+			searchParameters.filterBy(String.join(" && ", filters));
 
 			SearchResult searchResult = client.collections("AIUseCases").documents().search(searchParameters);
 			found = searchResult.getFound();
@@ -557,7 +483,13 @@ public class APIHandler implements CrudHandler {
 			}
 			facets = buildFacetMap(hits);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			if (e instanceof RequestMalformed) {
+				ctx.contentType("application/json");
+				ctx.status(400).result(GSON.toJson(new Error("request_malformed", e.getMessage())));
+				return;
+			} else {
+				throw new RuntimeException(e);
+			}
 		}
 
 		ctx.contentType("application/json");

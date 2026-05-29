@@ -351,7 +351,6 @@ export const fieldGuideGroups = [
 export const stageOptions = uniqueColumnValues(filterOptionRows, 'stage_of_development');
 
 export const impactOptions = [
-	{ value: '', label: 'All' },
 	...uniqueColumnValues(filterOptionRows, 'high_impact_status').map((value) => ({
 		value,
 		label:
@@ -458,7 +457,7 @@ export function useCaseAnchorId(record) {
 
 	return [
 		'use-case',
-		slugifyFragment(record.data_year),
+		slugifyFragment(record.data_year.toString()),
 		slugifyFragment(record.canonical_agency ?? record.agency),
 		slugifyFragment(primaryId),
 		slugifyFragment(record.use_case_name)

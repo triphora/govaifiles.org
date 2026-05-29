@@ -7,6 +7,7 @@ package org.govaifiles.api.generated.db.tables.records;
 import java.time.LocalDate;
 
 import org.govaifiles.api.generated.db.enums.AppealProcessAvailable;
+import org.govaifiles.api.generated.db.enums.ComplianceStatus;
 import org.govaifiles.api.generated.db.enums.DevelopmentSourceType;
 import org.govaifiles.api.generated.db.enums.HighImpactField;
 import org.govaifiles.api.generated.db.enums.HighImpactStatus;
@@ -157,15 +158,15 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     /**
      * Setter for <code>public.ai_use_cases.data_year</code>.
      */
-    public void setDataYear(String value) {
+    public void setDataYear(Integer value) {
         set(9, value);
     }
 
     /**
      * Getter for <code>public.ai_use_cases.data_year</code>.
      */
-    public String getDataYear() {
-        return (String) get(9);
+    public Integer getDataYear() {
+        return (Integer) get(9);
     }
 
     /**
@@ -766,6 +767,20 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
         return (String[]) get(51);
     }
 
+    /**
+     * Setter for <code>public.ai_use_cases.compliance_status</code>.
+     */
+    public void setComplianceStatus(ComplianceStatus value) {
+        set(52, value);
+    }
+
+    /**
+     * Getter for <code>public.ai_use_cases.compliance_status</code>.
+     */
+    public ComplianceStatus getComplianceStatus() {
+        return (ComplianceStatus) get(52);
+    }
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -780,7 +795,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
     /**
      * Create a detached, initialised AiUseCasesRecord
      */
-    public AiUseCasesRecord(String useCaseId, String useCaseName, String agencyAbbreviation, String bureauComponent, String agency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, String dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, String hiImpactJustification, RightsSafetyImpactType rightsSafetyImpactType, String agencyName, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, HighImpactField preDeploymentTestingConducted, HighImpactField aiImpactAssessmentCompleted, String potentialImpactsIdentified, IndependentReviewConducted independentReviewConducted, OngoingMonitoringEstablished ongoingMonitoringEstablished, HighImpactField operatorTrainingEstablished, HighImpactField failsafeInPlace, AppealProcessAvailable appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore, String[] dataLinks) {
+    public AiUseCasesRecord(String useCaseId, String useCaseName, String agencyAbbreviation, String bureauComponent, String agency, String canonicalAbbreviation, String canonicalSubAgency, String agencyMatchConfidence, String sourceFile, Integer dataYear, String mappingVersion, String schemaVersion, String contactEmail, PublicReportingStatus publicReportingStatus, StageOfDeployment stageOfDevelopment, HighImpactStatus highImpactStatus, String hiImpactJustification, RightsSafetyImpactType rightsSafetyImpactType, String agencyName, String useCaseTopicArea, String aiClassification, String purposeAndBenefits, String expectedBenefits, String systemOutputs, LocalDate operationalStartDate, DevelopmentSourceType developmentSourceType, String vendorNames, String piids, Boolean hasAto, String systemNames, String trainingDataDescription, String federalDataCatalogLink, Boolean usesPii, String piaLink, String demographicVariablesUsed, Boolean hasCustomCode, String openSourceCodeLink, HighImpactField preDeploymentTestingConducted, HighImpactField aiImpactAssessmentCompleted, String potentialImpactsIdentified, IndependentReviewConducted independentReviewConducted, OngoingMonitoringEstablished ongoingMonitoringEstablished, HighImpactField operatorTrainingEstablished, HighImpactField failsafeInPlace, AppealProcessAvailable appealProcessAvailable, String userFeedbackSteps, ValidationStatus validationStatus, String validationNotes, Boolean needsManualReview, Integer agencyImportance, Integer riskManagementComplianceScore, String[] dataLinks, ComplianceStatus complianceStatus) {
         super(AiUseCases.AI_USE_CASES);
 
         setUseCaseId(useCaseId);
@@ -835,6 +850,7 @@ public class AiUseCasesRecord extends TableRecordImpl<AiUseCasesRecord> {
         setAgencyImportance(agencyImportance);
         setRiskManagementComplianceScore(riskManagementComplianceScore);
         setDataLinks(dataLinks);
+        setComplianceStatus(complianceStatus);
         resetTouchedOnNotNull();
     }
 }

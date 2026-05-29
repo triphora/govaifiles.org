@@ -9,6 +9,7 @@ import java.util.Collection;
 
 import org.govaifiles.api.generated.db.Public;
 import org.govaifiles.api.generated.db.enums.AppealProcessAvailable;
+import org.govaifiles.api.generated.db.enums.ComplianceStatus;
 import org.govaifiles.api.generated.db.enums.DevelopmentSourceType;
 import org.govaifiles.api.generated.db.enums.HighImpactField;
 import org.govaifiles.api.generated.db.enums.HighImpactStatus;
@@ -105,7 +106,7 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
     /**
      * The column <code>public.ai_use_cases.data_year</code>.
      */
-    public final TableField<AiUseCasesRecord, String> DATA_YEAR = createField(DSL.name("data_year"), SQLDataType.CLOB, this, "");
+    public final TableField<AiUseCasesRecord, Integer> DATA_YEAR = createField(DSL.name("data_year"), SQLDataType.INTEGER, this, "");
 
     /**
      * The column <code>public.ai_use_cases.mapping_version</code>.
@@ -321,6 +322,11 @@ public class AiUseCases extends TableImpl<AiUseCasesRecord> {
      * The column <code>public.ai_use_cases.data_links</code>.
      */
     public final TableField<AiUseCasesRecord, String[]> DATA_LINKS = createField(DSL.name("data_links"), SQLDataType.CLOB.array().defaultValue(DSL.field(DSL.raw("ARRAY[]::text[]"), SQLDataType.CLOB.array())), this, "");
+
+    /**
+     * The column <code>public.ai_use_cases.compliance_status</code>.
+     */
+    public final TableField<AiUseCasesRecord, ComplianceStatus> COMPLIANCE_STATUS = createField(DSL.name("compliance_status"), SQLDataType.VARCHAR.nullable(false).defaultValue(DSL.field(DSL.raw("'Not in compliance'::compliance_status"), SQLDataType.VARCHAR)).asEnumDataType(ComplianceStatus.class), this, "");
 
     private AiUseCases(Name alias, Table<AiUseCasesRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

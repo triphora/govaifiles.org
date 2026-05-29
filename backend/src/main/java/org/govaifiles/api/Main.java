@@ -2,7 +2,6 @@ package org.govaifiles.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.opencsv.CSVReaderHeaderAware;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -31,67 +30,6 @@ import static io.javalin.apibuilder.ApiBuilder.crud;
 import static org.govaifiles.api.generated.db.Tables.AI_USE_CASES;
 
 public class Main {
-	private static final String BLANK_IMPACT_VALUE = "__blank__";
-	private static final String DATA_YEAR_FILTER_FIELD = "data_year_filter";
-
-	private static String impactFilterValue(JsonObject document) {
-		String value = getString(document, "high_impact_status");
-		if (value == null || value.isBlank()) {
-			value = getString(document, "is_high_impact");
-		}
-
-		return value == null || value.isBlank() ? BLANK_IMPACT_VALUE : value.trim();
-	}
-
-	private static String complianceStatus(JsonObject document) {
-		String stage = getString(document, "stage_of_development");
-		String impact = impactFilterValue(document);
-		int score = parseComplianceScore(getString(document, "risk_management_compliance_score"));
-
-		if (!"Deployed".equals(stage) || !"high_impact".equals(impact) || score < 0) {
-			return "Not required";
-		}
-
-		return score >= 9 ? "In compliance" : "Not in compliance";
-	}
-
-	private static String getString(JsonObject document, String key) {
-		if (!document.has(key) || document.get(key).isJsonNull()) {
-			return null;
-		}
-
-		return document.get(key).getAsString();
-	}
-
-	private static int parseComplianceScore(String value) {
-		if (value == null || value.isBlank()) {
-			return -1;
-		}
-
-		try {
-			return Integer.parseInt(value.trim());
-		} catch (NumberFormatException ignored) {
-			return -1;
-		}
-	}
-
-	private static Integer parseYearValue(String value) {
-		if (value == null) {
-			return null;
-		}
-
-		String normalizedValue = value.trim();
-		if (!normalizedValue.matches("\\d{4}")) {
-			return null;
-		}
-
-		try {
-			return Integer.parseInt(normalizedValue);
-		} catch (NumberFormatException ignored) {
-			return null;
-		}
-	}
-
 	public static void main(String[] args) throws Exception {
 		System.setProperty("org.jooq.no-logo", "true");
 		System.setProperty("org.jooq.no-tips", "true");
@@ -99,7 +37,7 @@ public class Main {
 
 		Dotenv env = Dotenv.load();
 
-		Map<String, Set<String>> pairs = addDataLinks(
+		addDataLinks(
 				env.get("ACCEPTED_LINKS_FILE", "../surveillance-transparency/viz/accepted_links_unified.csv"),
 				env.get("RELATED_PAIRS_FILE", "../surveillance-transparency/viz/related_pairs_unified.csv"),
 				env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
@@ -122,7 +60,7 @@ public class Main {
 		}).start(Integer.parseInt(env.get("BACKEND_PORT", "7070")));
 	}
 
-	static Map<String, Set<String>> addDataLinks(String acceptedLinksFile, String relatedPairsFile,
+	static void addDataLinks(String acceptedLinksFile, String relatedPairsFile,
 												 String url, String user, String password) throws Exception {
 		CSVReaderHeaderAware linksEntriesReader = new CSVReaderHeaderAware(new FileReader(acceptedLinksFile));
 		ArrayList<String[]> linksEntries = new ArrayList<>(linksEntriesReader.readAll());
@@ -152,8 +90,6 @@ public class Main {
 				}
 			});
 		}
-
-		return pairs;
 	}
 
 	static void addPairs(Map<String, Set<String>> pairs, String[] entry) {
@@ -185,18 +121,12 @@ public class Main {
 
 		Client client = new Client(configuration);
 
+		// This list only needs to contain things used as sort-bys, see APIHandler#getOne
 		List<Field> fields = new ArrayList<>();
 		fields.add(new Field().name(".*").type(FieldTypes.AUTO));
 		fields.add(new Field().name("agency_importance").type(FieldTypes.INT32).sort(true));
-		fields.add(new Field().name("agency").type(FieldTypes.STRING).sort(true).facet(true));
+		fields.add(new Field().name("agency").type(FieldTypes.STRING).sort(true));
 		fields.add(new Field().name("use_case_name").type(FieldTypes.STRING).sort(true));
-		fields.add(new Field().name("bureau_component").type(FieldTypes.STRING).facet(true));
-		fields.add(new Field().name("stage_of_development").type(FieldTypes.STRING).facet(true));
-		fields.add(new Field().name("impact_filter").type(FieldTypes.STRING).facet(true));
-		fields.add(new Field().name("use_case_topic_area").type(FieldTypes.STRING).facet(true).optional(true));
-		fields.add(new Field().name("ai_classification").type(FieldTypes.STRING).facet(true).optional(true));
-		fields.add(new Field().name("compliance_status").type(FieldTypes.STRING).facet(true));
-		fields.add(new Field().name(DATA_YEAR_FILTER_FIELD).type(FieldTypes.INT32));
 
 		CollectionSchema collectionSchema = new CollectionSchema();
 		collectionSchema.name("AIUseCases").fields(fields);
@@ -228,14 +158,7 @@ public class Main {
 			StringBuilder sb = new StringBuilder();
 
 			for (JsonElement element : recordsArray) {
-				JsonObject document = element.getAsJsonObject();
-				document.addProperty("impact_filter", impactFilterValue(document));
-				document.addProperty("compliance_status", complianceStatus(document));
-				Integer dataYearFilter = parseYearValue(getString(document, "data_year"));
-				if (dataYearFilter != null) {
-					document.addProperty(DATA_YEAR_FILTER_FIELD, dataYearFilter);
-				}
-				sb.append(document).append("\n");
+				sb.append(element.toString()).append("\n");
 			}
 
 			ImportDocumentsParameters queryParameters = new ImportDocumentsParameters();

@@ -31,9 +31,19 @@
 		hits: UseCaseRecord[];
 		found?: number;
 	};
-	type SectionKey = FilterKey | 'year';
+	type SectionKey = FilterKey | 'year' | 'score';
 	type ExpandedSections = Record<SectionKey, boolean>;
 	type SortState = { key: SortKey; direction: 'asc' | 'desc' };
+
+	const yearsSupported = {
+		from: 2024,
+		to: 2025
+	}
+
+	const complianceScoreValues = {
+		from: 0,
+		to: 9
+	}
 
 	const defaultExpandedSections: ExpandedSections = {
 		year: true,
@@ -43,7 +53,8 @@
 		impact: true,
 		compliance: true,
 		topic: true,
-		aiClassification: true
+		aiClassification: true,
+		score: true
 	};
 
 	const defaultFilters: MultiFilters = {
@@ -102,6 +113,8 @@
 	let sortState: SortState = { key: 'useCase', direction: 'asc' };
 	let yearFrom = '';
 	let yearTo = '';
+	let complianceFrom = '';
+	let complianceTo = '';
 	let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 	let activeSearchController: AbortController | null = null;
 	let latestSearchRequest = 0;
@@ -659,6 +672,14 @@
 		void search();
 	}
 
+	function handleExactFilters(input: String[]) {
+		if (input.length == 1) {
+			return `=${input[0]}`;
+		} else {
+			return JSON.stringify(input);
+		}
+	}
+
 	async function search() {
 		const requestId = ++latestSearchRequest;
 		const controller = new AbortController();
@@ -670,56 +691,48 @@
 
 		const searchParams = new URLSearchParams();
 
-		for (const agency of filters.agency) {
-			for (const value of expandFilterRequestValues('agency', agency)) {
-				searchParams.append('agency', value);
-			}
+		if (filters.agency.length > 0) {
+			searchParams.append('agency', JSON.stringify(filters.agency));
 		}
 
-		for (const bureau of filters.bureau) {
-			for (const value of expandFilterRequestValues('bureau', bureau)) {
-				searchParams.append('bureau', value);
-			}
+		if (filters.bureau.length > 0) {
+			searchParams.append('bureau_component', JSON.stringify(filters.bureau));
 		}
 
-		for (const stage of filters.stage) {
-			for (const value of expandFilterRequestValues('stage', stage)) {
-				searchParams.append('stage', value);
-			}
+		if (filters.stage.length > 0) {
+			searchParams.append('stage_of_development', JSON.stringify(filters.stage));
 		}
 
-		for (const impact of filters.impact) {
-			for (const value of expandFilterRequestValues('impact', impact)) {
-				searchParams.append('impact', value);
-			}
+		if (filters.impact.length > 0) {
+			searchParams.append('high_impact_status', handleExactFilters(filters.impact));
 		}
 
-		for (const compliance of filters.compliance) {
-			for (const value of expandFilterRequestValues('compliance', compliance)) {
-				searchParams.append('compliance', value);
-			}
+		if (filters.compliance.length > 0) {
+			searchParams.append('compliance_status', handleExactFilters(filters.compliance));
 		}
 
-		for (const topic of filters.topic) {
-			for (const value of expandFilterRequestValues('topic', topic)) {
-				searchParams.append('topic', value);
-			}
+		if (filters.topic.length > 0) {
+			searchParams.append('use_case_topic_area', JSON.stringify(filters.topic));
 		}
 
-		for (const aiClassification of filters.aiClassification) {
-			for (const value of expandFilterRequestValues('aiClassification', aiClassification)) {
-				searchParams.append('aiClassification', value);
-			}
+		if (filters.aiClassification.length > 0) {
+			searchParams.append('ai_classification', JSON.stringify(filters.aiClassification));
 		}
 
 		const parsedYearFrom = parseYearInput(yearFrom);
-		if (parsedYearFrom !== null) {
-			searchParams.set('yearFrom', String(parsedYearFrom));
+		const parsedYearTo = parseYearInput(yearTo);
+
+		if (parsedYearFrom !== null && parsedYearTo !== null) {
+			searchParams.set('data_year', `[${parsedYearFrom}..${parsedYearTo}]`)
+		} else if (parsedYearFrom !== null) {
+			searchParams.set('data_year', `[${parsedYearFrom}..${yearsSupported.to}]`)
+		} else if (parsedYearTo !== null) {
+			searchParams.set('data_year', `[${yearsSupported.from}..${parsedYearTo}]`)
 		}
 
-		const parsedYearTo = parseYearInput(yearTo);
-		if (parsedYearTo !== null) {
-			searchParams.set('yearTo', String(parsedYearTo));
+		if (complianceFrom || complianceTo) {
+			searchParams.set('risk_management_compliance_score',
+					`[${complianceFrom || complianceScoreValues.from}..${complianceTo || complianceScoreValues.to}]`)
 		}
 
 		const queryString = `${BACKEND_URL}/ai-use-cases/${encodeURIComponent(query.trim() || '*')}${searchParams.size > 0 ? `?${searchParams.toString()}` : ''}`;
@@ -794,6 +807,8 @@
 		filters = { ...defaultFilters };
 		yearFrom = '';
 		yearTo = '';
+		complianceFrom = '';
+		complianceTo = '';
 		expandedSections = { ...defaultExpandedSections };
 		mobileFiltersOpen = false;
 		sortState = { key: 'useCase', direction: 'asc' };
@@ -826,7 +841,7 @@
 <section class="explorer-page">
 	<div class="explorer-hero">
 		<div>
-			<p class="explorer-kicker">2024 and 2025 Federal Inventory</p>
+			<p class="explorer-kicker">{yearsSupported.from}–{yearsSupported.to} Federal Inventory</p>
 			<h1>AI Use Case Inventory</h1>
 			<p class="explorer-intro">
 				Browse the consolidated federal AI use case inventory with a calmer layout, simplified field
@@ -893,7 +908,7 @@
 									inputmode="numeric"
 									maxlength="4"
 									on:input={queueSearch}
-									placeholder="2024"
+									placeholder={yearsSupported.from}
 									aria-label="Year from"
 								/>
 								<span class="year-dash">-</span>
@@ -904,7 +919,7 @@
 									inputmode="numeric"
 									maxlength="4"
 									on:input={queueSearch}
-									placeholder="2025"
+									placeholder={yearsSupported.to}
 									aria-label="Year to"
 								/>
 							</div>
@@ -941,6 +956,7 @@
 									>
 								<span class="checkbox-label">Select All</span>
 							</button>
+								<!-- TODO add "All Cabinet Agencies" entry -->
 								{#each visibleAgencyFilterOptions as agency (agency)}
 									<button
 										type="button"
@@ -1117,24 +1133,11 @@
 										>
 										<span class="checkbox-label checkbox-label--with-dot"
 											><span
-												class={`checkbox-dot checkbox-dot--${option.value === 'High-impact' ? 'impact-high' : 'impact-low'}`}
+												class={`checkbox-dot checkbox-dot--${option.value === 'high_impact' ? 'impact-high' : 'impact-low'}`}
 											></span>{option.label}</span
 										>
 									</button>
 								{/each}
-								{#if visibleImpactFilterOptions.includes('')}
-								<button
-									type="button"
-									class:checked={filters.impact.includes('')}
-									class="checkbox-item"
-									on:click={() => toggleFilterValue('impact', '')}
-								>
-									<span class="checkbox-mark">{filters.impact.includes('') ? '✓' : ''}</span>
-									<span class="checkbox-label checkbox-label--with-dot"
-										><span class="checkbox-dot checkbox-dot--blank"></span>(Blanks)</span
-									>
-								</button>
-								{/if}
 							</div>
 							{#if filters.impact.length > 0}
 								<button
@@ -1195,12 +1198,61 @@
 								<button
 									type="button"
 									class="filter-clear"
-									on:click={() => clearFilterGroup('compliance')}>Clear compliance</button
+									on:click={() => {
+										complianceFrom = '';
+										complianceTo = '';
+										clearFilterGroup('compliance');
+									}}>Clear compliance</button
 								>
 							{/if}
 						</div>
 					{/if}
 				</section>
+				{/if}
+
+				{#if filters.compliance.includes('Not in compliance')}
+					<section class="filter-section">
+						<button
+								type="button"
+								class="filter-section__toggle"
+								on:click={() => toggleSection('score')}
+								aria-expanded={expandedSections.score}
+						>
+							<span>Compliance Score</span>
+							<span
+									class:expanded={expandedSections.score}
+									class="filter-section__icon"
+									aria-hidden="true"
+							></span>
+						</button>
+						{#if expandedSections.score}
+							<div class="filter-section__body">
+								<div class="year-row">
+									<input
+											bind:value={complianceFrom}
+											class="year-input"
+											type="text"
+											inputmode="numeric"
+											maxlength="1"
+											on:input={queueSearch}
+											placeholder={complianceScoreValues.from}
+											aria-label="Score from"
+									/>
+									<span class="year-dash">-</span>
+									<input
+											bind:value={complianceTo}
+											class="year-input"
+											type="text"
+											inputmode="numeric"
+											maxlength="1"
+											on:input={queueSearch}
+											placeholder={complianceScoreValues.to}
+											aria-label="Score to"
+									/>
+								</div>
+							</div>
+						{/if}
+					</section>
 				{/if}
 
 				{#if visibleTopicOptions.length > 0}
@@ -1330,8 +1382,9 @@
 				<div>
 					<p class="results-toolbar__eyebrow">Explorer</p>
 					<div class="results-count">
-						<strong>{results.length}{totalMatches > results.length ? '+' : ''}</strong>
+						<strong>{totalMatches}</strong>
 						<span>{results.length === 1 ? 'case' : 'cases'}</span>
+						<span>{totalMatches > results.length ? '(250 shown)' : ''}</span>
 					</div>
 				</div>
 
@@ -1802,7 +1855,7 @@
 	}
 
 	.checkbox-dot--impact-low {
-		background: #bcc7c2;
+		background: #476280;
 	}
 
 	.checkbox-dot--blank {

@@ -1,0 +1,1 @@
+ALTER TABLE ai_use_cases ALTER COLUMN data_year SET DATA TYPE int USING data_year::integer;
