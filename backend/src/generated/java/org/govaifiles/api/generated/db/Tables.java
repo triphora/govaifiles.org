@@ -5,7 +5,9 @@ package org.govaifiles.api.generated.db;
 
 
 import org.govaifiles.api.generated.db.tables.AiUseCases;
+import org.govaifiles.api.generated.db.tables.CompletedTasks;
 import org.govaifiles.api.generated.db.tables.FlywaySchemaHistory;
+import org.govaifiles.api.generated.db.tables.InformationCollectionRequests;
 
 
 /**
@@ -20,7 +22,17 @@ public class Tables {
     public static final AiUseCases AI_USE_CASES = AiUseCases.AI_USE_CASES;
 
     /**
+     * The table <code>public.completed_tasks</code>.
+     */
+    public static final CompletedTasks COMPLETED_TASKS = CompletedTasks.COMPLETED_TASKS;
+
+    /**
      * The table <code>public.flyway_schema_history</code>.
      */
     public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
+
+    /**
+     * The table <code>public.information_collection_requests</code>.
+     */
+    public static final InformationCollectionRequests INFORMATION_COLLECTION_REQUESTS = InformationCollectionRequests.INFORMATION_COLLECTION_REQUESTS;
 }

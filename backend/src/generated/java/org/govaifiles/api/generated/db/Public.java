@@ -8,7 +8,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.govaifiles.api.generated.db.tables.AiUseCases;
+import org.govaifiles.api.generated.db.tables.CompletedTasks;
 import org.govaifiles.api.generated.db.tables.FlywaySchemaHistory;
+import org.govaifiles.api.generated.db.tables.InformationCollectionRequests;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
@@ -34,9 +36,19 @@ public class Public extends SchemaImpl {
     public final AiUseCases AI_USE_CASES = AiUseCases.AI_USE_CASES;
 
     /**
+     * The table <code>public.completed_tasks</code>.
+     */
+    public final CompletedTasks COMPLETED_TASKS = CompletedTasks.COMPLETED_TASKS;
+
+    /**
      * The table <code>public.flyway_schema_history</code>.
      */
     public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
+
+    /**
+     * The table <code>public.information_collection_requests</code>.
+     */
+    public final InformationCollectionRequests INFORMATION_COLLECTION_REQUESTS = InformationCollectionRequests.INFORMATION_COLLECTION_REQUESTS;
 
     /**
      * No further instances allowed
@@ -55,7 +67,9 @@ public class Public extends SchemaImpl {
     public final List<Table<?>> getTables() {
         return Arrays.asList(
             AiUseCases.AI_USE_CASES,
-            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY
+            CompletedTasks.COMPLETED_TASKS,
+            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
+            InformationCollectionRequests.INFORMATION_COLLECTION_REQUESTS
         );
     }
 }

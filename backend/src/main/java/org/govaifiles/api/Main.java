@@ -1,16 +1,14 @@
 package org.govaifiles.api;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.opencsv.CSVReaderHeaderAware;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.Javalin;
 import org.govaifiles.api.generated.db.tables.records.AiUseCasesRecord;
-import org.jooq.DSLContext;
-import org.jooq.JSONFormat;
-import org.jooq.Result;
+import org.govaifiles.api.generated.db.tables.records.CompletedTasksRecord;
+import org.jooq.*;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.typesense.api.Client;
 import org.typesense.api.Configuration;
 import org.typesense.api.FieldTypes;
@@ -20,14 +18,24 @@ import org.typesense.model.ImportDocumentsParameters;
 import org.typesense.model.IndexAction;
 import org.typesense.resources.Node;
 
-import java.io.FileReader;
+import java.io.*;
+import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static io.javalin.apibuilder.ApiBuilder.crud;
-import static org.govaifiles.api.generated.db.Tables.AI_USE_CASES;
+import static org.govaifiles.api.generated.db.Tables.*;
+import static org.jooq.impl.DSL.*;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
@@ -36,6 +44,10 @@ public class Main {
 		System.setProperty("org.jooq.log.org.jooq.impl.DefaultExecuteContext.logVersionSupport", "ERROR");
 
 		Dotenv env = Dotenv.load();
+
+		addInformationCollectionRequestEntries(
+				env.get("DATA_ICR_PATH", "../sample_data/icr/"),
+				env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
 
 		addDataLinks(
 				env.get("ACCEPTED_LINKS_FILE", "../surveillance-transparency/viz/accepted_links_unified.csv"),
@@ -60,8 +72,104 @@ public class Main {
 		}).start(Integer.parseInt(env.get("BACKEND_PORT", "7070")));
 	}
 
+	static boolean taskCompleted(String taskName, String url, String user, String password) throws SQLException {
+		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
+			DSLContext ctx = DSL.using(conn);
+
+			Result<CompletedTasksRecord> completedTask = ctx.selectFrom(COMPLETED_TASKS)
+					.where(COMPLETED_TASKS.TASK_NAME.equal(taskName)).fetch();
+
+			return completedTask.isNotEmpty();
+		}
+	}
+
+	static void completeTask(String taskName, String url, String user, String password) throws SQLException {
+		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
+			DSLContext ctx = DSL.using(conn);
+
+			ctx.dsl().insertInto(COMPLETED_TASKS, COMPLETED_TASKS.TASK_NAME, COMPLETED_TASKS.COMPLETED_AT)
+						.values(taskName, LocalDateTime.now()).execute();
+		}
+	}
+
+	private record InformationCollectionRequest (String referenceNumber, String title, String agency,
+												 String abstract_, Set<SupportingDocument> supportingDocuments) {}
+
+	private record SupportingDocument (String type, String name, String url) {}
+
+	static void addInformationCollectionRequestEntries(String icrDataPath,
+													   String url, String user, String password) throws Exception {
+		if (taskCompleted("add_icr_entries", url, user, password)) {
+			return;
+		}
+
+		File[] files = Path.of(icrDataPath).toFile().listFiles();
+		if (files == null) {
+			throw new RuntimeException("No ICR files could be found!");
+		}
+
+		JsonArray entries = new JsonArray();
+		for (File file : files) {
+			JsonElement element = JsonParser.parseReader(new FileReader(file));
+			entries.addAll(element.getAsJsonArray());
+		}
+
+		Set<InformationCollectionRequest> icrs = new HashSet<>();
+
+		entries.forEach((entry) -> {
+			JsonElement icrElem = entry.getAsJsonObject().get("information_collection_request");
+			if (icrElem == null) return;
+
+			JsonObject icr = icrElem.getAsJsonObject();
+			JsonObject id = icr.get("identification").getAsJsonObject();
+
+			String referenceNumber = id.get("icr_reference_number").getAsString();
+			String title = id.get("title").getAsString();
+			String agency = id.get("agency").getAsString();
+			String abstract_ = icr.get("abstract").getAsString();
+
+			JsonArray supportingDocumentsJson = icr.get("supporting_documents").getAsJsonArray();
+			Set<SupportingDocument> supportingDocuments = new HashSet<>();
+
+			supportingDocumentsJson.forEach((document) -> {
+				JsonObject doc = document.getAsJsonObject();
+				String type = doc.get("type").getAsString();
+				String docUrl = doc.get("url").getAsString();
+				String filename = doc.get("filename").getAsString();
+				supportingDocuments.add(new SupportingDocument(type, docUrl, filename));
+			});
+
+			icrs.add(new InformationCollectionRequest(referenceNumber, title, agency, abstract_, supportingDocuments));
+		});
+
+		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
+			DSLContext ctx = DSL.using(conn);
+
+			ctx.transaction((trx) -> {
+				for (InformationCollectionRequest icr : icrs) {
+					JSONB jsonb = JSONB.jsonb(new Gson().toJson(icr.supportingDocuments()));
+					trx.dsl().insertInto(INFORMATION_COLLECTION_REQUESTS,
+							INFORMATION_COLLECTION_REQUESTS.ICR_REFERENCE_NUMBER,
+							INFORMATION_COLLECTION_REQUESTS.TITLE,
+							INFORMATION_COLLECTION_REQUESTS.AGENCY,
+							INFORMATION_COLLECTION_REQUESTS.ABSTRACT,
+							INFORMATION_COLLECTION_REQUESTS.SUPPORTING_DOCUMENTS)
+									.values(icr.referenceNumber(), icr.title(), icr.agency(), icr.abstract_(), jsonb)
+											.execute();
+				}
+			});
+		}
+
+		taskCompleted("add_icr_entries", url, user, password);
+	}
+
 	static void addDataLinks(String acceptedLinksFile, String relatedPairsFile,
 												 String url, String user, String password) throws Exception {
+		if (taskCompleted("add_data_links", url, user, password)) {
+
+			return;
+		}
+
 		CSVReaderHeaderAware linksEntriesReader = new CSVReaderHeaderAware(new FileReader(acceptedLinksFile));
 		ArrayList<String[]> linksEntries = new ArrayList<>(linksEntriesReader.readAll());
 		linksEntriesReader.close();
@@ -90,6 +198,8 @@ public class Main {
 				}
 			});
 		}
+
+		completeTask("add_data_links", url, user, password);
 	}
 
 	static void addPairs(Map<String, Set<String>> pairs, String[] entry) {

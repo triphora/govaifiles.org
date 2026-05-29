@@ -4,7 +4,9 @@
 package org.govaifiles.api.generated.db;
 
 
+import org.govaifiles.api.generated.db.tables.CompletedTasks;
 import org.govaifiles.api.generated.db.tables.FlywaySchemaHistory;
+import org.govaifiles.api.generated.db.tables.records.CompletedTasksRecord;
 import org.govaifiles.api.generated.db.tables.records.FlywaySchemaHistoryRecord;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
@@ -23,5 +25,6 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<CompletedTasksRecord> COMPLETED_TASKS_PKEY = Internal.createUniqueKey(CompletedTasks.COMPLETED_TASKS, DSL.name("completed_tasks_pkey"), new TableField[] { CompletedTasks.COMPLETED_TASKS.TASK_ID }, true);
     public static final UniqueKey<FlywaySchemaHistoryRecord> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, DSL.name("flyway_schema_history_pk"), new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
 }
