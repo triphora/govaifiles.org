@@ -17,6 +17,7 @@
 	export let result: UseCaseRecord;
 	export let index: number;
 	export let anchorId: string;
+	export let icrs: Record<string, string | string[] | undefined | null>;
 
 	const dispatch = createEventDispatcher<{
 		share: { anchorId: string; title: string };
@@ -226,6 +227,15 @@
 			anchorId,
 			title: displayValue(result.use_case_name, 'this use case')
 		});
+	}
+
+	function icrData(id: string): string {
+		let entries = icrs.filter((entry) => entry.referenceNumber === id);
+		if (entries.length === 1) {
+			return `${entries[0].agency}: ${entries[0].title}`;
+		} else {
+			return id;
+		}
 	}
 </script>
 
@@ -470,7 +480,7 @@
 									{#if id.startsWith('pra')}
 										<li>
 											<a target="_blank" href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
-												{id.substring(4)}
+												{icrData(id.substring(4))}
 											</a>
 										</li>
 									{/if}
@@ -891,7 +901,7 @@
 	}
 
 	.columned-bullet-list.cw65 {
-		column-width: 6.5rem
+		column-width: 6.5rem;
 	}
 
 	h4 {

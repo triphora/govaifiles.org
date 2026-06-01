@@ -8,7 +8,7 @@
 		agencyOptions,
 		aiClassificationOptions as configuredAiClassificationOptions,
 		complianceOptions,
-		dhsComponents,
+		dhsComponents, getIcrsForInventoryRecord,
 		impactOptions,
 		stageOptions,
 		topicOptions as configuredTopicOptions,
@@ -16,6 +16,7 @@
 	} from '$lib/explorer';
 
 	type UseCaseRecord = Record<string, string | undefined | null>;
+	type InformationCollectionRequestRecord = Record<string, string | undefined | null>;
 	type FilterKey =
 		| 'agency'
 		| 'bureau'
@@ -30,6 +31,7 @@
 	type SearchResponse = {
 		hits: UseCaseRecord[];
 		found?: number;
+		icrs?: InformationCollectionRequestRecord[];
 	};
 	type SectionKey = FilterKey | 'year' | 'score';
 	type ExpandedSections = Record<SectionKey, boolean>;
@@ -108,6 +110,7 @@
 	let shareStatus = '';
 	let serverResults: UseCaseRecord[] = [];
 	let totalMatches = 0;
+	let icrData: InformationCollectionRequestRecord[] = [];
 	let filters: MultiFilters = { ...defaultFilters };
 	let expandedSections: ExpandedSections = { ...defaultExpandedSections };
 	let sortState: SortState = { key: 'useCase', direction: 'asc' };
@@ -750,6 +753,7 @@
 
 			serverResults = payload.hits ?? [];
 			totalMatches = payload.found ?? payload.hits?.length ?? 0;
+			icrData = payload.icrs ?? [];
 
 			void scrollToHashTarget();
 		} catch (searchError) {
@@ -760,6 +764,7 @@
 			error = searchError instanceof Error ? searchError.message : 'Unknown error';
 			serverResults = [];
 			totalMatches = 0;
+			icrData = [];
 		} finally {
 			if (requestId === latestSearchRequest) {
 				loading = false;
@@ -1384,7 +1389,7 @@
 					<div class="results-count">
 						<strong>{totalMatches}</strong>
 						<span>{results.length === 1 ? 'case' : 'cases'}</span>
-						<span>{totalMatches > results.length ? '(250 shown)' : ''}</span>
+						<span>{totalMatches > results.length ? `(${results.length} shown)` : ''}</span>
 					</div>
 				</div>
 
@@ -1428,6 +1433,7 @@
 					{#each results as result, index (`${result.data_year}-${result.use_case_id}-${result.agency}-${result.use_case_name}-${result.validation_notes}`)}
 						<AiUseCaseRecord
 							{result}
+							icrs={getIcrsForInventoryRecord(result, icrData)}
 							index={index + 1}
 							anchorId={useCaseAnchorId(result)}
 							on:share={handleShare}

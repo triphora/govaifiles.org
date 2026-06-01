@@ -465,6 +465,30 @@ export function useCaseAnchorId(record) {
 }
 
 /**
+ * @param {Record<string, string | null | undefined>} record
+ * @param {InformationCollectionRequestRecord[]} icrData
+ * @returns {InformationCollectionRequestRecord[]}
+ */
+export function getIcrsForInventoryRecord(record, icrData) {
+	let dataLinks = record.data_links;
+	if (!dataLinks || (dataLinks && dataLinks.length <= 0)) {
+		return [];
+	}
+
+	let icrs = [];
+	for (let entry of dataLinks) {
+		if (entry.startsWith("pra:")) {
+			const icrEntry = icrData.filter((record) =>
+				record.referenceNumber === entry.substring(4));
+			if (icrEntry.length === 1) {
+				icrs.push(icrEntry[0])
+			}
+		}
+	}
+	return icrs;
+}
+
+/**
  * @param {string | null | undefined} value
  * @returns {boolean}
  */
