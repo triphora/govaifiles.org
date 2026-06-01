@@ -87,7 +87,7 @@
 		{
 			label: 'Vendor Name(s)',
 			value: result.vendor_name,
-			show: sectionThreeRequirements || hasValue(result.vendor_name)
+			show: result.data_year >= 2025 && (sectionThreeRequirements || hasValue(result.vendor_name))
 		},
 		{
 			label: 'Authorization (ATO)',
@@ -110,12 +110,12 @@
 		{
 			label: 'Federal Data Catalog',
 			value: result.federal_data_catalog_link,
-			show: sectionThreeRequirements || hasValue(result.federal_data_catalog_link)
+			show: result.data_year >= 2025 && (sectionThreeRequirements || hasValue(result.federal_data_catalog_link))
 		},
 		{
 			label: 'Privacy Impact Assessment',
 			value: result.pia_link,
-			show: sectionThreeRequirements || hasValue(result.pia_link)
+			show: result.data_year >= 2025 && (sectionThreeRequirements || hasValue(result.pia_link))
 		},
 		{
 			label: 'Demographic Variables',
@@ -154,7 +154,7 @@
 		{
 			label: 'Failsafe in Place?',
 			value: result.failsafe_in_place,
-			show: sectionFiveRequirements || hasValue(result.fail_safe_status)
+			show: result.data_year >= 2025 && (sectionFiveRequirements || hasValue(result.fail_safe_status))
 		},
 		{
 			label: 'Ongoing Monitoring Established?',
@@ -164,12 +164,12 @@
 		{
 			label: 'Operator Training Established?',
 			value: result.operator_training_established,
-			show: sectionFiveRequirements || hasValue(result.operator_training_status)
+			show: result.data_year >= 2025 && (sectionFiveRequirements || hasValue(result.operator_training_status))
 		},
 		{
 			label: 'Appeal Process Available?',
 			value: result.appeal_process_available,
-			show: sectionFiveRequirements || hasValue(result.appeal_process_status)
+			show: result.data_year >= 2025 && (sectionFiveRequirements || hasValue(result.appeal_process_status))
 		},
 		{
 			label: 'Public Feedback',
@@ -269,28 +269,30 @@
 							>
 						{/if}
 					</p>
-					<div class="record-compliance">
-						<div class="record-compliance__copy">
-							<span>Compliance</span>
-							<p>
-								<strong class={`compliance-status ${complianceStatusClass}`}
-									>{complianceStatus}</strong
-								>
-							</p>
-						</div>
-						{#if showComplianceGauge}
-							<div
-								class={`compliance-gauge ${complianceStatus === 'In compliance' ? 'compliance-gauge--good' : 'compliance-gauge--warn'}`}
-								style={`--gauge-deg: ${complianceGaugeDegrees}deg;`}
-								aria-label={`Risk management compliance score ${complianceScore} out of 9`}
-							>
-								<div class="compliance-gauge__inner">
-									<strong>{complianceScore}</strong>
-									<span>/9</span>
-								</div>
+					{#if result.data_year >= 2025}
+						<div class="record-compliance">
+							<div class="record-compliance__copy">
+								<span>Compliance</span>
+								<p>
+									<strong class={`compliance-status ${complianceStatusClass}`}
+										>{complianceStatus}</strong
+									>
+								</p>
 							</div>
-						{/if}
-					</div>
+							{#if showComplianceGauge}
+								<div
+									class={`compliance-gauge ${complianceStatus === 'In compliance' ? 'compliance-gauge--good' : 'compliance-gauge--warn'}`}
+									style={`--gauge-deg: ${complianceGaugeDegrees}deg;`}
+									aria-label={`Risk management compliance score ${complianceScore} out of 9`}
+								>
+									<div class="compliance-gauge__inner">
+										<strong>{complianceScore}</strong>
+										<span>/9</span>
+									</div>
+								</div>
+							{/if}
+						</div>
+					{/if}
 				</div>
 			</div>
 
