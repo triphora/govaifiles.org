@@ -1,12 +1,14 @@
 package org.govaifiles.api;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 import io.javalin.http.NotImplementedResponse;
+import org.govaifiles.api.generated.db.tables.records.InformationCollectionRequestsRecord;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.typesense.api.Client;
 import org.typesense.api.Configuration;
 import org.typesense.api.exceptions.RequestMalformed;
@@ -18,15 +20,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
+
+import static org.govaifiles.api.generated.db.Tables.INFORMATION_COLLECTION_REQUESTS;
 
 public class APIHandler implements CrudHandler {
 	private static final String BLANK_IMPACT_VALUE = "__blank__";
@@ -67,7 +68,7 @@ public class APIHandler implements CrudHandler {
 	}
 
 	private record SearchResponse (List<JsonObject> hits, Map<String, Map<String, Integer>> facets,
-								   Integer found) {
+								   Integer found, List<InformationCollectionRequest> icrs) {
 	}
 
 	private record Error (String error, String description) {}
@@ -432,6 +433,8 @@ public class APIHandler implements CrudHandler {
 		ArrayList<JsonObject> hits = new ArrayList<>();
 		Map<String, Map<String, Integer>> facets = new LinkedHashMap<>();
 		Integer found = 0;
+		List<InformationCollectionRequest> icrs = new ArrayList<>();
+		List<String> icrCandidates = new ArrayList<>();
 
 		try {
 			List<Node> nodes = new ArrayList<>();
@@ -479,9 +482,57 @@ public class APIHandler implements CrudHandler {
 					JsonObject document = GSON.toJsonTree(hit.getDocument()).getAsJsonObject();
 					sanitizeDocument(document);
 					hits.add(document);
+					if (document.has("data_links")) {
+						JsonArray dataLinks = document.getAsJsonArray("data_links");
+						for (JsonElement elem : dataLinks) {
+							String id = elem.getAsString();
+							if (id.startsWith("pra:")) {
+								icrCandidates.add(elem.getAsString().substring(4));
+							}
+						}
+					}
 				});
 			}
 			facets = buildFacetMap(hits);
+
+			String url = env.get("POSTGRES_URL");
+			String user = env.get("POSTGRES_USER");
+			String password = env.get("POSTGRES_PASSWORD");
+
+			try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
+				DSLContext db = DSL.using(conn);
+
+				InformationCollectionRequestsRecord[] icrRecords = db.selectFrom(INFORMATION_COLLECTION_REQUESTS)
+						.where(INFORMATION_COLLECTION_REQUESTS.ICR_REFERENCE_NUMBER.in(icrCandidates))
+						.fetchArray();
+
+				for (InformationCollectionRequestsRecord record : icrRecords) {
+					Set<SupportingDocument> supportingDocuments = new HashSet<>();
+					JsonArray elems = JsonParser.parseString(record.getSupportingDocuments().data())
+							.getAsJsonArray();
+					elems.forEach((entry) -> {
+						JsonObject obj = entry.getAsJsonObject();
+						String docUrl = obj.get("url").getAsString();
+						String docName = obj.get("name").getAsString();
+						String docType = obj.get("type").getAsString();
+						supportingDocuments.add(new SupportingDocument(docType, docName, docUrl));
+					});
+
+					icrs.add(
+							new InformationCollectionRequest(
+									record.getIcrReferenceNumber(),
+									record.getTitle(),
+									record.getAgency(),
+									record.getAbstract(),
+									supportingDocuments
+							)
+					);
+				}
+
+			} catch (SQLException e) {
+				ctx.contentType("application/json");
+				ctx.status(400).result(GSON.toJson(new Error("sql_exception", e.getMessage())));
+			}
 		} catch (Exception e) {
 			if (e instanceof RequestMalformed) {
 				ctx.contentType("application/json");
@@ -493,7 +544,7 @@ public class APIHandler implements CrudHandler {
 		}
 
 		ctx.contentType("application/json");
-		ctx.result(GSON.toJson(new SearchResponse(hits, facets, found)));
+		ctx.result(GSON.toJson(new SearchResponse(hits, facets, found, icrs)));
 	}
 
 	@Override

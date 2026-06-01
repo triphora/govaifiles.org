@@ -8,7 +8,6 @@ import org.govaifiles.api.generated.db.tables.records.AiUseCasesRecord;
 import org.govaifiles.api.generated.db.tables.records.CompletedTasksRecord;
 import org.jooq.*;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.typesense.api.Client;
 import org.typesense.api.Configuration;
 import org.typesense.api.FieldTypes;
@@ -20,22 +19,16 @@ import org.typesense.resources.Node;
 
 import java.io.*;
 import java.io.File;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
 import static io.javalin.apibuilder.ApiBuilder.crud;
 import static org.govaifiles.api.generated.db.Tables.*;
-import static org.jooq.impl.DSL.*;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
@@ -72,7 +65,7 @@ public class Main {
 		}).start(Integer.parseInt(env.get("BACKEND_PORT", "7070")));
 	}
 
-	static boolean taskCompleted(String taskName, String url, String user, String password) throws SQLException {
+	static boolean isTaskCompleted(String taskName, String url, String user, String password) throws SQLException {
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
@@ -92,14 +85,9 @@ public class Main {
 		}
 	}
 
-	private record InformationCollectionRequest (String referenceNumber, String title, String agency,
-												 String abstract_, Set<SupportingDocument> supportingDocuments) {}
-
-	private record SupportingDocument (String type, String name, String url) {}
-
 	static void addInformationCollectionRequestEntries(String icrDataPath,
 													   String url, String user, String password) throws Exception {
-		if (taskCompleted("add_icr_entries", url, user, password)) {
+		if (isTaskCompleted("add_icr_entries", url, user, password)) {
 			return;
 		}
 
@@ -160,13 +148,12 @@ public class Main {
 			});
 		}
 
-		taskCompleted("add_icr_entries", url, user, password);
+		completeTask("add_icr_entries", url, user, password);
 	}
 
 	static void addDataLinks(String acceptedLinksFile, String relatedPairsFile,
 												 String url, String user, String password) throws Exception {
-		if (taskCompleted("add_data_links", url, user, password)) {
-
+		if (isTaskCompleted("add_data_links", url, user, password)) {
 			return;
 		}
 
