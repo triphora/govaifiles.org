@@ -232,9 +232,15 @@
 	function icrData(id: string): string {
 		let entries = icrs.filter((entry) => entry.referenceNumber === id);
 		if (entries.length === 1) {
-			return `${entries[0].agency}: ${entries[0].title}`;
+			let data = `<details><summary><b>${entries[0].agency}</b>: ${entries[0].title}</summary><ul>`;
+			data += `<li><a target="_blank" href="https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id}"><b>Full ICR Information</b> (${id})</a></li>`;
+			for (let doc of entries[0].supportingDocuments) {
+				data += `<li><a href="${doc.name}" target="_blank">${doc.url}</a></li>`;
+			}
+			data += '</ul></details>';
+			return data;
 		} else {
-			return id;
+			return `<a target="_blank" href="https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id}">${id}</a>`;
 		}
 	}
 </script>
@@ -475,17 +481,11 @@
 						</summary>
 						<div class="record-key-value">
 							<h4>Links open in a new tab to the Office of Information and Regulatory Affairs website</h4>
-							<ul class="columned-bullet-list cw9">
-								{#each result.data_links.sort() as id}
-									{#if id.startsWith('pra')}
-										<li>
-											<a target="_blank" href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
-												{icrData(id.substring(4))}
-											</a>
-										</li>
-									{/if}
-								{/each}
-							</ul>
+							{#each result.data_links.sort() as id}
+								{#if id.startsWith('pra')}
+									{@html icrData(id.substring(4))}
+								{/if}
+							{/each}
 						</div>
 					</details>
 					{/if}
@@ -896,7 +896,7 @@
 
 	.columned-bullet-list {
 		column-gap: 40px;
-		column-width: 9rem;
+		column-width: 20rem;
 		column-count: auto;
 	}
 
