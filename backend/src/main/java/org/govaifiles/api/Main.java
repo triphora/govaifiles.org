@@ -44,7 +44,6 @@ public class Main {
 
 		addDataLinks(
 				env.get("ACCEPTED_LINKS_FILE", "../surveillance-transparency/viz/accepted_links_unified.csv"),
-				env.get("RELATED_PAIRS_FILE", "../surveillance-transparency/viz/related_pairs_unified.csv"),
 				env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
 
 		searchSetup(env.get("TYPESENSE_API_KEY"), env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"),
@@ -151,8 +150,8 @@ public class Main {
 		completeTask("add_icr_entries", url, user, password);
 	}
 
-	static void addDataLinks(String acceptedLinksFile, String relatedPairsFile,
-												 String url, String user, String password) throws Exception {
+	static void addDataLinks(String acceptedLinksFile,
+							 String url, String user, String password) throws Exception {
 		if (isTaskCompleted("add_data_links", url, user, password)) {
 			return;
 		}
@@ -161,16 +160,9 @@ public class Main {
 		ArrayList<String[]> linksEntries = new ArrayList<>(linksEntriesReader.readAll());
 		linksEntriesReader.close();
 
-		CSVReaderHeaderAware pairsEntriesReader = new CSVReaderHeaderAware(new FileReader(relatedPairsFile));
-		ArrayList<String[]> pairsEntries = new ArrayList<>(pairsEntriesReader.readAll());
-		linksEntriesReader.close();
-
 		Map<String, Set<String>> pairs = new HashMap<>();
 
 		for (String[] entry : linksEntries) {
-			addPairs(pairs, entry);
-		}
-		for (String[] entry : pairsEntries) {
 			addPairs(pairs, entry);
 		}
 
