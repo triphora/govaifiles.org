@@ -8,7 +8,7 @@
 		agencyOptions,
 		aiClassificationOptions as configuredAiClassificationOptions,
 		complianceOptions,
-		dhsComponents, getIcrsForInventoryRecord,
+		dhsComponents, getIcrsForInventoryRecord, getSornsForInventoryRecord,
 		impactOptions,
 		stageOptions,
 		topicOptions as configuredTopicOptions,
@@ -17,6 +17,7 @@
 
 	type UseCaseRecord = Record<string, string | undefined | null>;
 	type InformationCollectionRequestRecord = Record<string, string | undefined | null>;
+	type SystemOfRecordsNoticeRecord = Record<string, string | undefined | null>;
 	type FilterKey =
 		| 'agency'
 		| 'bureau'
@@ -32,6 +33,7 @@
 		hits: UseCaseRecord[];
 		found?: number;
 		icrs?: InformationCollectionRequestRecord[];
+		sorns?: SystemOfRecordsNoticeRecord[];
 	};
 	type SectionKey = FilterKey | 'year' | 'score';
 	type ExpandedSections = Record<SectionKey, boolean>;
@@ -111,6 +113,7 @@
 	let serverResults: UseCaseRecord[] = [];
 	let totalMatches = 0;
 	let icrData: InformationCollectionRequestRecord[] = [];
+	let sornData: SystemOfRecordsNoticeRecord[] = [];
 	let filters: MultiFilters = { ...defaultFilters };
 	let expandedSections: ExpandedSections = { ...defaultExpandedSections };
 	let sortState: SortState = { key: 'useCase', direction: 'asc' };
@@ -754,6 +757,7 @@
 			serverResults = payload.hits ?? [];
 			totalMatches = payload.found ?? payload.hits?.length ?? 0;
 			icrData = payload.icrs ?? [];
+			sornData = payload.sorns ?? [];
 
 			void scrollToHashTarget();
 		} catch (searchError) {
@@ -765,6 +769,7 @@
 			serverResults = [];
 			totalMatches = 0;
 			icrData = [];
+			sornData = [];
 		} finally {
 			if (requestId === latestSearchRequest) {
 				loading = false;
@@ -1434,6 +1439,7 @@
 						<AiUseCaseRecord
 							{result}
 							icrs={getIcrsForInventoryRecord(result, icrData)}
+							sorns={getSornsForInventoryRecord(result, sornData)}
 							index={index + 1}
 							anchorId={useCaseAnchorId(result)}
 							on:share={handleShare}

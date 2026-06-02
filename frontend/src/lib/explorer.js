@@ -489,6 +489,30 @@ export function getIcrsForInventoryRecord(record, icrData) {
 }
 
 /**
+ * @param {Record<string, string | null | undefined>} record
+ * @param {SystemOfRecordsNoticeRecord[]} sornData
+ * @returns {SystemOfRecordsNoticeRecord[]}
+ */
+export function getSornsForInventoryRecord(record, sornData) {
+	let dataLinks = record.data_links;
+	if (!dataLinks || (dataLinks && dataLinks.length <= 0)) {
+		return [];
+	}
+
+	let sorns = [];
+	for (let entry of dataLinks) {
+		if (entry.startsWith("sorn:")) {
+			const sornEntry = sornData.filter((record) =>
+				record.referenceId === entry.substring(5));
+			if (sornEntry.length === 1) {
+				sorns.push(sornEntry[0])
+			}
+		}
+	}
+	return sorns;
+}
+
+/**
  * @param {string | null | undefined} value
  * @returns {boolean}
  */

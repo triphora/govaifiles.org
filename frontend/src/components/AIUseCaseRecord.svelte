@@ -18,6 +18,7 @@
 	export let index: number;
 	export let anchorId: string;
 	export let icrs: Record<string, string | string[] | undefined | null>;
+	export let sorns: Record<string, string | string[] | undefined | null>;
 
 	const dispatch = createEventDispatcher<{
 		share: { anchorId: string; title: string };
@@ -227,6 +228,15 @@
 			anchorId,
 			title: displayValue(result.use_case_name, 'this use case')
 		});
+	}
+
+	function hasSornInfo(id: string) {
+		let entries = sorns.filter((entry) => entry.referenceId === id);
+		if (entries.length === 1) {
+			return entries[0];
+		} else {
+			return false;
+		}
 	}
 
 	function hasIcrInfo(id: string) {
@@ -455,17 +465,25 @@
 						</summary>
 						<div class="record-key-value">
 							<h4>Links open in a new tab to the Federal Register website</h4>
-							<ul class="columned-bullet-list cw65">
-								{#each result.data_links.sort() as id}
-									{#if id.startsWith('sorn')}
-										<li>
+							{#each result.data_links.sort() as id}
+								{#if id.startsWith('sorn')}
+									{#if hasSornInfo(id.substring(5))}
+										<details>
+											<summary>
+												<b>{hasSornInfo(id.substring(5)).systemNameAndNumber.replace("â", '"')}</b>
+											</summary>
 											<a target="_blank" href={`https://www.federalregister.gov/d/${id.substring(5)}`}>
-												{id.substring(5)}
+												<b>Click to see full SORN information</b> (ID: {id.substring(5)})
 											</a>
-										</li>
+											<p><b>Summary:</b> {hasSornInfo(id.substring(5)).summary.replace("â", '"')}</p>
+										</details>
+									{:else}
+										<a target="_blank" href={`https://www.federalregister.gov/d/${id.substring(5)}`}>
+											{id.substring(5)}
+										</a>
 									{/if}
-								{/each}
-							</ul>
+								{/if}
+							{/each}
 						</div>
 					</details>
 					{/if}
@@ -484,22 +502,20 @@
 											<summary>
 												<b>{hasIcrInfo(id.substring(4)).agency}:</b> {hasIcrInfo(id.substring(4)).title}
 											</summary>
+											<p>
+												<a target="_blank" href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
+													<b>Click to see full ICR information</b> (ID: {id.substring(4)})
+												</a>
+											</p>
+											<p>
+												<b>Abstract:</b> {hasIcrInfo(id.substring(4)).abstract_.substring(0,500)}{
+													hasIcrInfo(id.substring(4)).abstract_.length > 500 ? '...' : ''}
+											</p>
+											<p><b>Supporting Documents:</b></p>
 											<ul>
-												<li>
-													<a target="_blank" href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
-														<b>Full ICR Information</b> ({id.substring(4)})
-													</a>
-												</li>
-												<li>
-													<b>Abstract:</b> {hasIcrInfo(id.substring(4)).abstract_.substring(0,500)}{
-														hasIcrInfo(id.substring(4)).abstract_.length > 500 ? '...' : ''}
-												</li>
-												<li><b>Supporting Documents:</b></li>
-												<ul>
-													{#each hasIcrInfo(id.substring(4)).supportingDocuments as doc}
-														<li><a href={doc.name} target="_blank">{doc.url}</a></li>
-													{/each}
-												</ul>
+												{#each hasIcrInfo(id.substring(4)).supportingDocuments as doc}
+													<li><a href={doc.name} target="_blank">{doc.url}</a></li>
+												{/each}
 											</ul>
 										</details>
 										{:else}
