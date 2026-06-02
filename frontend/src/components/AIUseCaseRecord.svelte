@@ -484,7 +484,8 @@
 									{#if hasSornInfo(id.substring(5))}
 										<details>
 											<summary>
-												<b>{formatAgency(hasSornInfo(id.substring(5)).agency)}{hasSornInfo(id.substring(5)).subAgency ? ", " + hasSornInfo(id.substring(5)).subAgency : ''}:</b> {hasSornInfo(id.substring(5)).subject}
+												<b>{formatAgency(hasSornInfo(id.substring(5)).agency)}{hasSornInfo(id.substring(5)).subAgency ? ", " + hasSornInfo(id.substring(5)).subAgency : ''} ({id.substring(5,9)}):</b>
+												{hasSornInfo(id.substring(5)).subject}
 											</summary>
 											<a target="_blank" href={`https://www.federalregister.gov/d/${id.substring(5)}`}>
 												<b>Click to see full SORN information</b> (ID: {id.substring(5)})
@@ -516,7 +517,7 @@
 									{#if hasIcrInfo(id.substring(4))}
 										<details>
 											<summary>
-												<b>{hasIcrInfo(id.substring(4)).agency}:</b> {hasIcrInfo(id.substring(4)).title}
+												<b>{hasIcrInfo(id.substring(4)).agency} ({id.substring(4,8)}):</b> {hasIcrInfo(id.substring(4)).title}
 											</summary>
 											<p>
 												<a target="_blank" href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
@@ -860,9 +861,14 @@
 		border: 1px solid var(--line-strong);
 		border-radius: var(--radius-md);
 		padding: 0.5em 0.5em 0;
+		margin: 0.25em 0;
 
 		:last-child {
-			margin-bottom: 0;
+			margin-bottom: 0.25em;
+		}
+
+		> div > h4 {
+			margin-bottom: 0.5em;
 		}
 	}
 
@@ -883,6 +889,7 @@
 		border-radius: var(--radius-md) var(--radius-md) 0 0;
 	}
 
+	/* really ugly way of selecting unopened nested details tags */
 	details[open] details:not([open]) summary {
 		border-bottom: 0;
 		margin: -0.5em -0.5em 0;
