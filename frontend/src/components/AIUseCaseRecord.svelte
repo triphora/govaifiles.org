@@ -229,18 +229,12 @@
 		});
 	}
 
-	function icrData(id: string): string {
+	function hasIcrInfo(id: string) {
 		let entries = icrs.filter((entry) => entry.referenceNumber === id);
 		if (entries.length === 1) {
-			let data = `<details><summary><b>${entries[0].agency}</b>: ${entries[0].title}</summary><ul>`;
-			data += `<li><a target="_blank" href="https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id}"><b>Full ICR Information</b> (${id})</a></li>`;
-			for (let doc of entries[0].supportingDocuments) {
-				data += `<li><a href="${doc.name}" target="_blank">${doc.url}</a></li>`;
-			}
-			data += '</ul></details>';
-			return data;
+			return entries[0];
 		} else {
-			return `<a target="_blank" href="https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id}">${id}</a>`;
+			return false;
 		}
 	}
 </script>
@@ -485,7 +479,34 @@
 							<h4>Links open in a new tab to the Office of Information and Regulatory Affairs website</h4>
 							{#each result.data_links.sort() as id}
 								{#if id.startsWith('pra')}
-									{@html icrData(id.substring(4))}
+									{#if hasIcrInfo(id.substring(4))}
+										<details>
+											<summary>
+												<b>{hasIcrInfo(id.substring(4)).agency}:</b> {hasIcrInfo(id.substring(4)).title}
+											</summary>
+											<ul>
+												<li>
+													<a target="_blank" href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
+														<b>Full ICR Information</b> ({id.substring(4)})
+													</a>
+												</li>
+												<li>
+													<b>Abstract:</b> {hasIcrInfo(id.substring(4)).abstract_.substring(0,500)}{
+														hasIcrInfo(id.substring(4)).abstract_.length > 500 ? '...' : ''}
+												</li>
+												<li><b>Supporting Documents:</b></li>
+												<ul>
+													{#each hasIcrInfo(id.substring(4)).supportingDocuments as doc}
+														<li><a href={doc.name} target="_blank">{doc.url}</a></li>
+													{/each}
+												</ul>
+											</ul>
+										</details>
+										{:else}
+										<a target="_blank" href={`https://www.reginfo.gov/public/do/PRAViewICR?ref_nbr=${id.substring(4)}`}>
+											{id.substring(4)}
+										</a>
+									{/if}
 								{/if}
 							{/each}
 						</div>
@@ -820,6 +841,16 @@
 		border-bottom: 1px solid var(--line-strong);
 		margin-bottom: 0.5em;
 		border-radius: var(--radius-md) var(--radius-md) 0 0;
+	}
+
+	details[open] details:not([open]) summary {
+		border-bottom: 0;
+		margin: -0.5em -0.5em 0;
+		border-radius: var(--radius-md);
+		padding: 0.5em;
+		&::marker {
+			content: "+ ";
+		}
 	}
 
 	details summary::marker {
