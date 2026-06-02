@@ -67,10 +67,102 @@ public class SystemsOfRecordsNotices extends TableImpl<SystemsOfRecordsNoticesRe
     public final TableField<SystemsOfRecordsNoticesRecord, String> SUMMARY = createField(DSL.name("summary"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column
-     * <code>public.systems_of_records_notices.system_name_and_number</code>.
+     * The column <code>public.systems_of_records_notices.fr_doc</code>.
      */
-    public final TableField<SystemsOfRecordsNoticesRecord, String> SYSTEM_NAME_AND_NUMBER = createField(DSL.name("system_name_and_number"), SQLDataType.CLOB, this, "");
+    public final TableField<SystemsOfRecordsNoticesRecord, String> FR_DOC = createField(DSL.name("fr_doc"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.sub_agency</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> SUB_AGENCY = createField(DSL.name("sub_agency"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.action</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> ACTION = createField(DSL.name("action"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.dates</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> DATES = createField(DSL.name("dates"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.contact</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> CONTACT = createField(DSL.name("contact"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column
+     * <code>public.systems_of_records_notices.security_classification</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> SECURITY_CLASSIFICATION = createField(DSL.name("security_classification"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column
+     * <code>public.systems_of_records_notices.system_location</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> SYSTEM_LOCATION = createField(DSL.name("system_location"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.system_manager</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> SYSTEM_MANAGER = createField(DSL.name("system_manager"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.authority</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> AUTHORITY = createField(DSL.name("authority"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.purpose</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> PURPOSE = createField(DSL.name("purpose"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column
+     * <code>public.systems_of_records_notices.categories_of_individuals</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> CATEGORIES_OF_INDIVIDUALS = createField(DSL.name("categories_of_individuals"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column
+     * <code>public.systems_of_records_notices.categories_of_records</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> CATEGORIES_OF_RECORDS = createField(DSL.name("categories_of_records"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column
+     * <code>public.systems_of_records_notices.record_source_categories</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> RECORD_SOURCE_CATEGORIES = createField(DSL.name("record_source_categories"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.routine_uses</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> ROUTINE_USES = createField(DSL.name("routine_uses"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column
+     * <code>public.systems_of_records_notices.retention_and_disposal</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> RETENTION_AND_DISPOSAL = createField(DSL.name("retention_and_disposal"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.systems_of_records_notices.safeguards</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> SAFEGUARDS = createField(DSL.name("safeguards"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column
+     * <code>public.systems_of_records_notices.access_procedures</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> ACCESS_PROCEDURES = createField(DSL.name("access_procedures"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column
+     * <code>public.systems_of_records_notices.contesting_procedures</code>.
+     */
+    public final TableField<SystemsOfRecordsNoticesRecord, String> CONTESTING_PROCEDURES = createField(DSL.name("contesting_procedures"), SQLDataType.CLOB, this, "");
 
     private SystemsOfRecordsNotices(Name alias, Table<SystemsOfRecordsNoticesRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);

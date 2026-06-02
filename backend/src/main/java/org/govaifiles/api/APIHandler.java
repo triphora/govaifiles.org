@@ -440,8 +440,8 @@ public class APIHandler implements CrudHandler {
 		List<InformationCollectionRequest> icrs = new ArrayList<>();
 		List<String> icrCandidates = new ArrayList<>();
 
-		List<String> sornCandidates = new ArrayList<>();
 		List<SystemsOfRecordsNotice> sorns = new ArrayList<>();
+		List<String> sornCandidates = new ArrayList<>();
 
 		try {
 			List<Node> nodes = new ArrayList<>();
@@ -516,24 +516,13 @@ public class APIHandler implements CrudHandler {
 						.fetchArray();
 
 				for (InformationCollectionRequestsRecord record : icrRecords) {
-					Set<SupportingDocument> supportingDocuments = new HashSet<>();
-					JsonArray elems = JsonParser.parseString(record.getSupportingDocuments().data())
-							.getAsJsonArray();
-					elems.forEach((entry) -> {
-						JsonObject obj = entry.getAsJsonObject();
-						String docUrl = obj.get("url").getAsString();
-						String docName = obj.get("name").getAsString();
-						String docType = obj.get("type").getAsString();
-						supportingDocuments.add(new SupportingDocument(docType, docName, docUrl));
-					});
-
 					icrs.add(
 							new InformationCollectionRequest(
 									record.getIcrReferenceNumber(),
 									record.getTitle(),
 									record.getAgency(),
 									record.getAbstract(),
-									supportingDocuments
+									JsonParser.parseString(record.getSupportingDocuments().data()).getAsJsonArray()
 							)
 					);
 				}
@@ -549,7 +538,9 @@ public class APIHandler implements CrudHandler {
 									record.getAgency(),
 									record.getSubject(),
 									record.getSummary(),
-									record.getSystemNameAndNumber()
+									record.getSubAgency(),
+									record.getCategoriesOfIndividuals(),
+									record.getCategoriesOfRecords()
 							)
 					);
 				}

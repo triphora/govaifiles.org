@@ -73,19 +73,271 @@ public class SystemsOfRecordsNoticesRecord extends TableRecordImpl<SystemsOfReco
     }
 
     /**
-     * Setter for
-     * <code>public.systems_of_records_notices.system_name_and_number</code>.
+     * Setter for <code>public.systems_of_records_notices.fr_doc</code>.
      */
-    public void setSystemNameAndNumber(String value) {
+    public void setFrDoc(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for
-     * <code>public.systems_of_records_notices.system_name_and_number</code>.
+     * Getter for <code>public.systems_of_records_notices.fr_doc</code>.
      */
-    public String getSystemNameAndNumber() {
+    public String getFrDoc() {
         return (String) get(4);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.sub_agency</code>.
+     */
+    public void setSubAgency(String value) {
+        set(5, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.sub_agency</code>.
+     */
+    public String getSubAgency() {
+        return (String) get(5);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.action</code>.
+     */
+    public void setAction(String value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.action</code>.
+     */
+    public String getAction() {
+        return (String) get(6);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.dates</code>.
+     */
+    public void setDates(String value) {
+        set(7, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.dates</code>.
+     */
+    public String getDates() {
+        return (String) get(7);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.contact</code>.
+     */
+    public void setContact(String value) {
+        set(8, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.contact</code>.
+     */
+    public String getContact() {
+        return (String) get(8);
+    }
+
+    /**
+     * Setter for
+     * <code>public.systems_of_records_notices.security_classification</code>.
+     */
+    public void setSecurityClassification(String value) {
+        set(9, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.systems_of_records_notices.security_classification</code>.
+     */
+    public String getSecurityClassification() {
+        return (String) get(9);
+    }
+
+    /**
+     * Setter for
+     * <code>public.systems_of_records_notices.system_location</code>.
+     */
+    public void setSystemLocation(String value) {
+        set(10, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.systems_of_records_notices.system_location</code>.
+     */
+    public String getSystemLocation() {
+        return (String) get(10);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.system_manager</code>.
+     */
+    public void setSystemManager(String value) {
+        set(11, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.system_manager</code>.
+     */
+    public String getSystemManager() {
+        return (String) get(11);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.authority</code>.
+     */
+    public void setAuthority(String value) {
+        set(12, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.authority</code>.
+     */
+    public String getAuthority() {
+        return (String) get(12);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.purpose</code>.
+     */
+    public void setPurpose(String value) {
+        set(13, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.purpose</code>.
+     */
+    public String getPurpose() {
+        return (String) get(13);
+    }
+
+    /**
+     * Setter for
+     * <code>public.systems_of_records_notices.categories_of_individuals</code>.
+     */
+    public void setCategoriesOfIndividuals(String value) {
+        set(14, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.systems_of_records_notices.categories_of_individuals</code>.
+     */
+    public String getCategoriesOfIndividuals() {
+        return (String) get(14);
+    }
+
+    /**
+     * Setter for
+     * <code>public.systems_of_records_notices.categories_of_records</code>.
+     */
+    public void setCategoriesOfRecords(String value) {
+        set(15, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.systems_of_records_notices.categories_of_records</code>.
+     */
+    public String getCategoriesOfRecords() {
+        return (String) get(15);
+    }
+
+    /**
+     * Setter for
+     * <code>public.systems_of_records_notices.record_source_categories</code>.
+     */
+    public void setRecordSourceCategories(String value) {
+        set(16, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.systems_of_records_notices.record_source_categories</code>.
+     */
+    public String getRecordSourceCategories() {
+        return (String) get(16);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.routine_uses</code>.
+     */
+    public void setRoutineUses(String value) {
+        set(17, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.routine_uses</code>.
+     */
+    public String getRoutineUses() {
+        return (String) get(17);
+    }
+
+    /**
+     * Setter for
+     * <code>public.systems_of_records_notices.retention_and_disposal</code>.
+     */
+    public void setRetentionAndDisposal(String value) {
+        set(18, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.systems_of_records_notices.retention_and_disposal</code>.
+     */
+    public String getRetentionAndDisposal() {
+        return (String) get(18);
+    }
+
+    /**
+     * Setter for <code>public.systems_of_records_notices.safeguards</code>.
+     */
+    public void setSafeguards(String value) {
+        set(19, value);
+    }
+
+    /**
+     * Getter for <code>public.systems_of_records_notices.safeguards</code>.
+     */
+    public String getSafeguards() {
+        return (String) get(19);
+    }
+
+    /**
+     * Setter for
+     * <code>public.systems_of_records_notices.access_procedures</code>.
+     */
+    public void setAccessProcedures(String value) {
+        set(20, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.systems_of_records_notices.access_procedures</code>.
+     */
+    public String getAccessProcedures() {
+        return (String) get(20);
+    }
+
+    /**
+     * Setter for
+     * <code>public.systems_of_records_notices.contesting_procedures</code>.
+     */
+    public void setContestingProcedures(String value) {
+        set(21, value);
+    }
+
+    /**
+     * Getter for
+     * <code>public.systems_of_records_notices.contesting_procedures</code>.
+     */
+    public String getContestingProcedures() {
+        return (String) get(21);
     }
 
     // -------------------------------------------------------------------------
@@ -102,14 +354,31 @@ public class SystemsOfRecordsNoticesRecord extends TableRecordImpl<SystemsOfReco
     /**
      * Create a detached, initialised SystemsOfRecordsNoticesRecord
      */
-    public SystemsOfRecordsNoticesRecord(String referenceId, String agency, String subject, String summary, String systemNameAndNumber) {
+    public SystemsOfRecordsNoticesRecord(String referenceId, String agency, String subject, String summary, String frDoc, String subAgency, String action, String dates, String contact, String securityClassification, String systemLocation, String systemManager, String authority, String purpose, String categoriesOfIndividuals, String categoriesOfRecords, String recordSourceCategories, String routineUses, String retentionAndDisposal, String safeguards, String accessProcedures, String contestingProcedures) {
         super(SystemsOfRecordsNotices.SYSTEMS_OF_RECORDS_NOTICES);
 
         setReferenceId(referenceId);
         setAgency(agency);
         setSubject(subject);
         setSummary(summary);
-        setSystemNameAndNumber(systemNameAndNumber);
+        setFrDoc(frDoc);
+        setSubAgency(subAgency);
+        setAction(action);
+        setDates(dates);
+        setContact(contact);
+        setSecurityClassification(securityClassification);
+        setSystemLocation(systemLocation);
+        setSystemManager(systemManager);
+        setAuthority(authority);
+        setPurpose(purpose);
+        setCategoriesOfIndividuals(categoriesOfIndividuals);
+        setCategoriesOfRecords(categoriesOfRecords);
+        setRecordSourceCategories(recordSourceCategories);
+        setRoutineUses(routineUses);
+        setRetentionAndDisposal(retentionAndDisposal);
+        setSafeguards(safeguards);
+        setAccessProcedures(accessProcedures);
+        setContestingProcedures(contestingProcedures);
         resetTouchedOnNotNull();
     }
 }

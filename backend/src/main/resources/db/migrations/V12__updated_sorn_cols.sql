@@ -1,0 +1,20 @@
+ALTER TABLE systems_of_records_notices DROP COLUMN system_name_and_number;
+
+ALTER TABLE systems_of_records_notices ADD COLUMN fr_doc TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN sub_agency TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN action TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN dates TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN contact TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN security_classification TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN system_location TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN system_manager TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN authority TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN purpose TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN categories_of_individuals TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN categories_of_records TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN record_source_categories TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN routine_uses TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN retention_and_disposal TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN safeguards TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN access_procedures TEXT;
+ALTER TABLE systems_of_records_notices ADD COLUMN contesting_procedures TEXT;

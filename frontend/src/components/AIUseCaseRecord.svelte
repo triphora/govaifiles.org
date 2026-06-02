@@ -247,6 +247,20 @@
 			return false;
 		}
 	}
+
+	function formatAgency(name: string): string {
+		name = name.toLowerCase();
+		let newName = "";
+		for (let word of name.split(" ")) {
+			if (["of", "the"].includes(word)) {
+				newName += word;
+			} else {
+				newName += word.substring(0,1).toUpperCase() + word.substring(1);
+			}
+			newName += " ";
+		}
+		return newName.substring(0, newName.length - 1);
+	}
 </script>
 
 <article id={anchorId} class:expanded class="record-card">
@@ -470,12 +484,14 @@
 									{#if hasSornInfo(id.substring(5))}
 										<details>
 											<summary>
-												<b>{hasSornInfo(id.substring(5)).systemNameAndNumber.replace("â", '"')}</b>
+												<b>{formatAgency(hasSornInfo(id.substring(5)).agency)}{hasSornInfo(id.substring(5)).subAgency ? ", " + hasSornInfo(id.substring(5)).subAgency : ''}:</b> {hasSornInfo(id.substring(5)).subject}
 											</summary>
 											<a target="_blank" href={`https://www.federalregister.gov/d/${id.substring(5)}`}>
 												<b>Click to see full SORN information</b> (ID: {id.substring(5)})
 											</a>
-											<p><b>Summary:</b> {hasSornInfo(id.substring(5)).summary.replace("â", '"')}</p>
+											<p><b>Summary:</b> {hasSornInfo(id.substring(5)).summary.replaceAll("â", '"')}</p>
+											<p><b>Categories of Individuals:</b> {hasSornInfo(id.substring(5)).categoriesOfIndividuals.replaceAll("â", '"')}</p>
+											<p><b>Categories of Records:</b> {hasSornInfo(id.substring(5)).categoriesOfRecords.replaceAll("â", '"')}</p>
 										</details>
 									{:else}
 										<a target="_blank" href={`https://www.federalregister.gov/d/${id.substring(5)}`}>
@@ -514,7 +530,11 @@
 											<p><b>Supporting Documents:</b></p>
 											<ul>
 												{#each hasIcrInfo(id.substring(4)).supportingDocuments as doc}
-													<li><a href={doc.name} target="_blank">{doc.url}</a></li>
+													{#if doc.url}
+														<li><a href={doc.url} target="_blank">{doc.document_name}</a></li>
+														{:else}
+														<li>{doc.document_name}</li>
+													{/if}
 												{/each}
 											</ul>
 										</details>
@@ -840,6 +860,10 @@
 		border: 1px solid var(--line-strong);
 		border-radius: var(--radius-md);
 		padding: 0.5em 0.5em 0;
+
+		:last-child {
+			margin-bottom: 0;
+		}
 	}
 
 	summary {

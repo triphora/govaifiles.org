@@ -39,7 +39,11 @@ public class Main {
 		Dotenv env = Dotenv.load();
 
 		addInformationCollectionRequestEntries(
-				env.get("DATA_ICR_PATH", "../sample_data/icr/"),
+				env.get("DATA_ICR_PATH", "../linked_data/icr/"),
+				env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
+
+		addSystemOfRecordsNoticeEntries(
+				env.get("DATA_SORN_PATH", "../linked_data/sorn"),
 				env.get("POSTGRES_URL"), env.get("POSTGRES_USER"), env.get("POSTGRES_PASSWORD"));
 
 		addDataLinks(
@@ -64,7 +68,7 @@ public class Main {
 		}).start(Integer.parseInt(env.get("BACKEND_PORT", "7070")));
 	}
 
-	static boolean isTaskCompleted(String taskName, String url, String user, String password) throws SQLException {
+	private static boolean isTaskCompleted(String taskName, String url, String user, String password) throws SQLException {
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
@@ -75,7 +79,7 @@ public class Main {
 		}
 	}
 
-	static void completeTask(String taskName, String url, String user, String password) throws SQLException {
+	private static void completeTask(String taskName, String url, String user, String password) throws SQLException {
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
@@ -84,7 +88,16 @@ public class Main {
 		}
 	}
 
-	static void addInformationCollectionRequestEntries(String icrDataPath,
+	private static String getString(JsonObject object, String field) {
+		var element = object.get(field);
+		if (element instanceof JsonNull) {
+			return null;
+		} else {
+			return element.getAsString();
+		}
+	}
+
+	private static void addInformationCollectionRequestEntries(String icrDataPath,
 													   String url, String user, String password) throws Exception {
 		if (isTaskCompleted("add_icr_entries", url, user, password)) {
 			return;
@@ -92,7 +105,7 @@ public class Main {
 
 		File[] files = Path.of(icrDataPath).toFile().listFiles();
 		if (files == null) {
-			throw new RuntimeException("No ICR files could be found!");
+			throw new RuntimeException("No ICR file could be found!");
 		}
 
 		JsonArray entries = new JsonArray();
@@ -101,48 +114,35 @@ public class Main {
 			entries.addAll(element.getAsJsonArray());
 		}
 
-		Set<InformationCollectionRequest> icrs = new HashSet<>();
+		Set<JsonObject> icrs = new HashSet<>();
 
 		entries.forEach((entry) -> {
-			JsonElement icrElem = entry.getAsJsonObject().get("information_collection_request");
-			if (icrElem == null) return;
-
-			JsonObject icr = icrElem.getAsJsonObject();
-			JsonObject id = icr.get("identification").getAsJsonObject();
-
-			String referenceNumber = id.get("icr_reference_number").getAsString();
-			String title = id.get("title").getAsString();
-			String agency = id.get("agency").getAsString();
-			String abstract_ = icr.get("abstract").getAsString();
-
-			JsonArray supportingDocumentsJson = icr.get("supporting_documents").getAsJsonArray();
-			Set<SupportingDocument> supportingDocuments = new HashSet<>();
-
-			supportingDocumentsJson.forEach((document) -> {
-				JsonObject doc = document.getAsJsonObject();
-				String type = doc.get("type").getAsString();
-				String docUrl = doc.get("url").getAsString();
-				String filename = doc.get("filename").getAsString();
-				supportingDocuments.add(new SupportingDocument(type, docUrl, filename));
-			});
-
-			icrs.add(new InformationCollectionRequest(referenceNumber, title, agency, abstract_, supportingDocuments));
+			JsonObject icr = entry.getAsJsonObject();
+			if (icr != null) icrs.add(icr);
 		});
 
 		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
 			DSLContext ctx = DSL.using(conn);
 
 			ctx.transaction((trx) -> {
-				for (InformationCollectionRequest icr : icrs) {
-					JSONB jsonb = JSONB.jsonb(new Gson().toJson(icr.supportingDocuments()));
-					trx.dsl().insertInto(INFORMATION_COLLECTION_REQUESTS,
-							INFORMATION_COLLECTION_REQUESTS.ICR_REFERENCE_NUMBER,
-							INFORMATION_COLLECTION_REQUESTS.TITLE,
-							INFORMATION_COLLECTION_REQUESTS.AGENCY,
-							INFORMATION_COLLECTION_REQUESTS.ABSTRACT,
-							INFORMATION_COLLECTION_REQUESTS.SUPPORTING_DOCUMENTS)
-									.values(icr.referenceNumber(), icr.title(), icr.agency(), icr.abstract_(), jsonb)
-											.execute();
+				for (JsonObject icr : icrs) {
+					JSONB jsonb = JSONB.jsonb(new Gson().toJson(icr.getAsJsonArray("supporting_documents")));
+					trx.dsl().insertInto(
+								INFORMATION_COLLECTION_REQUESTS,
+								INFORMATION_COLLECTION_REQUESTS.ICR_REFERENCE_NUMBER,
+								INFORMATION_COLLECTION_REQUESTS.TITLE,
+								INFORMATION_COLLECTION_REQUESTS.AGENCY,
+								INFORMATION_COLLECTION_REQUESTS.ABSTRACT,
+								INFORMATION_COLLECTION_REQUESTS.SUPPORTING_DOCUMENTS
+							)
+							.values(
+									getString(icr, "icr_reference_number"),
+									getString(icr, "title"),
+									getString(icr, "agency"),
+									getString(icr, "abstract"),
+									jsonb
+							)
+							.execute();
 				}
 			});
 		}
@@ -150,7 +150,93 @@ public class Main {
 		completeTask("add_icr_entries", url, user, password);
 	}
 
-	static void addDataLinks(String acceptedLinksFile,
+	private static void addSystemOfRecordsNoticeEntries(String sornDataPath,
+	                                            String url, String user, String password) throws Exception {
+		if (isTaskCompleted("add_sorn_entries", url, user, password)) {
+			return;
+		}
+
+		File[] files = Path.of(sornDataPath).toFile().listFiles();
+		if (files == null) {
+			throw new RuntimeException("No SORN file could be found!");
+		}
+
+		JsonArray entries = new JsonArray();
+		for (File file : files) {
+			JsonElement element = JsonParser.parseReader(new FileReader(file));
+			entries.addAll(element.getAsJsonArray());
+		}
+
+		Set<JsonObject> sorns = new HashSet<>();
+
+		entries.forEach((entry) -> {
+			JsonObject sorn = entry.getAsJsonObject();
+			if (sorn != null) sorns.add(sorn);
+		});
+
+		try (Connection conn = DriverManager.getConnection("jdbc:" + url, user, password)) {
+			DSLContext ctx = DSL.using(conn);
+
+			ctx.transaction((trx) -> {
+				for (JsonObject sorn : sorns) {
+					trx.dsl().insertInto(
+								SYSTEMS_OF_RECORDS_NOTICES,
+								SYSTEMS_OF_RECORDS_NOTICES.REFERENCE_ID,
+								SYSTEMS_OF_RECORDS_NOTICES.AGENCY,
+								SYSTEMS_OF_RECORDS_NOTICES.SUBJECT,
+								SYSTEMS_OF_RECORDS_NOTICES.SUMMARY,
+								SYSTEMS_OF_RECORDS_NOTICES.FR_DOC,
+								SYSTEMS_OF_RECORDS_NOTICES.SUB_AGENCY,
+								SYSTEMS_OF_RECORDS_NOTICES.ACTION,
+								SYSTEMS_OF_RECORDS_NOTICES.DATES,
+								SYSTEMS_OF_RECORDS_NOTICES.CONTACT,
+								SYSTEMS_OF_RECORDS_NOTICES.SECURITY_CLASSIFICATION,
+								SYSTEMS_OF_RECORDS_NOTICES.SYSTEM_LOCATION,
+								SYSTEMS_OF_RECORDS_NOTICES.SYSTEM_MANAGER,
+								SYSTEMS_OF_RECORDS_NOTICES.AUTHORITY,
+								SYSTEMS_OF_RECORDS_NOTICES.PURPOSE,
+								SYSTEMS_OF_RECORDS_NOTICES.CATEGORIES_OF_INDIVIDUALS,
+								SYSTEMS_OF_RECORDS_NOTICES.CATEGORIES_OF_RECORDS,
+								SYSTEMS_OF_RECORDS_NOTICES.RECORD_SOURCE_CATEGORIES,
+								SYSTEMS_OF_RECORDS_NOTICES.ROUTINE_USES,
+								SYSTEMS_OF_RECORDS_NOTICES.RETENTION_AND_DISPOSAL,
+								SYSTEMS_OF_RECORDS_NOTICES.SAFEGUARDS,
+								SYSTEMS_OF_RECORDS_NOTICES.ACCESS_PROCEDURES,
+								SYSTEMS_OF_RECORDS_NOTICES.CONTESTING_PROCEDURES
+							)
+							.values(
+								getString(sorn, "doc_id"),
+								getString(sorn, "agency_name"),
+								getString(sorn, "subject"),
+								getString(sorn, "summary"),
+								getString(sorn, "fr_doc"),
+								getString(sorn, "sub_agency"),
+								getString(sorn, "action"),
+								getString(sorn, "dates"),
+								getString(sorn, "contact"),
+								getString(sorn, "security_classification"),
+								getString(sorn, "system_location"),
+								getString(sorn, "system_manager"),
+								getString(sorn, "authority"),
+								getString(sorn, "purpose"),
+								getString(sorn, "categories_of_individuals"),
+								getString(sorn, "categories_of_records"),
+								getString(sorn, "record_source_categories"),
+								getString(sorn, "routine_uses"),
+								getString(sorn, "retention_and_disposal"),
+								getString(sorn, "safeguards"),
+								getString(sorn, "access_procedures"),
+								getString(sorn, "contesting_procedures")
+							)
+							.execute();
+				}
+			});
+		}
+
+		completeTask("add_sorn_entries", url, user, password);
+	}
+
+	private static void addDataLinks(String acceptedLinksFile,
 							 String url, String user, String password) throws Exception {
 		if (isTaskCompleted("add_data_links", url, user, password)) {
 			return;
@@ -181,7 +267,7 @@ public class Main {
 		completeTask("add_data_links", url, user, password);
 	}
 
-	static void addPairs(Map<String, Set<String>> pairs, String[] entry) {
+	private static void addPairs(Map<String, Set<String>> pairs, String[] entry) {
 		// source_id,target_id,pair,similarity,confidence,score_band,flags,explanation,custom_id
 		// or
 		// source_id,target_id,pair,similarity,confidence,score_band,flags,explanation,custom_id,link_type
@@ -200,7 +286,7 @@ public class Main {
 		}
 	}
 
-	static void searchSetup(String apiKey, String url, String user, String password,
+	private static void searchSetup(String apiKey, String url, String user, String password,
 							String typesenseProtocol, String typesenseHost, String typesensePort) throws Exception {
 		List<Node> nodes = new ArrayList<>();
 
