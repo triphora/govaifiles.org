@@ -11,6 +11,7 @@ import org.govaifiles.api.generated.db.tables.AiUseCases;
 import org.govaifiles.api.generated.db.tables.CompletedTasks;
 import org.govaifiles.api.generated.db.tables.FlywaySchemaHistory;
 import org.govaifiles.api.generated.db.tables.InformationCollectionRequests;
+import org.govaifiles.api.generated.db.tables.SystemsOfRecordsNotices;
 import org.jooq.Catalog;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
@@ -51,6 +52,11 @@ public class Public extends SchemaImpl {
     public final InformationCollectionRequests INFORMATION_COLLECTION_REQUESTS = InformationCollectionRequests.INFORMATION_COLLECTION_REQUESTS;
 
     /**
+     * The table <code>public.systems_of_records_notices</code>.
+     */
+    public final SystemsOfRecordsNotices SYSTEMS_OF_RECORDS_NOTICES = SystemsOfRecordsNotices.SYSTEMS_OF_RECORDS_NOTICES;
+
+    /**
      * No further instances allowed
      */
     private Public() {
@@ -69,7 +75,8 @@ public class Public extends SchemaImpl {
             AiUseCases.AI_USE_CASES,
             CompletedTasks.COMPLETED_TASKS,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
-            InformationCollectionRequests.INFORMATION_COLLECTION_REQUESTS
+            InformationCollectionRequests.INFORMATION_COLLECTION_REQUESTS,
+            SystemsOfRecordsNotices.SYSTEMS_OF_RECORDS_NOTICES
         );
     }
 }

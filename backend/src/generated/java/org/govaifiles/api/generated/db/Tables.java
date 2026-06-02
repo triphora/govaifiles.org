@@ -8,6 +8,7 @@ import org.govaifiles.api.generated.db.tables.AiUseCases;
 import org.govaifiles.api.generated.db.tables.CompletedTasks;
 import org.govaifiles.api.generated.db.tables.FlywaySchemaHistory;
 import org.govaifiles.api.generated.db.tables.InformationCollectionRequests;
+import org.govaifiles.api.generated.db.tables.SystemsOfRecordsNotices;
 
 
 /**
@@ -35,4 +36,9 @@ public class Tables {
      * The table <code>public.information_collection_requests</code>.
      */
     public static final InformationCollectionRequests INFORMATION_COLLECTION_REQUESTS = InformationCollectionRequests.INFORMATION_COLLECTION_REQUESTS;
+
+    /**
+     * The table <code>public.systems_of_records_notices</code>.
+     */
+    public static final SystemsOfRecordsNotices SYSTEMS_OF_RECORDS_NOTICES = SystemsOfRecordsNotices.SYSTEMS_OF_RECORDS_NOTICES;
 }

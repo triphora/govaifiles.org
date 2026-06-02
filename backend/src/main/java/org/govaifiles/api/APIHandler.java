@@ -6,6 +6,7 @@ import io.javalin.apibuilder.CrudHandler;
 import io.javalin.http.Context;
 import io.javalin.http.NotImplementedResponse;
 import org.govaifiles.api.generated.db.tables.records.InformationCollectionRequestsRecord;
+import org.govaifiles.api.generated.db.tables.records.SystemsOfRecordsNoticesRecord;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.govaifiles.api.generated.db.Tables.INFORMATION_COLLECTION_REQUESTS;
+import static org.govaifiles.api.generated.db.Tables.SYSTEMS_OF_RECORDS_NOTICES;
 
 public class APIHandler implements CrudHandler {
 	private static final String BLANK_IMPACT_VALUE = "__blank__";
@@ -67,8 +69,9 @@ public class APIHandler implements CrudHandler {
 	                                  Map<String, Map<String, List<String>>> requestValueMappings) {
 	}
 
-	private record SearchResponse (List<JsonObject> hits, Map<String, Map<String, Integer>> facets,
-								   Integer found, List<InformationCollectionRequest> icrs) {
+	private record SearchResponse(List<JsonObject> hits, Map<String, Map<String, Integer>> facets, Integer found,
+								  List<InformationCollectionRequest> icrs,
+								  List<SystemsOfRecordsNotice> sorns) {
 	}
 
 	private record Error (String error, String description) {}
@@ -433,8 +436,12 @@ public class APIHandler implements CrudHandler {
 		ArrayList<JsonObject> hits = new ArrayList<>();
 		Map<String, Map<String, Integer>> facets = new LinkedHashMap<>();
 		Integer found = 0;
+
 		List<InformationCollectionRequest> icrs = new ArrayList<>();
 		List<String> icrCandidates = new ArrayList<>();
+
+		List<String> sornCandidates = new ArrayList<>();
+		List<SystemsOfRecordsNotice> sorns = new ArrayList<>();
 
 		try {
 			List<Node> nodes = new ArrayList<>();
@@ -488,6 +495,8 @@ public class APIHandler implements CrudHandler {
 							String id = elem.getAsString();
 							if (id.startsWith("pra:")) {
 								icrCandidates.add(elem.getAsString().substring(4));
+							} else if (id.startsWith("sorn:")) {
+								sornCandidates.add(elem.getAsString().substring(5));
 							}
 						}
 					}
@@ -529,6 +538,22 @@ public class APIHandler implements CrudHandler {
 					);
 				}
 
+				SystemsOfRecordsNoticesRecord[] sornRecords = db.selectFrom(SYSTEMS_OF_RECORDS_NOTICES)
+						.where(SYSTEMS_OF_RECORDS_NOTICES.REFERENCE_ID.in(sornCandidates))
+						.fetchArray();
+
+				for (SystemsOfRecordsNoticesRecord record : sornRecords) {
+					sorns.add(
+							new SystemsOfRecordsNotice(
+									record.getReferenceId(),
+									record.getAgency(),
+									record.getSubject(),
+									record.getSummary(),
+									record.getSystemNameAndNumber()
+							)
+					);
+				}
+
 			} catch (SQLException e) {
 				ctx.contentType("application/json");
 				ctx.status(400).result(GSON.toJson(new Error("sql_exception", e.getMessage())));
@@ -544,7 +569,7 @@ public class APIHandler implements CrudHandler {
 		}
 
 		ctx.contentType("application/json");
-		ctx.result(GSON.toJson(new SearchResponse(hits, facets, found, icrs)));
+		ctx.result(GSON.toJson(new SearchResponse(hits, facets, found, icrs, sorns)));
 	}
 
 	@Override
