@@ -479,7 +479,7 @@
 						</summary>
 						<div class="record-key-value">
 							<h4>Links open in a new tab to the Federal Register website</h4>
-							{#each result.data_links.sort() as id}
+							{#each result.data_links.sort().reverse() as id}
 								{#if id.startsWith('sorn')}
 									{#if hasSornInfo(id.substring(5))}
 										<details>
@@ -512,7 +512,7 @@
 						</summary>
 						<div class="record-key-value">
 							<h4>Links open in a new tab to the Office of Information and Regulatory Affairs website</h4>
-							{#each result.data_links.sort() as id}
+							{#each result.data_links.sort().reverse() as id}
 								{#if id.startsWith('pra')}
 									{#if hasIcrInfo(id.substring(4))}
 										<details>
