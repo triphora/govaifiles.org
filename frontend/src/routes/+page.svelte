@@ -958,7 +958,17 @@
 									>
 								<span class="checkbox-label">Select All</span>
 							</button>
-								<!-- TODO add "All Cabinet Agencies" entry -->
+								<button
+									type="button"
+									class:checked={isAllSelected('agency', visibleAgencyFilterOptions.filter((value)=>value && value.startsWith("Department of")))}
+									class="checkbox-item"
+									on:click={() => toggleAllFilterValues('agency', visibleAgencyFilterOptions.filter((value)=>value && value.startsWith("Department of")))}
+							>
+									<span class="checkbox-mark"
+									>{isAllSelected('agency', visibleAgencyFilterOptions.filter((value)=>value && value.startsWith("Department of"))) ? '✓' : ''}</span
+									>
+								<span class="checkbox-label">Select All Cabinet Agencies</span>
+							</button>
 								{#each visibleAgencyFilterOptions as agency (agency)}
 									<button
 										type="button"
