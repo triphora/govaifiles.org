@@ -63,5 +63,5 @@ CREATE TABLE ai_use_cases (
     needs_manual_review BOOL
 );
 
-COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_2025_20260612_093333.csv' DELIMITER ',' CSV HEADER;
+COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_2025_20260612_115712.csv' DELIMITER ',' CSV HEADER;
 COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_2024_20260505_100358.csv' DELIMITER ',' CSV HEADER;

@@ -213,8 +213,7 @@
 	}
 
 	function agencyLabel() {
-		let bureau = result.bureau_component;
-		bureau = bureau.replace("Department of Justice /", "")
+		let bureau = result.canonical_sub_agency || result.bureau_component;
 
 		return [result.agency, bureau].filter(Boolean).join(' · ');
 	}

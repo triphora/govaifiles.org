@@ -1,0 +1,1 @@
+DELETE FROM ai_use_cases WHERE use_case_id is null and use_case_name is null;
