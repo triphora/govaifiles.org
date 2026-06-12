@@ -128,20 +128,12 @@
 	const emptyStateMessages: EmptyStateMap = {
 		'Department of Defense':
 			'The Department of Defense is exempt from submitting an AI Use Case Inventory for intelligence reasons.',
-		'Department of Education':
-			'We are currently working on adding the Department of Education entries to our dataset.',
-		'Department of Housing and Urban Development':
-			'We are currently working on adding the Department of Housing and Urban Development entries to our dataset.',
 		'Consumer Financial Protection Bureau':
 			'The Consumer Financial Protection Bureau has no reported AI use cases in 2025.',
-		'National Transportation Safety Board':
-			'We are currently working on adding the National Transportation Safety Board entries to our dataset.',
-		'Social Security Administration':
-			'We are currently working on adding the Social Security Administration entries to our dataset.',
 		'United States Agency for International Development':
 			'The United States Agency for International Development has not published a 2025 AI Use Case Inventory. The agency is defunct as of February 2025.',
 		'Presidio Trust':
-			'The Presidio Trust has not published a 2025 AI Use Case Inventory.',
+			'The Presidio Trust did not publish a 2025 AI Use Case Inventory.',
 		'United States Agency for Global Media':
 			'The United States Agency for Global Media has not published a 2025 AI Use Case Inventory.',
 		'United States Commission on Civil Rights':

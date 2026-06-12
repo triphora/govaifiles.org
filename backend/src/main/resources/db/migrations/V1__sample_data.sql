@@ -5,10 +5,8 @@ CREATE TYPE high_impact_status AS ENUM ('high_impact', 'not_high_impact', 'presu
 CREATE TYPE rights_safety_impact_type AS ENUM ('both', 'neither', 'rights_impacting', 'safety_impacting');
 CREATE TYPE development_source_type AS ENUM ('contract', 'in_house', 'vendor', 'mixed');
 CREATE TYPE high_impact_field AS ENUM ('yes', 'not_applicable', 'in_progress', 'caio_waived', 'no');
--- TODO messaged Emma about - should not have `not_applicable`
 CREATE TYPE independent_review_conducted AS ENUM ('yes', 'yes_internal', 'yes_oversight_board', 'yes_caio',
     'in_progress', 'caio_waived', 'no', 'not_applicable');
--- TODO messaged Emma about - should not have `yes_oversight_board`
 CREATE TYPE ongoing_monitoring_established AS ENUM ('yes', 'yes_oversight_board', 'in_progress', 'caio_waived', 'no');
 CREATE TYPE appeal_process_available AS ENUM ('yes', 'not_applicable', 'in_progress', 'precluded_by_law', 'caio_waived', 'no');
 CREATE TYPE validation_status AS ENUM ('ok', 'warning', 'error');
@@ -65,5 +63,5 @@ CREATE TABLE ai_use_cases (
     needs_manual_review BOOL
 );
 
-COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_2025_20260430_142018.csv' DELIMITER ',' CSV HEADER;
+COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_2025_20260612_093333.csv' DELIMITER ',' CSV HEADER;
 COPY ai_use_cases FROM '/var/lib/postgresql/import/ai_inventory_2024_20260505_100358.csv' DELIMITER ',' CSV HEADER;
