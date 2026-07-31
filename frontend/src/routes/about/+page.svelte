@@ -10,6 +10,10 @@
 
 	<p>The initial data gets published by each individual agency on their own website. The <a href="https://github.com/ombegov" target="_blank">Office of the Federal Chief Information Officer</a> then consolidates the information into a single file. We perform our own merging of this data in order to standardize responses across years and across agencies.</p>
 
+	<h2>Paper</h2>
+
+	<p style="padding-left: 1em; text-indent: -1em">Emma Lurie, Emma Fauser, Qing He, Danaé Metaxa, and Sorelle A. Friedler. Triangulating Across U.S. Federal AI Transparency Regimes. In <i>Proceedings of the Ninth AAAI/ACM Conference on AI, Ethics, and Society (AIES)</i>, 2026.</p>
+
 	<h2>About us</h2>
 
 	<p><strong>Contact us by email:</strong> <i>gov-ai-files (at) seas.upenn.edu</i></p>
